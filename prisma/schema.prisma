@@ -1,0 +1,244 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  PROJECT_MANAGER
+  DEVELOPER
+  DESIGNER
+  SALES
+  MARKETING
+  SUPPORT
+  FINANCE
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+
+enum ActivityAction {
+  LOGIN
+  LOGOUT
+  USER_CREATED
+  USER_UPDATED
+  USER_DEACTIVATED
+  USER_ACTIVATED
+  COMPANY_UPDATED
+  NOTIFICATION_READ
+  NOTIFICATIONS_READ_ALL
+  FILE_UPLOADED
+  CLIENT_CREATED
+  CLIENT_UPDATED
+  CLIENT_ARCHIVED
+  CLIENT_RESTORED
+}
+
+model Company {
+  id       String   @id @default(cuid())
+  name     String
+  slug     String   @unique
+  email    String?
+  phone    String?
+  website  String?
+  logoUrl  String?
+  address  String?
+  country  String   @default("Jordan")
+  currency String   @default("JOD")
+  timezone String   @default("Asia/Amman")
+  language String   @default("ar")
+  clients  Client[]
+
+  users         User[]
+  sessions      Session[]
+  activities    ActivityLog[]
+  notifications Notification[]
+  files         File[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(DEVELOPER)
+  isActive     Boolean  @default(true)
+
+  lastLoginAt DateTime?
+
+  sessions      Session[]
+  activities    ActivityLog[]
+  notifications Notification[]
+  uploadedFiles File[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([role])
+  @@index([isActive])
+}
+
+model Session {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash String  @unique
+  isActive  Boolean @default(true)
+
+  ipAddress String?
+  userAgent String?
+
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([userId])
+  @@index([isActive])
+  @@index([expiresAt])
+}
+
+model ActivityLog {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  action     ActivityAction
+  entityType String?
+  entityId   String?
+  message    String?
+  metadata   Json?
+
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title   String
+  message String
+  type    NotificationType @default(INFO)
+  isRead  Boolean          @default(false)
+
+  entityType String?
+  entityId   String?
+
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  @@index([companyId])
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model File {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  uploadedById String?
+  uploadedBy   User?   @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  name     String
+  url      String
+  mimeType String?
+  size     Int?
+
+  entityType String?
+  entityId   String?
+
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+  @@index([uploadedById])
+  @@index([entityType, entityId])
+}
+
+model Client {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  name    String
+  email   String?
+  phone   String?
+  website String?
+
+  type   ClientType   @default(COMPANY)
+  status ClientStatus @default(LEAD)
+  source LeadSource   @default(OTHER)
+
+  industry String?
+  country  String?
+  city     String?
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([status])
+  @@index([type])
+  @@index([source])
+  @@index([createdAt])
+}
+
+enum ClientType {
+  COMPANY
+  INDIVIDUAL
+}
+
+enum ClientStatus {
+  LEAD
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum LeadSource {
+  WEBSITE
+  FACEBOOK
+  INSTAGRAM
+  WHATSAPP
+  REFERRAL
+  DIRECT
+  OTHER
+}

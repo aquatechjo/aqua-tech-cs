@@ -1,0 +1,291 @@
+import { ActivityAction } from "@/generated/prisma/enums";
+import AquaPagination from "@/components/aqua/AquaPagination";
+import AquaPageHeader from "@/components/layout/AquaPageHeader";
+import { requireAuth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+
+const PAGE_SIZE = 20;
+
+function actionLabel(action: ActivityAction) {
+  const labels: Record<ActivityAction, string> = {
+    LOGIN: "تسجيل دخول",
+    LOGOUT: "تسجيل خروج",
+
+    USER_CREATED: "إضافة موظف",
+    USER_UPDATED: "تعديل موظف",
+    USER_DEACTIVATED: "تعطيل موظف",
+    USER_ACTIVATED: "تفعيل موظف",
+
+    CLIENT_CREATED: "إضافة عميل",
+    CLIENT_UPDATED: "تعديل عميل",
+    CLIENT_ARCHIVED: "أرشفة عميل",
+    CLIENT_RESTORED: "استرجاع عميل",
+
+    COMPANY_UPDATED: "تعديل بيانات الشركة",
+
+    NOTIFICATION_READ: "قراءة تنبيه",
+    NOTIFICATIONS_READ_ALL: "قراءة كل التنبيهات",
+
+    FILE_UPLOADED: "رفع ملف",
+  };
+
+  return labels[action] ?? action;
+}
+
+function actionBadgeClass(action: ActivityAction) {
+  if (
+    action === "LOGIN" ||
+    action === "USER_ACTIVATED" ||
+    action === "CLIENT_RESTORED"
+  ) {
+    return "text-bg-success";
+  }
+
+  if (action === "USER_DEACTIVATED" || action === "CLIENT_ARCHIVED") {
+    return "text-bg-danger";
+  }
+
+  if (action === "USER_CREATED" || action === "CLIENT_CREATED") {
+    return "text-bg-info";
+  }
+
+  if (action === "LOGOUT") {
+    return "text-bg-secondary";
+  }
+
+  return "text-bg-primary";
+}
+
+function parsePage(value: string | undefined) {
+  const page = Number(value);
+
+  if (!Number.isFinite(page) || page < 1) {
+    return 1;
+  }
+
+  return Math.floor(page);
+}
+
+export default async function ActivityPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const user = await requireAuth();
+  const resolvedSearchParams = await searchParams;
+
+  const requestedPage = parsePage(resolvedSearchParams.page);
+
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+  const [totalActivities, todayActivities, loginCount, teamChanges] =
+    await Promise.all([
+      prisma.activityLog.count({
+        where: {
+          companyId: user.companyId,
+        },
+      }),
+
+      prisma.activityLog.count({
+        where: {
+          companyId: user.companyId,
+          createdAt: {
+            gte: startOfToday,
+          },
+        },
+      }),
+
+      prisma.activityLog.count({
+        where: {
+          companyId: user.companyId,
+          action: "LOGIN",
+        },
+      }),
+
+      prisma.activityLog.count({
+        where: {
+          companyId: user.companyId,
+          action: {
+            in: [
+              "USER_CREATED",
+              "USER_UPDATED",
+              "USER_DEACTIVATED",
+              "USER_ACTIVATED",
+            ],
+          },
+        },
+      }),
+    ]);
+
+  const totalPages = Math.max(1, Math.ceil(totalActivities / PAGE_SIZE));
+  const currentPage = Math.min(requestedPage, totalPages);
+  const skip = (currentPage - 1) * PAGE_SIZE;
+
+  const activities = await prisma.activityLog.findMany({
+    where: {
+      companyId: user.companyId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    skip,
+    take: PAGE_SIZE,
+    include: {
+      user: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  const from = totalActivities === 0 ? 0 : skip + 1;
+  const to = Math.min(skip + activities.length, totalActivities);
+
+  return (
+    <div className="aqua-compact-page">
+      <div className="aqua-compact-header mb-3">
+        <AquaPageHeader
+          badge="Activity Log"
+          title="سجل النشاطات"
+          description="جدول ثابت لكل العمليات المهمة داخل النظام، مع ترقيم صفحات وتمرير داخلي."
+          brandValue="Logs"
+        />
+      </div>
+
+      <div className="aqua-card aqua-log-table-card p-4">
+        <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+          <div>
+            <h3 className="h5 fw-black mb-1">كل النشاطات</h3>
+            <p className="small aqua-muted mb-0">
+              عرض {from} - {to} من أصل {totalActivities} عملية
+            </p>
+          </div>
+
+          <div className="d-flex flex-wrap align-items-center gap-2">
+            <span className="aqua-badge">Total {totalActivities}</span>
+            <span className="aqua-badge">Today {todayActivities}</span>
+            <span className="aqua-badge">Login {loginCount}</span>
+            <span className="aqua-badge">Team {teamChanges}</span>
+            <span className="small aqua-soft ms-2" dir="ltr">
+              Page {currentPage} / {totalPages}
+            </span>
+          </div>
+        </div>
+
+        {activities.length === 0 ? (
+          <div className="aqua-card-soft p-5 text-center aqua-soft">
+            لا توجد نشاطات حتى الآن.
+          </div>
+        ) : (
+          <>
+            <div className="aqua-log-table-scroll">
+              <table className="table table-hover align-middle aqua-log-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>العملية</th>
+                    <th>الوصف</th>
+                    <th>المستخدم</th>
+                    <th>الكيان</th>
+                    <th>IP</th>
+                    <th>التاريخ</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {activities.map((activity, index) => (
+                    <tr key={activity.id}>
+                      <td className="aqua-soft" dir="ltr">
+                        {skip + index + 1}
+                      </td>
+
+                      <td>
+                        <span
+                          className={`badge ${actionBadgeClass(
+                            activity.action,
+                          )}`}
+                        >
+                          {actionLabel(activity.action)}
+                        </span>
+
+                        <div className="small aqua-soft mt-2" dir="ltr">
+                          {activity.action}
+                        </div>
+                      </td>
+
+                      <td>
+                        <div className="fw-bold">
+                          {activity.message || actionLabel(activity.action)}
+                        </div>
+
+                        {activity.userAgent ? (
+                          <div
+                            className="small aqua-soft mt-2 text-truncate"
+                            style={{ maxWidth: 420 }}
+                            dir="ltr"
+                            title={activity.userAgent}
+                          >
+                            {activity.userAgent}
+                          </div>
+                        ) : null}
+                      </td>
+
+                      <td>
+                        <div className="fw-bold">
+                          {activity.user?.name || "System"}
+                        </div>
+
+                        {activity.user?.email ? (
+                          <div className="small aqua-soft" dir="ltr">
+                            {activity.user.email}
+                          </div>
+                        ) : null}
+                      </td>
+
+                      <td>
+                        {activity.entityType ? (
+                          <>
+                            <div className="fw-bold" dir="ltr">
+                              {activity.entityType}
+                            </div>
+
+                            {activity.entityId ? (
+                              <div className="small aqua-soft" dir="ltr">
+                                {activity.entityId.slice(0, 10)}...
+                              </div>
+                            ) : null}
+                          </>
+                        ) : (
+                          <span className="aqua-soft">—</span>
+                        )}
+                      </td>
+
+                      <td className="small aqua-muted" dir="ltr">
+                        {activity.ipAddress || "N/A"}
+                      </td>
+
+                      <td className="small aqua-muted" dir="ltr">
+                        {activity.createdAt.toLocaleString("en-GB")}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="pt-3">
+              <AquaPagination
+                basePath="/dashboard/activity"
+                currentPage={currentPage}
+                totalPages={totalPages}
+              />
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
