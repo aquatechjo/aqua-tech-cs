@@ -37,17 +37,29 @@ export default function AquaPagination({
   basePath,
   currentPage,
   totalPages,
+  queryParams,
 }: {
   basePath: string
   currentPage: number
   totalPages: number
+  queryParams?: Record<string, string | undefined | null>
 }) {
   if (totalPages <= 1) return null
 
   const pages = getPages(currentPage, totalPages)
 
   function pageHref(page: number) {
-    return `${basePath}?page=${page}`
+    const params = new URLSearchParams()
+
+    for (const [key, value] of Object.entries(queryParams ?? {})) {
+      if (value && value.trim() !== "") {
+        params.set(key, value)
+      }
+    }
+
+    params.set("page", String(page))
+
+    return `${basePath}?${params.toString()}`
   }
 
   return (

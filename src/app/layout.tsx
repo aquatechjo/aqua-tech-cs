@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import "bootstrap/dist/css/bootstrap.min.css"
 import "./globals.css"
 import "@/styles/aqua-bootstrap.css"
+import "flatpickr/dist/flatpickr.min.css";
 
 export const metadata: Metadata = {
   title: {

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { requireAuth } from "@/lib/auth";
 import LogoutButton from "@/components/auth/LogoutButton";
 import AquaPageTitle from "@/components/layout/AquaPageTitle";
+import AquaSidebarNav from "@/components/layout/AquaSidebarNav";
 
 export default async function DashboardLayout({
   children,
@@ -17,13 +18,17 @@ export default async function DashboardLayout({
   const navItems = [
     { label: "لوحة التحكم", href: "/dashboard", enabled: true },
     { label: "الفريق", href: "/dashboard/team", enabled: true },
-    { label: "العملاء — قريبًا", href: "#", enabled: false },
-    { label: "المشاريع — قريبًا", href: "#", enabled: false },
-    { label: "المهام — قريبًا", href: "#", enabled: false },
+    { label: "العملاء", href: "/dashboard/clients", enabled: true },
+    { label: "المشاريع", href: "/dashboard/projects", enabled: true },
+    { label: "المهام", href: "/dashboard/tasks", enabled: true },
     { label: "النشاطات", href: "/dashboard/activity", enabled: true },
     { label: "التنبيهات", href: "/dashboard/notifications", enabled: true },
     { label: "الإعدادات", href: "/dashboard/settings", enabled: true },
-    { label: "العملاء", href: "/dashboard/clients", enabled: true },
+    {
+      label: "طلبات الخدمة",
+      href: "/dashboard/service-requests",
+      enabled: true,
+    },
   ];
 
   return (
@@ -50,27 +55,7 @@ export default async function DashboardLayout({
             </div>
           </div>
 
-          <nav className="d-flex flex-column gap-2">
-            {navItems.map((item, index) =>
-              item.enabled ? (
-                <a key={item.label} href={item.href} className="aqua-nav-link">
-                  <span>{item.label}</span>
-                  <span
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 999,
-                      background: "var(--aqua-cyan)",
-                    }}
-                  />
-                </a>
-              ) : (
-                <div key={item.label} className="aqua-nav-link disabled">
-                  <span>{item.label}</span>
-                </div>
-              ),
-            )}
-          </nav>
+          <AquaSidebarNav items={navItems} />
         </aside>
 
         <div className="aqua-main">

@@ -16,10 +16,32 @@ function actionLabel(action: ActivityAction) {
     USER_DEACTIVATED: "تعطيل موظف",
     USER_ACTIVATED: "تفعيل موظف",
 
+    TASK_CREATED: "إضافة مهمة",
+    TASK_UPDATED: "تعديل مهمة",
+    TASK_COMPLETED: "إكمال مهمة",
+    TASK_ARCHIVED: "أرشفة مهمة",
+    TASK_RESTORED: "استرجاع مهمة",
+
     CLIENT_CREATED: "إضافة عميل",
     CLIENT_UPDATED: "تعديل عميل",
     CLIENT_ARCHIVED: "أرشفة عميل",
     CLIENT_RESTORED: "استرجاع عميل",
+
+    PROJECT_CREATED: "إضافة مشروع",
+    PROJECT_UPDATED: "تعديل مشروع",
+    PROJECT_ARCHIVED: "أرشفة مشروع",
+    PROJECT_RESTORED: "استرجاع مشروع",
+    PROJECT_COMPLETED: "إكمال مشروع",
+
+    SERVICE_REQUEST_CREATED: "إضافة طلب خدمة",
+    SERVICE_REQUEST_UPDATED: "تعديل طلب خدمة",
+    SERVICE_REQUEST_CONTACTED: "تم التواصل مع طلب خدمة",
+    SERVICE_REQUEST_PROPOSAL_SENT: "إرسال عرض سعر",
+    SERVICE_REQUEST_APPROVED: "قبول طلب خدمة",
+    SERVICE_REQUEST_REJECTED: "رفض طلب خدمة",
+    SERVICE_REQUEST_CONVERTED: "تحويل طلب خدمة",
+    SERVICE_REQUEST_ARCHIVED: "أرشفة طلب خدمة",
+    SERVICE_REQUEST_RESTORED: "استرجاع طلب خدمة",
 
     COMPANY_UPDATED: "تعديل بيانات الشركة",
 
@@ -29,24 +51,51 @@ function actionLabel(action: ActivityAction) {
     FILE_UPLOADED: "رفع ملف",
   };
 
-  return labels[action] ?? action;
+  return labels[action];
 }
 
 function actionBadgeClass(action: ActivityAction) {
   if (
     action === "LOGIN" ||
     action === "USER_ACTIVATED" ||
-    action === "CLIENT_RESTORED"
+    action === "CLIENT_RESTORED" ||
+    action === "PROJECT_RESTORED" ||
+    action === "PROJECT_COMPLETED" ||
+    action === "TASK_RESTORED" ||
+    action === "TASK_COMPLETED" ||
+    action === "SERVICE_REQUEST_RESTORED" ||
+    action === "SERVICE_REQUEST_APPROVED" ||
+    action === "SERVICE_REQUEST_CONVERTED"
   ) {
     return "text-bg-success";
   }
 
-  if (action === "USER_DEACTIVATED" || action === "CLIENT_ARCHIVED") {
+  if (
+    action === "USER_DEACTIVATED" ||
+    action === "CLIENT_ARCHIVED" ||
+    action === "PROJECT_ARCHIVED" ||
+    action === "TASK_ARCHIVED" ||
+    action === "SERVICE_REQUEST_ARCHIVED" ||
+    action === "SERVICE_REQUEST_REJECTED"
+  ) {
     return "text-bg-danger";
   }
 
-  if (action === "USER_CREATED" || action === "CLIENT_CREATED") {
+  if (
+    action === "USER_CREATED" ||
+    action === "CLIENT_CREATED" ||
+    action === "PROJECT_CREATED" ||
+    action === "TASK_CREATED" ||
+    action === "SERVICE_REQUEST_CREATED"
+  ) {
     return "text-bg-info";
+  }
+
+  if (
+    action === "SERVICE_REQUEST_CONTACTED" ||
+    action === "SERVICE_REQUEST_PROPOSAL_SENT"
+  ) {
+    return "text-bg-warning";
   }
 
   if (action === "LOGOUT") {

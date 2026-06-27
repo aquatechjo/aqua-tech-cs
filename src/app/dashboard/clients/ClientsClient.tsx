@@ -33,6 +33,13 @@ type Stats = {
   totalPages: number;
 };
 
+type Filters = {
+  q: string;
+  status: string;
+  type: string;
+  source: string;
+};
+
 const PAGE_SIZE = 20;
 
 const clientTypes: ClientType[] = ["COMPANY", "INDIVIDUAL"];
@@ -95,10 +102,12 @@ function leadSourceLabel(source: LeadSource) {
 
 export default function ClientsClient({
   clients,
+  filters,
   stats,
   pagination,
 }: {
   clients: ClientItem[];
+  filters: Filters;
   stats: Stats;
   pagination: React.ReactNode;
 }) {
@@ -443,6 +452,87 @@ export default function ClientsClient({
                 </span>
               </div>
             </div>
+
+            <form
+              action="/dashboard/clients"
+              method="get"
+              className="aqua-card-soft p-3 mb-3"
+            >
+              <div className="row g-3 align-items-end">
+                <div className="col-12 col-lg-4">
+                  <label className="form-label aqua-muted">بحث</label>
+                  <input
+                    name="q"
+                    defaultValue={filters.q}
+                    className="form-control aqua-control"
+                    placeholder="ابحث بالاسم، الإيميل، الهاتف، المجال..."
+                  />
+                </div>
+
+                <div className="col-12 col-md-4 col-lg-2">
+                  <label className="form-label aqua-muted">الحالة</label>
+                  <select
+                    name="status"
+                    defaultValue={filters.status}
+                    className="form-select aqua-control"
+                  >
+                    <option value="">الكل</option>
+                    {clientStatuses.map((item) => (
+                      <option key={item} value={item}>
+                        {clientStatusLabel(item)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="col-12 col-md-4 col-lg-2">
+                  <label className="form-label aqua-muted">النوع</label>
+                  <select
+                    name="type"
+                    defaultValue={filters.type}
+                    className="form-select aqua-control"
+                  >
+                    <option value="">الكل</option>
+                    {clientTypes.map((item) => (
+                      <option key={item} value={item}>
+                        {clientTypeLabel(item)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="col-12 col-md-4 col-lg-2">
+                  <label className="form-label aqua-muted">المصدر</label>
+                  <select
+                    name="source"
+                    defaultValue={filters.source}
+                    className="form-select aqua-control"
+                  >
+                    <option value="">الكل</option>
+                    {leadSources.map((item) => (
+                      <option key={item} value={item}>
+                        {leadSourceLabel(item)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="col-12 col-lg-2">
+                  <div className="d-flex gap-2">
+                    <button
+                      type="submit"
+                      className="btn aqua-btn-primary flex-fill"
+                    >
+                      تطبيق
+                    </button>
+
+                    <a href="/dashboard/clients" className="btn aqua-btn-ghost">
+                      مسح
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </form>
 
             <div className="aqua-crm-table-scroll">
               <table className="table table-hover align-middle aqua-log-table">

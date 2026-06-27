@@ -29,6 +29,20 @@ const titles: Record<string, { title: string; subtitle: string }> = {
     title: "العملاء",
     subtitle: "إدارة العملاء والفرص داخل Aqua.Tech",
   },
+
+  "/dashboard/projects": {
+    title: "المشاريع",
+    subtitle: "إدارة مشاريع Aqua.Tech ومراحل التنفيذ",
+  },
+
+  "/dashboard/tasks": {
+    title: "المهام",
+    subtitle: "إدارة مهام Aqua.Tech وربطها بالمشاريع والفريق",
+  },
+  "/dashboard/service-requests": {
+    title: "طلبات الخدمة",
+    subtitle: "إدارة طلبات العملاء القادمة من الموقع والقنوات المختلفة",
+  },
 };
 
 export default function AquaPageTitle() {

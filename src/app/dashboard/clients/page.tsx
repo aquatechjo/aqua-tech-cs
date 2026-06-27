@@ -1,9 +1,33 @@
 import AquaPagination from "@/components/aqua/AquaPagination"
+import {
+  ClientStatus,
+  ClientType,
+  LeadSource,
+} from "@/generated/prisma/enums"
 import { requireAuth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import ClientsClient from "./ClientsClient"
 
 const PAGE_SIZE = 20
+
+const clientStatuses: ClientStatus[] = [
+  "LEAD",
+  "ACTIVE",
+  "INACTIVE",
+  "ARCHIVED",
+]
+
+const clientTypes: ClientType[] = ["COMPANY", "INDIVIDUAL"]
+
+const leadSources: LeadSource[] = [
+  "WEBSITE",
+  "FACEBOOK",
+  "INSTAGRAM",
+  "WHATSAPP",
+  "REFERRAL",
+  "DIRECT",
+  "OTHER",
+]
 
 function parsePage(value: string | undefined) {
   const page = Number(value)
@@ -15,17 +39,69 @@ function parsePage(value: string | undefined) {
   return Math.floor(page)
 }
 
+function parseClientStatus(value: string | undefined) {
+  if (!value) return undefined
+
+  return clientStatuses.includes(value as ClientStatus)
+    ? (value as ClientStatus)
+    : undefined
+}
+
+function parseClientType(value: string | undefined) {
+  if (!value) return undefined
+
+  return clientTypes.includes(value as ClientType)
+    ? (value as ClientType)
+    : undefined
+}
+
+function parseLeadSource(value: string | undefined) {
+  if (!value) return undefined
+
+  return leadSources.includes(value as LeadSource)
+    ? (value as LeadSource)
+    : undefined
+}
+
 export default async function ClientsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>
+  searchParams: Promise<{
+    page?: string
+    q?: string
+    status?: string
+    type?: string
+    source?: string
+  }>
 }) {
   const user = await requireAuth()
   const resolvedSearchParams = await searchParams
+
   const requestedPage = parsePage(resolvedSearchParams.page)
+  const q = resolvedSearchParams.q?.trim() ?? ""
+  const status = parseClientStatus(resolvedSearchParams.status)
+  const type = parseClientType(resolvedSearchParams.type)
+  const source = parseLeadSource(resolvedSearchParams.source)
 
   const where = {
     companyId: user.companyId,
+
+    ...(status ? { status } : {}),
+    ...(type ? { type } : {}),
+    ...(source ? { source } : {}),
+
+    ...(q
+      ? {
+          OR: [
+            { name: { contains: q, mode: "insensitive" as const } },
+            { email: { contains: q, mode: "insensitive" as const } },
+            { phone: { contains: q, mode: "insensitive" as const } },
+            { industry: { contains: q, mode: "insensitive" as const } },
+            { country: { contains: q, mode: "insensitive" as const } },
+            { city: { contains: q, mode: "insensitive" as const } },
+          ],
+        }
+      : {}),
   }
 
   const [totalClients, activeClients, leadsCount, archivedCount] =
@@ -34,21 +110,21 @@ export default async function ClientsPage({
 
       prisma.client.count({
         where: {
-          companyId: user.companyId,
+          ...where,
           status: "ACTIVE",
         },
       }),
 
       prisma.client.count({
         where: {
-          companyId: user.companyId,
+          ...where,
           status: "LEAD",
         },
       }),
 
       prisma.client.count({
         where: {
-          companyId: user.companyId,
+          ...where,
           status: "ARCHIVED",
         },
       }),
@@ -89,6 +165,12 @@ export default async function ClientsPage({
   return (
     <ClientsClient
       clients={clients}
+      filters={{
+        q,
+        status: status ?? "",
+        type: type ?? "",
+        source: source ?? "",
+      }}
       stats={{
         totalClients,
         activeClients,
@@ -104,6 +186,12 @@ export default async function ClientsPage({
           basePath="/dashboard/clients"
           currentPage={currentPage}
           totalPages={totalPages}
+          queryParams={{
+            q,
+            status,
+            type,
+            source,
+          }}
         />
       }
     />

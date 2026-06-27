@@ -41,22 +41,43 @@ enum ActivityAction {
   CLIENT_UPDATED
   CLIENT_ARCHIVED
   CLIENT_RESTORED
+  PROJECT_CREATED
+  PROJECT_UPDATED
+  PROJECT_ARCHIVED
+  PROJECT_RESTORED
+  PROJECT_COMPLETED
+  TASK_CREATED
+  TASK_UPDATED
+  TASK_COMPLETED
+  TASK_ARCHIVED
+  TASK_RESTORED
+  SERVICE_REQUEST_CREATED
+  SERVICE_REQUEST_UPDATED
+  SERVICE_REQUEST_CONTACTED
+  SERVICE_REQUEST_PROPOSAL_SENT
+  SERVICE_REQUEST_APPROVED
+  SERVICE_REQUEST_REJECTED
+  SERVICE_REQUEST_CONVERTED
+  SERVICE_REQUEST_ARCHIVED
+  SERVICE_REQUEST_RESTORED
 }
 
 model Company {
-  id       String   @id @default(cuid())
+  id       String    @id @default(cuid())
   name     String
-  slug     String   @unique
+  slug     String    @unique
   email    String?
   phone    String?
   website  String?
   logoUrl  String?
   address  String?
-  country  String   @default("Jordan")
-  currency String   @default("JOD")
-  timezone String   @default("Asia/Amman")
-  language String   @default("ar")
+  country  String    @default("Jordan")
+  currency String    @default("JOD")
+  timezone String    @default("Asia/Amman")
+  language String    @default("ar")
   clients  Client[]
+  projects Project[]
+  tasks    Task[]
 
   users         User[]
   sessions      Session[]
@@ -64,8 +85,9 @@ model Company {
   notifications Notification[]
   files         File[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  serviceRequests ServiceRequest[]
 }
 
 model User {
@@ -86,8 +108,11 @@ model User {
   notifications Notification[]
   uploadedFiles File[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+  assignedTasks           Task[]           @relation("TaskAssignee")
+  createdTasks            Task[]           @relation("TaskCreator")
+  assignedServiceRequests ServiceRequest[] @relation("ServiceRequestAssignee")
 
   @@index([companyId])
   @@index([role])
@@ -209,15 +234,150 @@ model Client {
   country  String?
   city     String?
 
-  notes String?
+  notes    String?
+  projects Project[]
+  tasks    Task[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  serviceRequests ServiceRequest[]
 
   @@index([companyId])
   @@index([status])
   @@index([type])
   @@index([source])
+  @@index([createdAt])
+}
+
+model Project {
+  id String @id @default(cuid())
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  name        String
+  code        String?
+  description String?
+
+  status   ProjectStatus   @default(PLANNING)
+  priority ProjectPriority @default(MEDIUM)
+
+  budget          Decimal?         @db.Decimal(12, 2)
+  currency        String           @default("JOD")
+  serviceRequests ServiceRequest[]
+
+  startDate   DateTime?
+  dueDate     DateTime?
+  completedAt DateTime?
+  tasks       Task[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([clientId])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+model Task {
+  id String @id @default(cuid())
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  assignedToId String?
+  assignedTo   User?   @relation("TaskAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  createdById String?
+  createdBy   User?   @relation("TaskCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  title       String
+  description String?
+
+  status   TaskStatus   @default(TODO)
+  priority TaskPriority @default(MEDIUM)
+  source   TaskSource   @default(MANUAL)
+
+  sourceRef      String?
+  estimatedHours Decimal? @db.Decimal(8, 2)
+  sortOrder      Int      @default(0)
+
+  dueDate     DateTime?
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([projectId])
+  @@index([clientId])
+  @@index([assignedToId])
+  @@index([createdById])
+  @@index([status])
+  @@index([priority])
+  @@index([source])
+  @@index([dueDate])
+  @@index([createdAt])
+}
+
+model ServiceRequest {
+  id String @id @default(cuid())
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  assignedToId String?
+  assignedTo   User?   @relation("ServiceRequestAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  customerName    String
+  customerEmail   String?
+  customerPhone   String?
+  customerCompany String?
+
+  serviceType String
+  budgetRange String?
+  timeline    String?
+  message     String?
+
+  status   ServiceRequestStatus   @default(NEW)
+  source   ServiceRequestSource   @default(WEBSITE)
+  priority ServiceRequestPriority @default(MEDIUM)
+
+  workflowRunId String?
+  proposalUrl   String?
+
+  proposalSentAt DateTime?
+  approvedAt     DateTime?
+  rejectedAt     DateTime?
+  convertedAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([clientId])
+  @@index([projectId])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([source])
+  @@index([priority])
   @@index([createdAt])
 }
 
@@ -241,4 +401,72 @@ enum LeadSource {
   REFERRAL
   DIRECT
   OTHER
+}
+
+enum ProjectStatus {
+  PLANNING
+  IN_PROGRESS
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+  ARCHIVED
+}
+
+enum ProjectPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  BLOCKED
+  REVIEW
+  DONE
+  CANCELLED
+  ARCHIVED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskSource {
+  MANUAL
+  WEBSITE_REQUEST
+  WORKFLOW
+  AI_GENERATED
+}
+
+enum ServiceRequestStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL_SENT
+  APPROVED
+  REJECTED
+  CONVERTED
+  ARCHIVED
+}
+
+enum ServiceRequestSource {
+  WEBSITE
+  MANUAL
+  WHATSAPP
+  INSTAGRAM
+  FACEBOOK
+  REFERRAL
+  OTHER
+}
+
+enum ServiceRequestPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
 }
