@@ -1,42 +1,37 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
 import AuthShell from "@/components/auth/AuthShell"
-import PasswordInput from "@/components/auth/PasswordInput"
 
-export default function LoginForm() {
-  const router = useRouter()
-
+export default function ForgotPasswordForm() {
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError("")
+    setSuccess("")
     setLoading(true)
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch("/api/auth/forgot-password", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
       })
-
       const data = await response.json()
 
       if (!response.ok || !data.ok) {
-        setError(data.message || "فشل تسجيل الدخول")
+        setError(data.message || "تعذر إرسال طلب الاستعادة")
         return
       }
 
-      router.push("/dashboard")
-      router.refresh()
+      setSuccess(
+        "إذا كان البريد مسجلًا وفعّالًا، ستصلك رسالة تحتوي على رابط إعادة التعيين."
+      )
     } catch {
       setError("حدث خطأ أثناء الاتصال بالخادم")
     } finally {
@@ -47,44 +42,35 @@ export default function LoginForm() {
   return (
     <AuthShell>
       <div className="mb-4">
-        <h2 className="fw-black mb-2">تسجيل الدخول</h2>
-        <p className="aqua-muted mb-0">ادخل إلى نظام Aqua.Tech الداخلي</p>
+        <h2 className="fw-black mb-2">استعادة كلمة المرور</h2>
+        <p className="aqua-muted mb-0">
+          أدخل بريد حسابك وسنرسل رابطًا آمنًا صالحًا لمدة محدودة.
+        </p>
       </div>
 
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <label htmlFor="login-email" className="form-label aqua-muted">
+          <label htmlFor="forgot-email" className="form-label aqua-muted">
             البريد الإلكتروني
           </label>
           <input
-            id="login-email"
+            id="forgot-email"
             dir="ltr"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             className="form-control aqua-control text-start"
             placeholder="name@example.com"
-            autoComplete="username"
+            autoComplete="email"
             required
           />
         </div>
 
-        <div className="mb-3">
-          <div className="d-flex align-items-center justify-content-between gap-3">
-            <label htmlFor="login-password" className="form-label aqua-muted">
-              كلمة المرور
-            </label>
-            <Link className="aqua-auth-link small mb-2" href="/forgot-password">
-              نسيت كلمة المرور؟
-            </Link>
+        {success ? (
+          <div className="alert alert-success rounded-4 border-0 mt-3" role="status">
+            {success}
           </div>
-          <PasswordInput
-            id="login-password"
-            value={password}
-            onChange={setPassword}
-            autoComplete="current-password"
-          />
-        </div>
+        ) : null}
 
         {error ? (
           <div className="alert alert-danger rounded-4 border-0 mt-3" role="alert">
@@ -94,12 +80,18 @@ export default function LoginForm() {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || Boolean(success)}
           className="btn aqua-btn-primary w-100 py-3 mt-3"
         >
-          {loading ? "جاري الدخول..." : "دخول النظام"}
+          {loading ? "جاري الإرسال..." : "إرسال رابط الاستعادة"}
         </button>
       </form>
+
+      <div className="text-center mt-4">
+        <Link className="aqua-auth-link" href="/login">
+          العودة إلى تسجيل الدخول
+        </Link>
+      </div>
     </AuthShell>
   )
 }

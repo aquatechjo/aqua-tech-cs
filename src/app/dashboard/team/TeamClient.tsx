@@ -116,6 +116,9 @@ export default function TeamClient({
   const [loading, setLoading] = useState(false)
 
   const isEditing = Boolean(editingId)
+  const editingOwner = users.some(
+    (user) => user.id === editingId && user.role === "OWNER"
+  )
   const availableJobRoles = useMemo(
     () =>
       departmentId
@@ -185,8 +188,7 @@ export default function TeamClient({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name,
-            email,
-            password,
+            ...(editingOwner ? {} : { email, password }),
             role,
             ...(isEditing ? { isActive } : {}),
             departmentId: departmentId || null,
@@ -298,7 +300,8 @@ export default function TeamClient({
                     البريد الإلكتروني
                   </label>
                   <input
-                    required
+                    required={!editingOwner}
+                    disabled={editingOwner}
                     dir="ltr"
                     type="email"
                     value={email}
@@ -306,24 +309,36 @@ export default function TeamClient({
                     className="form-control aqua-control text-start"
                     placeholder="name@aquatech.com"
                   />
+                  {editingOwner ? (
+                    <div className="form-text aqua-soft">
+                      بريد مالك النظام ثابت وتتم حمايته من التغيير.
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="mb-3">
                   <label className="form-label aqua-muted">كلمة المرور</label>
-                  <input
-                    dir="ltr"
-                    type="password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    className="form-control aqua-control text-start"
-                    placeholder={
-                      isEditing
-                        ? "اتركها فارغة إذا لم تتغير"
-                        : "12 حرفًا على الأقل"
-                    }
-                    required={!isEditing}
-                    minLength={isEditing && !password ? undefined : 12}
-                  />
+                  {editingOwner ? (
+                    <div className="aqua-card-soft p-3 small aqua-muted">
+                      كلمة مرور المالك تُغيّر فقط من مسار «نسيت كلمة المرور»
+                      الآمن في شاشة الدخول.
+                    </div>
+                  ) : (
+                    <input
+                      dir="ltr"
+                      type="password"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      className="form-control aqua-control text-start"
+                      placeholder={
+                        isEditing
+                          ? "اتركها فارغة إذا لم تتغير"
+                          : "12 حرفًا على الأقل"
+                      }
+                      required={!isEditing}
+                      minLength={isEditing && !password ? undefined : 12}
+                    />
+                  )}
                 </div>
 
                 <div className="mb-3">
@@ -336,7 +351,9 @@ export default function TeamClient({
                       setRole(event.target.value as AccessRole)
                     }
                     className="form-select aqua-control"
-                    disabled={editingId === currentUser.id}
+                    disabled={
+                      editingId === currentUser.id || editingOwner
+                    }
                   >
                     {accessRoles.map((item) => (
                       <option
@@ -456,7 +473,9 @@ export default function TeamClient({
                         setIsActive(event.target.value === "active")
                       }
                       className="form-select aqua-control"
-                      disabled={editingId === currentUser.id}
+                      disabled={
+                        editingId === currentUser.id || editingOwner
+                      }
                     >
                       <option value="active">فعّال</option>
                       <option value="disabled">معطّل</option>
@@ -571,8 +590,7 @@ export default function TeamClient({
                               type="button"
                               disabled={
                                 user.id === currentUser.id ||
-                                (user.role === "OWNER" &&
-                                  currentUser.role !== "OWNER")
+                                user.role === "OWNER"
                               }
                               onClick={() =>
                                 toggleUser(user.id, user.isActive)

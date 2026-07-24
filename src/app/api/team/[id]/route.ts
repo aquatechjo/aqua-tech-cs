@@ -11,6 +11,7 @@ import { logActivity } from "@/lib/activity"
 import { hashPassword } from "@/lib/password"
 import { prisma } from "@/lib/prisma"
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
+import { SYSTEM_OWNER_EMAIL } from "@/lib/system-owner"
 
 const updateUserSchema = z.object({
   name: z.string().min(2, "الاسم مطلوب").optional(),
@@ -83,6 +84,34 @@ export async function PATCH(
         403,
         "OWNER_ACCOUNT_PROTECTED"
       )
+    }
+
+    if (targetUser.role === "OWNER") {
+      const requestedEmail = data.email?.toLowerCase().trim()
+
+      if (data.isActive === false) {
+        throw new ApiError(
+          "لا يمكن تعطيل حساب مالك النظام",
+          403,
+          "OWNER_ACCOUNT_PROTECTED"
+        )
+      }
+
+      if (requestedEmail && requestedEmail !== SYSTEM_OWNER_EMAIL) {
+        throw new ApiError(
+          `بريد مالك النظام ثابت: ${SYSTEM_OWNER_EMAIL}`,
+          403,
+          "OWNER_EMAIL_PROTECTED"
+        )
+      }
+
+      if (data.password?.trim()) {
+        throw new ApiError(
+          "يتم تغيير كلمة مرور مالك النظام من خلال مسار الاستعادة الآمن فقط",
+          403,
+          "OWNER_PASSWORD_PROTECTED"
+        )
+      }
     }
 
     if (data.role === "OWNER" && targetUser.role !== "OWNER") {

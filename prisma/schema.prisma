@@ -306,9 +306,10 @@ model Company {
   projects Project[]
   tasks    Task[]
 
-  users            User[]
-  sessions         Session[]
-  activities       ActivityLog[]
+  users               User[]
+  sessions            Session[]
+  passwordResetTokens PasswordResetToken[]
+  activities          ActivityLog[]
   notifications    Notification[]
   files            File[]
   departments      Department[]
@@ -356,8 +357,9 @@ model User {
 
   lastLoginAt DateTime?
 
-  sessions      Session[]
-  activities    ActivityLog[]
+  sessions            Session[]
+  passwordResetTokens PasswordResetToken[]
+  activities          ActivityLog[]
   notifications Notification[]
   uploadedFiles File[]
 
@@ -413,6 +415,29 @@ model Session {
   @@index([userId])
   @@index([isActive])
   @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash String @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+
+  requestIp String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([usedAt])
 }
 
 model RateLimitBucket {
