@@ -1,6 +1,7 @@
 "use client";
 
 import AquaDatePicker from "@/components/aqua/AquaDatePicker";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ProjectPriority, ProjectStatus } from "@/generated/prisma/enums";
@@ -529,12 +530,12 @@ export default function ProjectsClient({
                       تطبيق
                     </button>
 
-                    <a
+                    <Link
                       href="/dashboard/projects"
                       className="btn aqua-btn-ghost"
                     >
                       مسح
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -615,6 +616,13 @@ export default function ProjectsClient({
 
                         <td>
                           <div className="d-flex flex-wrap gap-2">
+                            <Link
+                              href={`/dashboard/projects/${project.id}`}
+                              className="btn aqua-btn-primary btn-sm"
+                            >
+                              تنفيذ
+                            </Link>
+
                             <button
                               type="button"
                               onClick={() => startEdit(project)}

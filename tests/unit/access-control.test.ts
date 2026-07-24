@@ -2,7 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   ACCESS_ROLES,
+  canAssignTaskOwner,
   canEditTask,
+  canManageProjectExecution,
+  canManageProjectLeadership,
+  canManageTaskParticipants,
   hasRole,
 } from "../../src/lib/access-control";
 
@@ -59,6 +63,88 @@ test("employees can edit only tasks assigned to or created by them", () => {
       { id: "employee", role: "MEMBER" },
       { assignedToId: "other", createdById: "creator" },
     ),
+    false,
+  );
+});
+
+test("execution participants can edit work while observers remain read-only", () => {
+  const baseTask = {
+    assignedToId: "owner",
+    createdById: "creator",
+  };
+
+  assert.equal(
+    canEditTask(
+      { id: "reviewer", role: "MEMBER" },
+      {
+        ...baseTask,
+        participants: [{ userId: "reviewer", role: "REVIEWER" }],
+      },
+    ),
+    true,
+  );
+
+  assert.equal(
+    canEditTask(
+      { id: "observer", role: "MEMBER" },
+      {
+        ...baseTask,
+        participants: [{ userId: "observer", role: "OBSERVER" }],
+      },
+    ),
+    false,
+  );
+});
+
+test("project leads and managers can manage project execution", () => {
+  assert.equal(canManageProjectExecution({ role: "MEMBER" }, "PROJECT_LEAD"), true);
+  assert.equal(canManageProjectExecution({ role: "MEMBER" }, "MANAGER"), true);
+  assert.equal(canManageProjectExecution({ role: "MEMBER" }, "VIEWER"), false);
+  assert.equal(
+    canManageProjectExecution({ role: "OPERATIONS_MANAGER" }, null),
+    true,
+  );
+});
+
+test("project managers can update tasks inside their project", () => {
+  assert.equal(
+    canEditTask(
+      { id: "project-manager", role: "MEMBER" },
+      {
+        assignedToId: "owner",
+        createdById: "creator",
+        projectMemberRole: "MANAGER",
+      },
+    ),
+    true,
+  );
+});
+
+test("only leadership can assign project leads and task owners", () => {
+  assert.equal(canManageProjectLeadership({ role: "MEMBER" }, "PROJECT_LEAD"), true);
+  assert.equal(canManageProjectLeadership({ role: "MEMBER" }, "MANAGER"), false);
+  assert.equal(canManageProjectLeadership({ role: "ADMIN" }, null), true);
+
+  assert.equal(canAssignTaskOwner({ role: "MEMBER" }, "MANAGER"), true);
+  assert.equal(canAssignTaskOwner({ role: "MEMBER" }, "CONTRIBUTOR"), false);
+});
+
+test("task owners can manage participants but contributors cannot", () => {
+  const task = {
+    assignedToId: "owner",
+    createdById: "creator",
+    participants: [
+      { userId: "owner", role: "OWNER" as const },
+      { userId: "contributor", role: "CONTRIBUTOR" as const },
+    ],
+  };
+
+  assert.equal(
+    canManageTaskParticipants({ id: "owner", role: "MEMBER" }, task),
+    true,
+  );
+  assert.equal(
+    canManageTaskParticipants({ id: "contributor", role: "MEMBER" }, task),
     false,
   );
 });

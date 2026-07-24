@@ -26,6 +26,7 @@ export default async function DashboardLayout({
     },
     { label: "العملاء", href: "/dashboard/clients", enabled: true },
     { label: "المشاريع", href: "/dashboard/projects", enabled: true },
+    { label: "يومي", href: "/dashboard/my-day", enabled: true },
     { label: "المهام", href: "/dashboard/tasks", enabled: true },
     {
       label: "النشاطات",

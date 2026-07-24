@@ -30,6 +30,48 @@ enum EmploymentStatus {
   TERMINATED
 }
 
+enum ProjectMemberRole {
+  PROJECT_LEAD
+  MANAGER
+  CONTRIBUTOR
+  VIEWER
+}
+
+enum ProjectPhaseStatus {
+  PLANNED
+  ACTIVE
+  BLOCKED
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskParticipantRole {
+  OWNER
+  CONTRIBUTOR
+  REVIEWER
+  OBSERVER
+}
+
+enum TaskDependencyType {
+  FINISH_TO_START
+  START_TO_START
+  FINISH_TO_FINISH
+  START_TO_FINISH
+}
+
+enum TaskBlockerSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TaskBlockerStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
 enum NotificationType {
   INFO
   SUCCESS
@@ -80,6 +122,20 @@ enum ActivityAction {
   TEAM_UPDATED
   TEAM_MEMBERSHIP_UPDATED
   TEAM_MEMBERSHIP_REMOVED
+  PROJECT_MEMBER_ADDED
+  PROJECT_MEMBER_UPDATED
+  PROJECT_MEMBER_REMOVED
+  PROJECT_PHASE_CREATED
+  PROJECT_PHASE_UPDATED
+  PROJECT_PHASE_REMOVED
+  TASK_PARTICIPANT_ADDED
+  TASK_PARTICIPANT_UPDATED
+  TASK_PARTICIPANT_REMOVED
+  TASK_DEPENDENCY_ADDED
+  TASK_DEPENDENCY_REMOVED
+  TASK_BLOCKER_CREATED
+  TASK_BLOCKER_UPDATED
+  TASK_BLOCKER_RESOLVED
 }
 
 model Company {
@@ -109,6 +165,11 @@ model Company {
   employeeProfiles EmployeeProfile[]
   teams            Team[]
   teamMemberships  TeamMembership[]
+  projectMembers   ProjectMember[]
+  projectPhases    ProjectPhase[]
+  taskParticipants TaskParticipant[]
+  taskDependencies TaskDependency[]
+  taskBlockers     TaskBlocker[]
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -139,6 +200,8 @@ model User {
   createdTasks            Task[]           @relation("TaskCreator")
   assignedServiceRequests ServiceRequest[] @relation("ServiceRequestAssignee")
   employeeProfile         EmployeeProfile?
+  reportedTaskBlockers    TaskBlocker[]    @relation("TaskBlockerReporter")
+  resolvedTaskBlockers    TaskBlocker[]    @relation("TaskBlockerResolver")
 
   @@index([companyId])
   @@index([role])
@@ -261,9 +324,11 @@ model EmployeeProfile {
   startDate        DateTime?
   endDate          DateTime?
 
-  teamMemberships TeamMembership[]
-  ledDepartments  Department[]     @relation("DepartmentLead")
-  ledTeams        Team[]           @relation("TeamLead")
+  teamMemberships   TeamMembership[]
+  projectMemberships ProjectMember[]
+  taskParticipations  TaskParticipant[]
+  ledDepartments      Department[]     @relation("DepartmentLead")
+  ledTeams            Team[]           @relation("TeamLead")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -458,6 +523,8 @@ model Project {
   dueDate     DateTime?
   completedAt DateTime?
   tasks       Task[]
+  members     ProjectMember[]
+  phases      ProjectPhase[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -478,6 +545,9 @@ model Task {
   projectId String?
   project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
+  phaseId String?
+  phase   ProjectPhase? @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+
   clientId String?
   client   Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
 
@@ -497,15 +567,23 @@ model Task {
   sourceRef      String?
   estimatedHours Decimal? @db.Decimal(8, 2)
   sortOrder      Int      @default(0)
+  progress       Int      @default(0)
 
   dueDate     DateTime?
+  startedAt   DateTime?
   completedAt DateTime?
+
+  participants TaskParticipant[]
+  dependencies TaskDependency[] @relation("TaskDependencies")
+  dependents   TaskDependency[] @relation("TaskDependents")
+  blockers     TaskBlocker[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([companyId])
   @@index([projectId])
+  @@index([phaseId])
   @@index([clientId])
   @@index([assignedToId])
   @@index([createdById])
@@ -514,6 +592,134 @@ model Task {
   @@index([source])
   @@index([dueDate])
   @@index([createdAt])
+}
+
+model ProjectMember {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  employeeProfileId String
+  employeeProfile   EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+
+  role           ProjectMemberRole @default(CONTRIBUTOR)
+  responsibility String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, employeeProfileId])
+  @@index([companyId])
+  @@index([employeeProfileId])
+  @@index([role])
+}
+
+model ProjectPhase {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  name        String
+  code        String?
+  description String?
+  status      ProjectPhaseStatus @default(PLANNED)
+  progress    Int                @default(0)
+  sortOrder   Int                @default(0)
+
+  startDate   DateTime?
+  dueDate     DateTime?
+  completedAt DateTime?
+
+  tasks Task[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, code])
+  @@index([companyId])
+  @@index([projectId])
+  @@index([status])
+  @@index([sortOrder])
+}
+
+model TaskParticipant {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  employeeProfileId String
+  employeeProfile   EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+
+  role TaskParticipantRole @default(CONTRIBUTOR)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([taskId, employeeProfileId])
+  @@index([companyId])
+  @@index([employeeProfileId])
+  @@index([role])
+}
+
+model TaskDependency {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  taskId String
+  task   Task   @relation("TaskDependencies", fields: [taskId], references: [id], onDelete: Cascade)
+
+  dependsOnTaskId String
+  dependsOnTask   Task   @relation("TaskDependents", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+
+  type TaskDependencyType @default(FINISH_TO_START)
+
+  createdAt DateTime @default(now())
+
+  @@unique([taskId, dependsOnTaskId])
+  @@index([companyId])
+  @@index([dependsOnTaskId])
+}
+
+model TaskBlocker {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  reportedById String?
+  reportedBy   User?   @relation("TaskBlockerReporter", fields: [reportedById], references: [id], onDelete: SetNull)
+
+  resolvedById String?
+  resolvedBy   User?   @relation("TaskBlockerResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  title       String
+  description String?
+  severity    TaskBlockerSeverity @default(MEDIUM)
+  status      TaskBlockerStatus   @default(OPEN)
+  resolution  String?
+
+  resolvedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([taskId])
+  @@index([reportedById])
+  @@index([resolvedById])
+  @@index([status])
+  @@index([severity])
 }
 
 model ServiceRequest {

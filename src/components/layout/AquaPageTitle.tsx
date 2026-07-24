@@ -35,6 +35,11 @@ const titles: Record<string, { title: string; subtitle: string }> = {
     subtitle: "إدارة مشاريع Aqua.Tech ومراحل التنفيذ",
   },
 
+  "/dashboard/my-day": {
+    title: "يومي",
+    subtitle: "المهام المسندة إليك حسب الأولوية والاستحقاق",
+  },
+
   "/dashboard/tasks": {
     title: "المهام",
     subtitle: "إدارة مهام Aqua.Tech وربطها بالمشاريع والفريق",
@@ -48,7 +53,12 @@ const titles: Record<string, { title: string; subtitle: string }> = {
 export default function AquaPageTitle() {
   const pathname = usePathname();
 
-  const page = titles[pathname] ?? {
+  const exactPage = titles[pathname];
+  const parentPath = Object.keys(titles)
+    .filter((path) => path !== "/dashboard" && pathname.startsWith(`${path}/`))
+    .sort((a, b) => b.length - a.length)[0];
+
+  const page = exactPage ?? (parentPath ? titles[parentPath] : undefined) ?? {
     title: "AquaFlow",
     subtitle: "Aqua.Tech internal operating system",
   };
