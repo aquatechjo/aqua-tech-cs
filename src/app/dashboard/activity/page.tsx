@@ -70,6 +70,15 @@ function actionLabel(action: ActivityAction) {
     SALES_PROPOSAL_ACCEPTED: "قبول عرض تجاري",
     SALES_PROPOSAL_REJECTED: "رفض عرض تجاري",
 
+    TIME_ENTRY_CREATED: "إضافة سجل وقت",
+    TIME_ENTRY_UPDATED: "تعديل سجل وقت",
+    TIME_ENTRY_DELETED: "حذف سجل وقت",
+    TIME_TIMER_STARTED: "تشغيل مؤقت الوقت",
+    TIME_TIMER_STOPPED: "إيقاف مؤقت الوقت",
+    TIMESHEET_SUBMITTED: "إرسال سجل الساعات للاعتماد",
+    TIMESHEET_APPROVED: "اعتماد سجل الساعات",
+    TIMESHEET_REJECTED: "رفض سجل الساعات",
+
     TASK_CREATED: "إضافة مهمة",
     TASK_UPDATED: "تعديل مهمة",
     TASK_COMPLETED: "إكمال مهمة",
@@ -127,7 +136,9 @@ function actionBadgeClass(action: ActivityAction) {
     action === "SALES_OPPORTUNITY_WON" ||
     action === "SALES_OPPORTUNITY_CONVERTED" ||
     action === "SALES_ACTIVITY_COMPLETED" ||
-    action === "SALES_PROPOSAL_ACCEPTED"
+    action === "SALES_PROPOSAL_ACCEPTED" ||
+    action === "TIME_TIMER_STOPPED" ||
+    action === "TIMESHEET_APPROVED"
   ) {
     return "text-bg-success";
   }
@@ -144,7 +155,9 @@ function actionBadgeClass(action: ActivityAction) {
     action === "EXPENSE_REJECTED" ||
     action === "EXPENSE_CANCELLED" ||
     action === "SALES_OPPORTUNITY_LOST" ||
-    action === "SALES_PROPOSAL_REJECTED"
+    action === "SALES_PROPOSAL_REJECTED" ||
+    action === "TIME_ENTRY_DELETED" ||
+    action === "TIMESHEET_REJECTED"
   ) {
     return "text-bg-danger";
   }
@@ -162,7 +175,9 @@ function actionBadgeClass(action: ActivityAction) {
     action === "EXPENSE_CREATED" ||
     action === "SALES_OPPORTUNITY_CREATED" ||
     action === "SALES_ACTIVITY_CREATED" ||
-    action === "SALES_PROPOSAL_CREATED"
+    action === "SALES_PROPOSAL_CREATED" ||
+    action === "TIME_ENTRY_CREATED" ||
+    action === "TIME_TIMER_STARTED"
   ) {
     return "text-bg-info";
   }
@@ -171,7 +186,8 @@ function actionBadgeClass(action: ActivityAction) {
     action === "SERVICE_REQUEST_CONTACTED" ||
     action === "SERVICE_REQUEST_PROPOSAL_SENT" ||
     action === "SALES_OPPORTUNITY_STAGE_CHANGED" ||
-    action === "SALES_PROPOSAL_SENT"
+    action === "SALES_PROPOSAL_SENT" ||
+    action === "TIMESHEET_SUBMITTED"
   ) {
     return "text-bg-warning";
   }

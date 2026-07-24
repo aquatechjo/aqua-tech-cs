@@ -29,6 +29,11 @@ export const ACCESS_ROLES = {
   financeRead: ["OWNER", "ADMIN", "FINANCE_MANAGER", "OPERATIONS_MANAGER"],
   financeManagement: ["OWNER", "ADMIN", "FINANCE_MANAGER"],
   expenseSubmission: ["OWNER", "ADMIN", "FINANCE_MANAGER", "OPERATIONS_MANAGER"],
+  timeCompanyRead: ["OWNER", "ADMIN", "OPERATIONS_MANAGER", "FINANCE_MANAGER"],
+  timeApproval: ["OWNER", "ADMIN", "OPERATIONS_MANAGER"],
+  timeCostRead: ["OWNER", "ADMIN", "OPERATIONS_MANAGER", "FINANCE_MANAGER"],
+  timeRateManagement: ["OWNER", "ADMIN", "FINANCE_MANAGER"],
+  timeCapacityManagement: ["OWNER", "ADMIN", "OPERATIONS_MANAGER"],
 } as const satisfies Record<string, readonly AccessRole[]>
 
 export type TaskAccessContext = {
@@ -197,6 +202,35 @@ export function assertCanManageProjectLeadership(
       "تعيين قائد المشروع أو تغييره متاح للإدارة أو لقائد المشروع الحالي فقط",
       403,
       "PROJECT_LEADERSHIP_FORBIDDEN"
+    )
+  }
+}
+
+export function canViewCompanyTime(role: AccessRole) {
+  return hasRole(role, ACCESS_ROLES.timeCompanyRead)
+}
+
+export function canApproveTimesheet(
+  approver: { id: string; role: AccessRole },
+  ownerUserId: string,
+) {
+  if (!hasRole(approver.role, ACCESS_ROLES.timeApproval)) return false
+  return approver.role === "OWNER" || approver.id !== ownerUserId
+}
+
+export function assertCanApproveTimesheet(
+  approver: { id: string; role: AccessRole },
+  ownerUserId: string,
+) {
+  if (!canApproveTimesheet(approver, ownerUserId)) {
+    throw new ApiError(
+      approver.id === ownerUserId
+        ? "لا يمكن اعتماد سجل ساعاتك بنفسك"
+        : "لا تملك صلاحية اعتماد سجلات الساعات",
+      403,
+      approver.id === ownerUserId
+        ? "TIMESHEET_SELF_APPROVAL_FORBIDDEN"
+        : "TIMESHEET_APPROVAL_FORBIDDEN",
     )
   }
 }

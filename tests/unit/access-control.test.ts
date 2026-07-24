@@ -2,11 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   ACCESS_ROLES,
+  canApproveTimesheet,
   canAssignTaskOwner,
   canEditTask,
   canManageProjectExecution,
   canManageProjectLeadership,
   canManageTaskParticipants,
+  canViewCompanyTime,
   hasRole,
 } from "../../src/lib/access-control";
 
@@ -165,3 +167,31 @@ test("sales access separates pipeline visibility from sales mutations", () => {
   assert.equal(hasRole("OPERATIONS_MANAGER", ACCESS_ROLES.salesManagement), false);
   assert.equal(hasRole("FINANCE_MANAGER", ACCESS_ROLES.salesRead), false);
 });
+
+
+test("time access separates personal logging company visibility and approval", () => {
+  assert.equal(canViewCompanyTime("MEMBER"), false)
+  assert.equal(canViewCompanyTime("FINANCE_MANAGER"), true)
+  assert.equal(canViewCompanyTime("OPERATIONS_MANAGER"), true)
+
+  assert.equal(
+    canApproveTimesheet({ id: "owner", role: "OWNER" }, "owner"),
+    true,
+    "the owner may self-approve when no higher approver exists",
+  )
+  assert.equal(
+    canApproveTimesheet({ id: "admin", role: "ADMIN" }, "admin"),
+    false,
+  )
+  assert.equal(
+    canApproveTimesheet({ id: "admin", role: "ADMIN" }, "member"),
+    true,
+  )
+  assert.equal(
+    canApproveTimesheet(
+      { id: "finance", role: "FINANCE_MANAGER" },
+      "member",
+    ),
+    false,
+  )
+})

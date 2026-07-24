@@ -1,7 +1,7 @@
 # AquaFlow
 
 AquaFlow is Aqua Tech's private internal core system. It manages the company's
-people, clients, projects, tasks, service requests, notifications, and audited
+people, clients, projects, tasks, time, capacity, service requests, notifications, and audited
 operations while remaining ready to integrate with specialized external tools.
 
 It is not a public SaaS product and does not provide public registration.
@@ -64,3 +64,4 @@ Implementation notes:
 - [Batch 2 — Project Execution](docs/BATCH_2_PROJECT_EXECUTION.md)
 - [Batch 3 — Operational Finance](docs/BATCH_3_OPERATIONAL_FINANCE.md)
 - [Batch 4 — Sales CRM & Pipeline](docs/BATCH_4_SALES_CRM_PIPELINE.md)
+- [Batch 5 — Time & Capacity](docs/BATCH_5_TIME_CAPACITY.md)
