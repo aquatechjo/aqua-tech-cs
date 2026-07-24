@@ -77,6 +77,73 @@ async function main() {
     },
   });
 
+  const managementDepartment = await prisma.department.upsert({
+    where: {
+      companyId_code: {
+        companyId: company.id,
+        code: "MANAGEMENT",
+      },
+    },
+    update: {
+      name: "الإدارة",
+      isActive: true,
+    },
+    create: {
+      companyId: company.id,
+      name: "الإدارة",
+      code: "MANAGEMENT",
+      description: "الإدارة الأساسية لشركة Aqua Tech",
+      sortOrder: 10,
+    },
+  });
+
+  const ownerJobRole = await prisma.jobRole.upsert({
+    where: {
+      companyId_code: {
+        companyId: company.id,
+        code: "OWNER",
+      },
+    },
+    update: {
+      name: "مالك الشركة",
+      departmentId: managementDepartment.id,
+      isActive: true,
+    },
+    create: {
+      companyId: company.id,
+      departmentId: managementDepartment.id,
+      name: "مالك الشركة",
+      code: "OWNER",
+      description: "المسمى الوظيفي لمالك Aqua Tech",
+    },
+  });
+
+  const ownerProfile = await prisma.employeeProfile.upsert({
+    where: {
+      userId: owner.id,
+    },
+    update: {
+      companyId: company.id,
+      departmentId: managementDepartment.id,
+      jobRoleId: ownerJobRole.id,
+      status: "ACTIVE",
+    },
+    create: {
+      companyId: company.id,
+      userId: owner.id,
+      departmentId: managementDepartment.id,
+      jobRoleId: ownerJobRole.id,
+      employmentType: "FULL_TIME",
+      status: "ACTIVE",
+      startDate: new Date(),
+    },
+  });
+
+  await prisma.department.update({
+    where: { id: managementDepartment.id },
+    data: { leadProfileId: ownerProfile.id },
+  });
+
   const welcomeNotification = await prisma.notification.findFirst({
     where: {
       companyId: company.id,

@@ -1,172 +1,271 @@
-"use client";
+"use client"
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { UserRole } from "@/generated/prisma/enums";
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useMemo, useState } from "react"
+import type {
+  AccessRole,
+  EmploymentType,
+} from "@/generated/prisma/enums"
 import AquaPageHeader from "@/components/layout/AquaPageHeader"
+
+type DepartmentOption = {
+  id: string
+  name: string
+  code: string
+}
+
+type JobRoleOption = {
+  id: string
+  name: string
+  code: string
+  departmentId: string | null
+}
+
+type EmployeeProfile = {
+  id: string
+  employeeNumber: string | null
+  departmentId: string | null
+  jobRoleId: string | null
+  employmentType: EmploymentType
+  workHoursPerWeek: number
+  department: DepartmentOption | null
+  jobRole: Omit<JobRoleOption, "departmentId"> | null
+}
+
 type TeamUser = {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  isActive: boolean;
-  lastLoginAt: Date | null;
-  createdAt: Date;
-};
+  id: string
+  name: string
+  email: string
+  role: AccessRole
+  isActive: boolean
+  lastLoginAt: Date | string | null
+  createdAt: Date | string
+  employeeProfile: EmployeeProfile | null
+}
 
 type CurrentUser = {
-  id: string;
-  role: UserRole;
-};
+  id: string
+  role: AccessRole
+}
 
-const roles: UserRole[] = [
+const accessRoles: AccessRole[] = [
+  "OWNER",
   "ADMIN",
-  "PROJECT_MANAGER",
-  "DEVELOPER",
-  "DESIGNER",
-  "SALES",
-  "MARKETING",
-  "SUPPORT",
-  "FINANCE",
-];
+  "OPERATIONS_MANAGER",
+  "SALES_MANAGER",
+  "FINANCE_MANAGER",
+  "MEMBER",
+]
 
-function canManage(role: UserRole) {
-  return role === "OWNER" || role === "ADMIN";
+const employmentTypes: EmploymentType[] = [
+  "FULL_TIME",
+  "PART_TIME",
+  "CONTRACTOR",
+  "INTERN",
+]
+
+const accessRoleLabels: Record<AccessRole, string> = {
+  OWNER: "مالك النظام",
+  ADMIN: "مدير النظام",
+  OPERATIONS_MANAGER: "إدارة العمليات",
+  SALES_MANAGER: "إدارة المبيعات",
+  FINANCE_MANAGER: "إدارة المالية",
+  MEMBER: "عضو فريق",
+}
+
+const employmentTypeLabels: Record<EmploymentType, string> = {
+  FULL_TIME: "دوام كامل",
+  PART_TIME: "دوام جزئي",
+  CONTRACTOR: "متعاقد",
+  INTERN: "متدرب",
+}
+
+function canManage(role: AccessRole) {
+  return role === "OWNER" || role === "ADMIN"
 }
 
 export default function TeamClient({
   users,
   currentUser,
+  departments,
+  jobRoles,
 }: {
-  users: TeamUser[];
-  currentUser: CurrentUser;
+  users: TeamUser[]
+  currentUser: CurrentUser
+  departments: DepartmentOption[]
+  jobRoles: JobRoleOption[]
 }) {
-  const router = useRouter();
-  const manager = canManage(currentUser.role);
+  const router = useRouter()
+  const manager = canManage(currentUser.role)
 
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState<UserRole>("DEVELOPER");
-  const [isActive, setIsActive] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [role, setRole] = useState<AccessRole>("MEMBER")
+  const [isActive, setIsActive] = useState(true)
+  const [departmentId, setDepartmentId] = useState("")
+  const [jobRoleId, setJobRoleId] = useState("")
+  const [employeeNumber, setEmployeeNumber] = useState("")
+  const [employmentType, setEmploymentType] =
+    useState<EmploymentType>("FULL_TIME")
+  const [workHoursPerWeek, setWorkHoursPerWeek] = useState("40")
 
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
 
-  const isEditing = Boolean(editingId);
+  const isEditing = Boolean(editingId)
+  const availableJobRoles = useMemo(
+    () =>
+      departmentId
+        ? jobRoles.filter(
+            (item) =>
+              item.departmentId === departmentId || item.departmentId === null
+          )
+        : jobRoles,
+    [departmentId, jobRoles]
+  )
 
   function resetForm() {
-    setEditingId(null);
-    setName("");
-    setEmail("");
-    setPassword("");
-    setRole("DEVELOPER");
-    setIsActive(true);
-    setError("");
+    setEditingId(null)
+    setName("")
+    setEmail("")
+    setPassword("")
+    setRole("MEMBER")
+    setIsActive(true)
+    setDepartmentId("")
+    setJobRoleId("")
+    setEmployeeNumber("")
+    setEmploymentType("FULL_TIME")
+    setWorkHoursPerWeek("40")
+    setError("")
   }
 
   function startEdit(user: TeamUser) {
-    setEditingId(user.id);
-    setName(user.name);
-    setEmail(user.email);
-    setPassword("");
-    setRole(user.role);
-    setIsActive(user.isActive);
-    setError("");
+    setEditingId(user.id)
+    setName(user.name)
+    setEmail(user.email)
+    setPassword("")
+    setRole(user.role)
+    setIsActive(user.isActive)
+    setDepartmentId(user.employeeProfile?.departmentId || "")
+    setJobRoleId(user.employeeProfile?.jobRoleId || "")
+    setEmployeeNumber(user.employeeProfile?.employeeNumber || "")
+    setEmploymentType(user.employeeProfile?.employmentType || "FULL_TIME")
+    setWorkHoursPerWeek(
+      String(user.employeeProfile?.workHoursPerWeek ?? 40)
+    )
+    setError("")
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  function updateDepartment(value: string) {
+    setDepartmentId(value)
+
+    const currentJobRole = jobRoles.find((item) => item.id === jobRoleId)
+    if (
+      currentJobRole?.departmentId &&
+      currentJobRole.departmentId !== value
+    ) {
+      setJobRoleId("")
+    }
   }
 
   async function submitUser(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError("");
-    setLoading(true);
+    event.preventDefault()
+    setError("")
+    setLoading(true)
 
     try {
-      const endpoint = isEditing ? `/api/team/${editingId}` : "/api/team";
-      const method = isEditing ? "PATCH" : "POST";
-
-      const payload = isEditing
-        ? {
+      const response = await fetch(
+        isEditing ? `/api/team/${editingId}` : "/api/team",
+        {
+          method: isEditing ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
             name,
             email,
             password,
             role,
-            isActive,
-          }
-        : {
-            name,
-            email,
-            password,
-            role,
-          };
+            ...(isEditing ? { isActive } : {}),
+            departmentId: departmentId || null,
+            jobRoleId: jobRoleId || null,
+            employeeNumber,
+            employmentType,
+            workHoursPerWeek: Number(workHoursPerWeek),
+          }),
+        }
+      )
 
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
+      const data = await response.json()
 
       if (!response.ok || !data.ok) {
-        setError(data.message || "فشل حفظ بيانات الموظف");
-        return;
+        setError(data.message || "فشل حفظ بيانات الموظف")
+        return
       }
 
-      resetForm();
-      router.refresh();
+      resetForm()
+      router.refresh()
     } catch {
-      setError("حدث خطأ أثناء الاتصال بالخادم");
+      setError("حدث خطأ أثناء الاتصال بالخادم")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
   async function toggleUser(userId: string, currentState: boolean) {
-    const response = await fetch(`/api/team/${userId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        isActive: !currentState,
-      }),
-    });
+    setError("")
 
-    const data = await response.json();
+    try {
+      const response = await fetch(`/api/team/${userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !currentState }),
+      })
+      const data = await response.json()
 
-    if (!response.ok || !data.ok) {
-      setError(data.message || "فشل تعديل حالة الموظف");
-      return;
+      if (!response.ok || !data.ok) {
+        setError(data.message || "فشل تعديل حالة الموظف")
+        return
+      }
+
+      router.refresh()
+    } catch {
+      setError("حدث خطأ أثناء الاتصال بالخادم")
     }
-
-    router.refresh();
   }
 
   return (
     <div>
       <AquaPageHeader
-        badge="Team Management"
-        title="إدارة الفريق"
-        description="من هنا تدير حسابات موظفي الشركة داخل النظام الداخلي فقط، مع الأدوار وصلاحيات الدخول."
-        brandValue="Team"
+        badge="People & Access"
+        title="الفريق والموظفون"
+        description="الحساب والصلاحية منفصلان عن القسم والمسمى الوظيفي، لتبقى إدارة الوصول دقيقة من دون خلطها بهوية الموظف."
+        brandValue="People"
       />
+
+      <div className="d-flex justify-content-end mb-4">
+        <Link href="/dashboard/organization" className="btn aqua-btn-ghost">
+          إدارة الهيكل التنظيمي والفرق
+        </Link>
+      </div>
+
+      {error ? (
+        <div className="alert alert-danger rounded-4 border-0">{error}</div>
+      ) : null}
 
       <div className="row g-4">
         {manager ? (
           <div className="col-12 col-xl-4">
-            <div className="aqua-card p-4 h-100">
+            <div className="aqua-card p-4">
               <div className="d-flex align-items-start justify-content-between gap-3 mb-4">
                 <div>
                   <h3 className="h5 fw-black mb-1">
                     {isEditing ? "تعديل موظف" : "إضافة موظف"}
                   </h3>
                   <p className="small aqua-muted mb-0">
-                    {isEditing
-                      ? "عدّل بيانات حساب الموظف الداخلي."
-                      : "أنشئ حساب داخلي جديد لفريق Aqua.Tech."}
+                    بيانات الدخول والهوية التنظيمية في مكان واحد.
                   </p>
                 </div>
 
@@ -185,10 +284,12 @@ export default function TeamClient({
                 <div className="mb-3">
                   <label className="form-label aqua-muted">الاسم</label>
                   <input
+                    required
+                    minLength={2}
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     className="form-control aqua-control"
-                    placeholder="مثال: Qusai Kiwan"
+                    placeholder="اسم الموظف"
                   />
                 </div>
 
@@ -197,6 +298,7 @@ export default function TeamClient({
                     البريد الإلكتروني
                   </label>
                   <input
+                    required
                     dir="ltr"
                     type="email"
                     value={email}
@@ -204,9 +306,6 @@ export default function TeamClient({
                     className="form-control aqua-control text-start"
                     placeholder="name@aquatech.com"
                   />
-                  <div className="form-text aqua-soft">
-                    يستخدم فقط كاسم دخول داخل AquaFlow.
-                  </div>
                 </div>
 
                 <div className="mb-3">
@@ -219,40 +318,138 @@ export default function TeamClient({
                     className="form-control aqua-control text-start"
                     placeholder={
                       isEditing
-                        ? "اتركها فارغة إذا لا تريد تغييرها"
+                        ? "اتركها فارغة إذا لم تتغير"
                         : "12 حرفًا على الأقل"
                     }
                     required={!isEditing}
                     minLength={isEditing && !password ? undefined : 12}
                   />
-                  <div className="form-text aqua-soft">
-                    {isEditing
-                      ? "إذا كتبت كلمة مرور جديدة، سيتم تسجيل خروج الموظف من كل الجلسات."
-                      : "استخدم كلمة مرور مؤقتة قوية وفريدة، ثم شاركها مع الموظف بطريقة آمنة."}
-                  </div>
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label aqua-muted">الدور</label>
+                  <label className="form-label aqua-muted">
+                    مستوى الوصول
+                  </label>
                   <select
                     value={role}
                     onChange={(event) =>
-                      setRole(event.target.value as UserRole)
+                      setRole(event.target.value as AccessRole)
                     }
                     className="form-select aqua-control"
                     disabled={editingId === currentUser.id}
                   >
-                    {roles.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
+                    {accessRoles.map((item) => (
+                      <option
+                        key={item}
+                        value={item}
+                        disabled={item === "OWNER"}
+                      >
+                        {accessRoleLabels[item]}
                       </option>
                     ))}
                   </select>
+                  <div className="form-text aqua-soft">
+                    مستوى الوصول يحدد الصلاحيات فقط، وليس وظيفة الموظف.
+                  </div>
+                </div>
+
+                <div className="row g-3">
+                  <div className="col-12 col-md-6">
+                    <label className="form-label aqua-muted">القسم</label>
+                    <select
+                      value={departmentId}
+                      onChange={(event) =>
+                        updateDepartment(event.target.value)
+                      }
+                      className="form-select aqua-control"
+                    >
+                      <option value="">بدون قسم</option>
+                      {departments.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-12 col-md-6">
+                    <label className="form-label aqua-muted">
+                      المسمى الوظيفي
+                    </label>
+                    <select
+                      value={jobRoleId}
+                      onChange={(event) => setJobRoleId(event.target.value)}
+                      className="form-select aqua-control"
+                    >
+                      <option value="">بدون مسمى</option>
+                      {availableJobRoles.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="row g-3 mt-0">
+                  <div className="col-12 col-md-6">
+                    <label className="form-label aqua-muted">نوع التوظيف</label>
+                    <select
+                      value={employmentType}
+                      onChange={(event) =>
+                        setEmploymentType(
+                          event.target.value as EmploymentType
+                        )
+                      }
+                      className="form-select aqua-control"
+                    >
+                      {employmentTypes.map((item) => (
+                        <option key={item} value={item}>
+                          {employmentTypeLabels[item]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-12 col-md-6">
+                    <label className="form-label aqua-muted">
+                      ساعات العمل أسبوعيًا
+                    </label>
+                    <input
+                      dir="ltr"
+                      type="number"
+                      min="0"
+                      max="168"
+                      step="0.5"
+                      value={workHoursPerWeek}
+                      onChange={(event) =>
+                        setWorkHoursPerWeek(event.target.value)
+                      }
+                      className="form-control aqua-control text-start"
+                    />
+                  </div>
+                </div>
+
+                <div className="mb-3 mt-3">
+                  <label className="form-label aqua-muted">
+                    الرقم الوظيفي
+                  </label>
+                  <input
+                    dir="ltr"
+                    value={employeeNumber}
+                    onChange={(event) =>
+                      setEmployeeNumber(event.target.value)
+                    }
+                    className="form-control aqua-control text-start"
+                    placeholder="اختياري"
+                  />
                 </div>
 
                 {isEditing ? (
                   <div className="mb-3">
-                    <label className="form-label aqua-muted">الحالة</label>
+                    <label className="form-label aqua-muted">
+                      حالة حساب الدخول
+                    </label>
                     <select
                       value={isActive ? "active" : "disabled"}
                       onChange={(event) =>
@@ -261,15 +458,9 @@ export default function TeamClient({
                       className="form-select aqua-control"
                       disabled={editingId === currentUser.id}
                     >
-                      <option value="active">Active</option>
-                      <option value="disabled">Disabled</option>
+                      <option value="active">فعّال</option>
+                      <option value="disabled">معطّل</option>
                     </select>
-                  </div>
-                ) : null}
-
-                {error ? (
-                  <div className="alert alert-danger rounded-4 border-0">
-                    {error}
                   </div>
                 ) : null}
 
@@ -291,15 +482,14 @@ export default function TeamClient({
 
         <div className={manager ? "col-12 col-xl-8" : "col-12"}>
           <div className="aqua-card p-4">
-            <div className="d-flex align-items-start justify-content-between mb-4">
+            <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
               <div>
-                <h3 className="h5 fw-black mb-1">قائمة الفريق</h3>
+                <h3 className="h5 fw-black mb-1">دليل الموظفين</h3>
                 <p className="small aqua-muted mb-0">
-                  كل الحسابات الداخلية المرتبطة بـ Aqua.Tech.
+                  الوظيفة والقسم منفصلان عن صلاحيات الحساب.
                 </p>
               </div>
-
-              <span className="aqua-badge">{users.length} Users</span>
+              <span className="aqua-badge">{users.length} موظف</span>
             </div>
 
             <div className="table-responsive aqua-table-wrap">
@@ -307,13 +497,13 @@ export default function TeamClient({
                 <thead>
                   <tr>
                     <th>الموظف</th>
-                    <th>الدور</th>
+                    <th>الهوية الوظيفية</th>
+                    <th>الوصول</th>
                     <th>الحالة</th>
                     <th>آخر دخول</th>
-                    {manager ? <th className="text-start">إجراء</th> : null}
+                    {manager ? <th>إجراء</th> : null}
                   </tr>
                 </thead>
-
                 <tbody>
                   {users.map((user) => (
                     <tr key={user.id}>
@@ -322,43 +512,71 @@ export default function TeamClient({
                         <div className="small aqua-soft" dir="ltr">
                           {user.email}
                         </div>
+                        {user.employeeProfile?.employeeNumber ? (
+                          <div className="small aqua-soft mt-1" dir="ltr">
+                            #{user.employeeProfile.employeeNumber}
+                          </div>
+                        ) : null}
                       </td>
-
                       <td>
-                        <span className="aqua-badge">{user.role}</span>
+                        <div className="fw-bold">
+                          {user.employeeProfile?.jobRole?.name ||
+                            "بدون مسمى وظيفي"}
+                        </div>
+                        <div className="small aqua-soft mt-1">
+                          {user.employeeProfile?.department?.name ||
+                            "بدون قسم"}
+                          {" • "}
+                          {employmentTypeLabels[
+                            user.employeeProfile?.employmentType || "FULL_TIME"
+                          ]}
+                        </div>
                       </td>
-
                       <td>
-                        {user.isActive ? (
-                          <span className="badge text-bg-success">Active</span>
-                        ) : (
-                          <span className="badge text-bg-secondary">
-                            Disabled
-                          </span>
-                        )}
+                        <span className="aqua-badge">
+                          {accessRoleLabels[user.role]}
+                        </span>
                       </td>
-
+                      <td>
+                        <span
+                          className={`badge ${
+                            user.isActive
+                              ? "text-bg-success"
+                              : "text-bg-secondary"
+                          }`}
+                        >
+                          {user.isActive ? "فعّال" : "معطّل"}
+                        </span>
+                      </td>
                       <td className="small aqua-muted" dir="ltr">
                         {user.lastLoginAt
                           ? new Date(user.lastLoginAt).toLocaleString("en-GB")
                           : "Never"}
                       </td>
-
                       {manager ? (
-                        <td className="text-start">
-                          <div className="d-flex justify-content-start gap-2">
+                        <td>
+                          <div className="d-flex flex-wrap gap-2">
                             <button
                               type="button"
+                              disabled={
+                                user.role === "OWNER" &&
+                                currentUser.role !== "OWNER"
+                              }
                               onClick={() => startEdit(user)}
                               className="btn aqua-btn-ghost btn-sm"
                             >
                               تعديل
                             </button>
-
                             <button
                               type="button"
-                              disabled={user.id === currentUser.id}
-                              onClick={() => toggleUser(user.id, user.isActive)}
+                              disabled={
+                                user.id === currentUser.id ||
+                                (user.role === "OWNER" &&
+                                  currentUser.role !== "OWNER")
+                              }
+                              onClick={() =>
+                                toggleUser(user.id, user.isActive)
+                              }
                               className="btn aqua-btn-ghost btn-sm"
                             >
                               {user.isActive ? "تعطيل" : "تفعيل"}
@@ -371,14 +589,9 @@ export default function TeamClient({
                 </tbody>
               </table>
             </div>
-
-            <div className="small aqua-soft mt-3">
-              ملاحظة: حسابات الفريق داخلية فقط، ولا تستخدم كحسابات عملاء أو
-              تسجيل عام.
-            </div>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }

@@ -1,23 +1,34 @@
-import type { UserRole } from "@/generated/prisma/enums"
+import type { AccessRole } from "@/generated/prisma/enums"
 import { ApiError } from "@/lib/api-response"
 
 export const ACCESS_ROLES = {
   companySettings: ["OWNER", "ADMIN"],
   teamManagement: ["OWNER", "ADMIN"],
+  organizationManagement: ["OWNER", "ADMIN"],
   activityLog: ["OWNER", "ADMIN"],
-  clientManagement: ["OWNER", "ADMIN", "SALES", "PROJECT_MANAGER"],
-  projectManagement: ["OWNER", "ADMIN", "PROJECT_MANAGER"],
-  serviceRequestManagement: ["OWNER", "ADMIN", "SALES", "PROJECT_MANAGER"],
-  taskManagement: ["OWNER", "ADMIN", "PROJECT_MANAGER"],
-} as const satisfies Record<string, readonly UserRole[]>
+  clientManagement: [
+    "OWNER",
+    "ADMIN",
+    "SALES_MANAGER",
+    "OPERATIONS_MANAGER",
+  ],
+  projectManagement: ["OWNER", "ADMIN", "OPERATIONS_MANAGER"],
+  serviceRequestManagement: [
+    "OWNER",
+    "ADMIN",
+    "SALES_MANAGER",
+    "OPERATIONS_MANAGER",
+  ],
+  taskManagement: ["OWNER", "ADMIN", "OPERATIONS_MANAGER"],
+} as const satisfies Record<string, readonly AccessRole[]>
 
-export function hasRole(role: UserRole, allowedRoles: readonly UserRole[]) {
+export function hasRole(role: AccessRole, allowedRoles: readonly AccessRole[]) {
   return allowedRoles.includes(role)
 }
 
 export function assertRole(
-  role: UserRole,
-  allowedRoles: readonly UserRole[],
+  role: AccessRole,
+  allowedRoles: readonly AccessRole[],
   message = "لا تملك صلاحية تنفيذ هذا الإجراء"
 ) {
   if (!hasRole(role, allowedRoles)) {
@@ -26,7 +37,7 @@ export function assertRole(
 }
 
 export function canEditTask(
-  user: { id: string; role: UserRole },
+  user: { id: string; role: AccessRole },
   task: { assignedToId: string | null; createdById: string | null }
 ) {
   return (
@@ -37,7 +48,7 @@ export function canEditTask(
 }
 
 export function assertCanEditTask(
-  user: { id: string; role: UserRole },
+  user: { id: string; role: AccessRole },
   task: { assignedToId: string | null; createdById: string | null }
 ) {
   if (!canEditTask(user, task)) {

@@ -17,6 +17,15 @@ function actionLabel(action: ActivityAction) {
     USER_UPDATED: "تعديل موظف",
     USER_DEACTIVATED: "تعطيل موظف",
     USER_ACTIVATED: "تفعيل موظف",
+    EMPLOYEE_PROFILE_UPDATED: "تعديل الملف الوظيفي",
+    DEPARTMENT_CREATED: "إضافة قسم",
+    DEPARTMENT_UPDATED: "تعديل قسم",
+    JOB_ROLE_CREATED: "إضافة مسمى وظيفي",
+    JOB_ROLE_UPDATED: "تعديل مسمى وظيفي",
+    TEAM_CREATED: "إضافة فريق",
+    TEAM_UPDATED: "تعديل فريق",
+    TEAM_MEMBERSHIP_UPDATED: "تعديل توزيع فريق",
+    TEAM_MEMBERSHIP_REMOVED: "إزالة عضو من فريق",
 
     TASK_CREATED: "إضافة مهمة",
     TASK_UPDATED: "تعديل مهمة",
@@ -88,7 +97,10 @@ function actionBadgeClass(action: ActivityAction) {
     action === "CLIENT_CREATED" ||
     action === "PROJECT_CREATED" ||
     action === "TASK_CREATED" ||
-    action === "SERVICE_REQUEST_CREATED"
+    action === "SERVICE_REQUEST_CREATED" ||
+    action === "DEPARTMENT_CREATED" ||
+    action === "JOB_ROLE_CREATED" ||
+    action === "TEAM_CREATED"
   ) {
     return "text-bg-info";
   }

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { UserRole } from "@/generated/prisma/enums";
+import { AccessRole } from "@/generated/prisma/enums";
 import AquaPageHeader from "@/components/layout/AquaPageHeader";
 
 type CompanySettings = {
@@ -20,7 +20,7 @@ type CompanySettings = {
   updatedAt: Date;
 };
 
-function canManage(role: UserRole) {
+function canManage(role: AccessRole) {
   return role === "OWNER" || role === "ADMIN";
 }
 
@@ -30,7 +30,7 @@ export default function SettingsClient({
 }: {
   company: CompanySettings;
   currentUser: {
-    role: UserRole;
+    role: AccessRole;
   };
 }) {
   const router = useRouter();

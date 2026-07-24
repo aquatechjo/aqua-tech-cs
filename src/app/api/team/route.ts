@@ -1,5 +1,9 @@
 import { z } from "zod"
-import { ActivityAction, UserRole } from "@/generated/prisma/enums"
+import {
+  AccessRole,
+  ActivityAction,
+  EmploymentType,
+} from "@/generated/prisma/enums"
 import { ACCESS_ROLES, assertRole } from "@/lib/access-control"
 import { err, handleApiError, ok } from "@/lib/api-response"
 import { getRequestMeta, requireAuth } from "@/lib/auth"
@@ -12,9 +16,14 @@ const createUserSchema = z.object({
   name: z.string().min(2, "الاسم مطلوب"),
   email: z.string().email("البريد الإلكتروني غير صحيح"),
   password: z.string().min(12, "كلمة المرور يجب أن تكون 12 حرفًا على الأقل"),
-  role: z.nativeEnum(UserRole).refine((role) => role !== "OWNER", {
+  role: z.nativeEnum(AccessRole).refine((role) => role !== "OWNER", {
     message: "لا يمكن إنشاء حساب OWNER من لوحة الفريق",
   }),
+  departmentId: z.string().trim().optional().nullable(),
+  jobRoleId: z.string().trim().optional().nullable(),
+  employeeNumber: z.string().trim().max(40).optional().or(z.literal("")),
+  employmentType: z.nativeEnum(EmploymentType).default("FULL_TIME"),
+  workHoursPerWeek: z.coerce.number().min(0).max(168).default(40),
 })
 
 export async function GET() {
@@ -36,6 +45,12 @@ export async function GET() {
         isActive: true,
         lastLoginAt: true,
         createdAt: true,
+        employeeProfile: {
+          include: {
+            department: { select: { id: true, name: true, code: true } },
+            jobRole: { select: { id: true, name: true, code: true } },
+          },
+        },
       },
     })
 
@@ -64,7 +79,17 @@ export async function POST(request: Request) {
       return err("البيانات المدخلة غير صحيحة", 400, parsed.error.flatten())
     }
 
-    const { name, email, password, role } = parsed.data
+    const {
+      name,
+      email,
+      password,
+      role,
+      departmentId: requestedDepartmentId,
+      jobRoleId,
+      employeeNumber,
+      employmentType,
+      workHoursPerWeek,
+    } = parsed.data
     const normalizedEmail = email.toLowerCase().trim()
 
     const existingUser = await prisma.user.findUnique({
@@ -75,6 +100,60 @@ export async function POST(request: Request) {
 
     if (existingUser) {
       return err("يوجد مستخدم بهذا البريد الإلكتروني", 409)
+    }
+
+    const [department, jobRole, duplicateEmployeeNumber] = await Promise.all([
+      requestedDepartmentId
+        ? prisma.department.findFirst({
+            where: {
+              id: requestedDepartmentId,
+              companyId: currentUser.companyId,
+              isActive: true,
+            },
+            select: { id: true },
+          })
+        : Promise.resolve(null),
+      jobRoleId
+        ? prisma.jobRole.findFirst({
+            where: {
+              id: jobRoleId,
+              companyId: currentUser.companyId,
+              isActive: true,
+            },
+            select: { id: true, departmentId: true },
+          })
+        : Promise.resolve(null),
+      employeeNumber
+        ? prisma.employeeProfile.findFirst({
+            where: {
+              companyId: currentUser.companyId,
+              employeeNumber,
+            },
+            select: { id: true },
+          })
+        : Promise.resolve(null),
+    ])
+
+    if (requestedDepartmentId && !department) {
+      return err("القسم المحدد غير موجود أو غير فعّال", 400)
+    }
+
+    if (jobRoleId && !jobRole) {
+      return err("المسمى الوظيفي المحدد غير موجود أو غير فعّال", 400)
+    }
+
+    if (duplicateEmployeeNumber) {
+      return err("الرقم الوظيفي مستخدم لموظف آخر", 409)
+    }
+
+    const departmentId = requestedDepartmentId || jobRole?.departmentId || null
+
+    if (
+      requestedDepartmentId &&
+      jobRole?.departmentId &&
+      requestedDepartmentId !== jobRole.departmentId
+    ) {
+      return err("المسمى الوظيفي لا يتبع للقسم المحدد", 400)
     }
 
     const passwordHash = await hashPassword(password)
@@ -100,6 +179,24 @@ export async function POST(request: Request) {
         },
       })
 
+      const employeeProfile = await tx.employeeProfile.create({
+        data: {
+          companyId: currentUser.companyId,
+          userId: createdUser.id,
+          departmentId,
+          jobRoleId: jobRoleId || null,
+          employeeNumber: employeeNumber || null,
+          employmentType,
+          workHoursPerWeek,
+          status: "ACTIVE",
+          startDate: new Date(),
+        },
+        include: {
+          department: { select: { id: true, name: true, code: true } },
+          jobRole: { select: { id: true, name: true, code: true } },
+        },
+      })
+
       await logActivity({
         companyId: currentUser.companyId,
         userId: currentUser.id,
@@ -109,14 +206,16 @@ export async function POST(request: Request) {
         message: `تم إضافة موظف جديد: ${createdUser.name}`,
         metadata: {
           email: createdUser.email,
-          role: createdUser.role,
+          accessRole: createdUser.role,
+          departmentId,
+          jobRoleId: jobRoleId || null,
         },
         ipAddress: meta.ipAddress,
         userAgent: meta.userAgent,
         db: tx,
       })
 
-      return createdUser
+      return { ...createdUser, employeeProfile }
     })
 
     return ok({ user: newUser }, 201)

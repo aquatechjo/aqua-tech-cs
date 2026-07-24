@@ -186,7 +186,12 @@ async function createWebsiteServiceRequest(request: Request) {
           companyId: company.id,
           isActive: true,
           role: {
-            in: ["OWNER", "ADMIN", "SALES", "PROJECT_MANAGER"],
+            in: [
+              "OWNER",
+              "ADMIN",
+              "SALES_MANAGER",
+              "OPERATIONS_MANAGER",
+            ],
           },
         },
         select: {

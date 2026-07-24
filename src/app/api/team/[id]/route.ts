@@ -1,5 +1,9 @@
 import { z } from "zod"
-import { ActivityAction, UserRole } from "@/generated/prisma/enums"
+import {
+  AccessRole,
+  ActivityAction,
+  EmploymentType,
+} from "@/generated/prisma/enums"
 import { ACCESS_ROLES, assertRole } from "@/lib/access-control"
 import { ApiError, err, handleApiError, ok } from "@/lib/api-response"
 import { getRequestMeta, requireAuth } from "@/lib/auth"
@@ -16,8 +20,13 @@ const updateUserSchema = z.object({
     .min(12, "كلمة المرور يجب أن تكون 12 حرفًا على الأقل")
     .optional()
     .or(z.literal("")),
-  role: z.nativeEnum(UserRole).optional(),
+  role: z.nativeEnum(AccessRole).optional(),
   isActive: z.boolean().optional(),
+  departmentId: z.string().trim().optional().nullable(),
+  jobRoleId: z.string().trim().optional().nullable(),
+  employeeNumber: z.string().trim().max(40).optional().or(z.literal("")),
+  employmentType: z.nativeEnum(EmploymentType).optional(),
+  workHoursPerWeek: z.coerce.number().min(0).max(168).optional(),
 })
 
 export async function PATCH(
@@ -47,6 +56,18 @@ export async function PATCH(
       where: {
         id,
         companyId: currentUser.companyId,
+      },
+      include: {
+        employeeProfile: {
+          select: {
+            id: true,
+            departmentId: true,
+            jobRoleId: true,
+            employeeNumber: true,
+            employmentType: true,
+            workHoursPerWeek: true,
+          },
+        },
       },
     })
 
@@ -91,7 +112,7 @@ export async function PATCH(
     const updateData: {
       name?: string
       email?: string
-      role?: UserRole
+      role?: AccessRole
       isActive?: boolean
       passwordHash?: string
     } = {}
@@ -131,6 +152,79 @@ export async function PATCH(
       updateData.passwordHash = await hashPassword(data.password)
     }
 
+    const requestedDepartmentId =
+      data.departmentId === undefined
+        ? targetUser.employeeProfile?.departmentId || null
+        : data.departmentId || null
+    const requestedJobRoleId =
+      data.jobRoleId === undefined
+        ? targetUser.employeeProfile?.jobRoleId || null
+        : data.jobRoleId || null
+
+    const [department, jobRole] = await Promise.all([
+      requestedDepartmentId
+        ? prisma.department.findFirst({
+            where: {
+              id: requestedDepartmentId,
+              companyId: currentUser.companyId,
+              isActive: true,
+            },
+            select: { id: true },
+          })
+        : Promise.resolve(null),
+      requestedJobRoleId
+        ? prisma.jobRole.findFirst({
+            where: {
+              id: requestedJobRoleId,
+              companyId: currentUser.companyId,
+              isActive: true,
+            },
+            select: { id: true, departmentId: true },
+          })
+        : Promise.resolve(null),
+    ])
+
+    if (requestedDepartmentId && !department) {
+      return err("القسم المحدد غير موجود أو غير فعّال", 400)
+    }
+
+    if (requestedJobRoleId && !jobRole) {
+      return err("المسمى الوظيفي المحدد غير موجود أو غير فعّال", 400)
+    }
+
+    if (
+      requestedDepartmentId &&
+      jobRole?.departmentId &&
+      requestedDepartmentId !== jobRole.departmentId
+    ) {
+      return err("المسمى الوظيفي لا يتبع للقسم المحدد", 400)
+    }
+
+    if (data.employeeNumber) {
+      const duplicateEmployeeNumber = await prisma.employeeProfile.findFirst({
+        where: {
+          companyId: currentUser.companyId,
+          employeeNumber: data.employeeNumber,
+          userId: { not: id },
+        },
+        select: { id: true },
+      })
+
+      if (duplicateEmployeeNumber) {
+        return err("الرقم الوظيفي مستخدم لموظف آخر", 409)
+      }
+    }
+
+    const profileDepartmentId =
+      requestedDepartmentId || jobRole?.departmentId || null
+    const profileChanged = [
+      "departmentId",
+      "jobRoleId",
+      "employeeNumber",
+      "employmentType",
+      "workHoursPerWeek",
+    ].some((key) => key in data)
+
     const meta = await getRequestMeta()
 
     let action: ActivityAction = ActivityAction.USER_UPDATED
@@ -158,6 +252,41 @@ export async function PATCH(
           isActive: true,
           lastLoginAt: true,
           createdAt: true,
+        },
+      })
+
+      const employeeProfile = await tx.employeeProfile.upsert({
+        where: { userId: id },
+        create: {
+          companyId: currentUser.companyId,
+          userId: id,
+          departmentId: profileDepartmentId,
+          jobRoleId: requestedJobRoleId,
+          employeeNumber: data.employeeNumber || null,
+          employmentType: data.employmentType || "FULL_TIME",
+          workHoursPerWeek: data.workHoursPerWeek,
+          status: data.isActive === false ? "SUSPENDED" : "ACTIVE",
+          startDate: targetUser.createdAt,
+        },
+        update: {
+          departmentId: profileChanged ? profileDepartmentId : undefined,
+          jobRoleId: profileChanged ? requestedJobRoleId : undefined,
+          employeeNumber:
+            data.employeeNumber === undefined
+              ? undefined
+              : data.employeeNumber || null,
+          employmentType: data.employmentType,
+          workHoursPerWeek: data.workHoursPerWeek,
+          status:
+            data.isActive === undefined
+              ? undefined
+              : data.isActive
+                ? "ACTIVE"
+                : "SUSPENDED",
+        },
+        include: {
+          department: { select: { id: true, name: true, code: true } },
+          jobRole: { select: { id: true, name: true, code: true } },
         },
       })
 
@@ -190,6 +319,15 @@ export async function PATCH(
           changedFields: Object.keys(updateData).filter(
             (key) => key !== "passwordHash"
           ),
+          profileChangedFields: Object.keys(data).filter((key) =>
+            [
+              "departmentId",
+              "jobRoleId",
+              "employeeNumber",
+              "employmentType",
+              "workHoursPerWeek",
+            ].includes(key)
+          ),
           passwordChanged: Boolean(updateData.passwordHash),
         },
         ipAddress: meta.ipAddress,
@@ -197,7 +335,7 @@ export async function PATCH(
         db: tx,
       })
 
-      return result
+      return { ...result, employeeProfile }
     })
 
     return ok({ user: updatedUser })

@@ -7,16 +7,27 @@ datasource db {
   provider = "postgresql"
 }
 
-enum UserRole {
+enum AccessRole {
   OWNER
   ADMIN
-  PROJECT_MANAGER
-  DEVELOPER
-  DESIGNER
-  SALES
-  MARKETING
-  SUPPORT
-  FINANCE
+  OPERATIONS_MANAGER
+  SALES_MANAGER
+  FINANCE_MANAGER
+  MEMBER
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACTOR
+  INTERN
+}
+
+enum EmploymentStatus {
+  ACTIVE
+  ON_LEAVE
+  SUSPENDED
+  TERMINATED
 }
 
 enum NotificationType {
@@ -60,6 +71,15 @@ enum ActivityAction {
   SERVICE_REQUEST_CONVERTED
   SERVICE_REQUEST_ARCHIVED
   SERVICE_REQUEST_RESTORED
+  EMPLOYEE_PROFILE_UPDATED
+  DEPARTMENT_CREATED
+  DEPARTMENT_UPDATED
+  JOB_ROLE_CREATED
+  JOB_ROLE_UPDATED
+  TEAM_CREATED
+  TEAM_UPDATED
+  TEAM_MEMBERSHIP_UPDATED
+  TEAM_MEMBERSHIP_REMOVED
 }
 
 model Company {
@@ -79,11 +99,16 @@ model Company {
   projects Project[]
   tasks    Task[]
 
-  users         User[]
-  sessions      Session[]
-  activities    ActivityLog[]
-  notifications Notification[]
-  files         File[]
+  users            User[]
+  sessions         Session[]
+  activities       ActivityLog[]
+  notifications    Notification[]
+  files            File[]
+  departments      Department[]
+  jobRoles         JobRole[]
+  employeeProfiles EmployeeProfile[]
+  teams            Team[]
+  teamMemberships  TeamMembership[]
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -96,10 +121,10 @@ model User {
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   name         String
-  email        String   @unique
+  email        String     @unique
   passwordHash String
-  role         UserRole @default(DEVELOPER)
-  isActive     Boolean  @default(true)
+  role         AccessRole @default(MEMBER)
+  isActive     Boolean    @default(true)
 
   lastLoginAt DateTime?
 
@@ -113,6 +138,7 @@ model User {
   assignedTasks           Task[]           @relation("TaskAssignee")
   createdTasks            Task[]           @relation("TaskCreator")
   assignedServiceRequests ServiceRequest[] @relation("ServiceRequestAssignee")
+  employeeProfile         EmployeeProfile?
 
   @@index([companyId])
   @@index([role])
@@ -151,6 +177,155 @@ model RateLimitBucket {
   updatedAt   DateTime @updatedAt
 
   @@index([expiresAt])
+}
+
+model Department {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  name        String
+  code        String
+  description String?
+  isActive    Boolean @default(true)
+  sortOrder   Int     @default(0)
+
+  leadProfileId String?
+  leadProfile   EmployeeProfile? @relation("DepartmentLead", fields: [leadProfileId], references: [id], onDelete: SetNull)
+
+  employeeProfiles EmployeeProfile[]
+  jobRoles         JobRole[]
+  teams            Team[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@index([leadProfileId])
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+model JobRole {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  name        String
+  code        String
+  description String?
+  isActive    Boolean @default(true)
+  sortOrder   Int     @default(0)
+
+  employeeProfiles EmployeeProfile[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+model EmployeeProfile {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  employeeNumber String?
+
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  jobRoleId String?
+  jobRole   JobRole? @relation(fields: [jobRoleId], references: [id], onDelete: SetNull)
+
+  managerId String?
+  manager   EmployeeProfile?  @relation("EmployeeManager", fields: [managerId], references: [id], onDelete: SetNull)
+  reports   EmployeeProfile[] @relation("EmployeeManager")
+
+  employmentType   EmploymentType   @default(FULL_TIME)
+  status           EmploymentStatus @default(ACTIVE)
+  phone            String?
+  location         String?
+  workHoursPerWeek Decimal          @default(40) @db.Decimal(5, 2)
+  startDate        DateTime?
+  endDate          DateTime?
+
+  teamMemberships TeamMembership[]
+  ledDepartments  Department[]     @relation("DepartmentLead")
+  ledTeams        Team[]           @relation("TeamLead")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, employeeNumber])
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([jobRoleId])
+  @@index([managerId])
+  @@index([status])
+}
+
+model Team {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  leadProfileId String?
+  leadProfile   EmployeeProfile? @relation("TeamLead", fields: [leadProfileId], references: [id], onDelete: SetNull)
+
+  name        String
+  code        String
+  description String?
+  isActive    Boolean @default(true)
+  sortOrder   Int     @default(0)
+
+  memberships TeamMembership[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([leadProfileId])
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+model TeamMembership {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  employeeProfileId String
+  employeeProfile   EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+
+  allocationPercent Int     @default(100)
+  responsibility    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teamId, employeeProfileId])
+  @@index([companyId])
+  @@index([employeeProfileId])
 }
 
 model ActivityLog {
@@ -370,9 +545,9 @@ model ServiceRequest {
   source   ServiceRequestSource   @default(WEBSITE)
   priority ServiceRequestPriority @default(MEDIUM)
 
-  workflowRunId String?
+  workflowRunId  String?
   idempotencyKey String?
-  proposalUrl   String?
+  proposalUrl    String?
 
   proposalSentAt DateTime?
   approvedAt     DateTime?
@@ -382,6 +557,7 @@ model ServiceRequest {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([companyId, idempotencyKey])
   @@index([companyId])
   @@index([clientId])
   @@index([projectId])
@@ -390,7 +566,6 @@ model ServiceRequest {
   @@index([source])
   @@index([priority])
   @@index([createdAt])
-  @@unique([companyId, idempotencyKey])
 }
 
 enum ClientType {

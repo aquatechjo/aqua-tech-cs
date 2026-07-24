@@ -57,5 +57,7 @@ npm run db:seed
 
 Never commit `.env` or production credentials.
 
-See [docs/BATCH_0_SECURITY_FOUNDATION.md](docs/BATCH_0_SECURITY_FOUNDATION.md)
-for the Batch 0 changes and deployment checklist.
+Implementation notes:
+
+- [Batch 0 — Security Foundation](docs/BATCH_0_SECURITY_FOUNDATION.md)
+- [Batch 1 — Organization Structure](docs/BATCH_1_ORGANIZATION_STRUCTURE.md)

@@ -26,11 +26,11 @@ starting again. Bootstrap and the current product structure remain unchanged.
   and project is transactional and safe to repeat.
 - Added unit tests and a complete `npm run check` quality gate.
 
-## Temporary role policy
+## Historical role policy
 
-The current `UserRole` still combines job title and access level. This is a
-temporary compatibility layer until Batch 1 separates employee profiles,
-departments, teams, memberships, and permissions.
+This was the temporary policy used by Batch 0. Batch 1 replaces `UserRole`
+with a permission-only `AccessRole` and moves job identity into the
+organizational models.
 
 | Operation | Allowed roles |
 |---|---|

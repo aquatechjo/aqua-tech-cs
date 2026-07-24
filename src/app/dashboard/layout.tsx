@@ -19,6 +19,11 @@ export default async function DashboardLayout({
   const navItems = [
     { label: "لوحة التحكم", href: "/dashboard", enabled: true },
     { label: "الفريق", href: "/dashboard/team", enabled: true },
+    {
+      label: "الهيكل التنظيمي",
+      href: "/dashboard/organization",
+      enabled: true,
+    },
     { label: "العملاء", href: "/dashboard/clients", enabled: true },
     { label: "المشاريع", href: "/dashboard/projects", enabled: true },
     { label: "المهام", href: "/dashboard/tasks", enabled: true },
