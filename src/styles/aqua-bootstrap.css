@@ -1,26 +1,31 @@
 :root {
-  --aqua-bg: #020617;
-  --aqua-bg-soft: #07111f;
-  --aqua-surface: #0f172a;
-  --aqua-surface-soft: #111827;
-  --aqua-border: rgba(255, 255, 255, 0.1);
+  --aqua-bg: var(--at-product-bg);
+  --aqua-bg-soft: var(--at-product-bg-soft);
+  --aqua-surface: var(--at-product-surface);
+  --aqua-surface-soft: var(--at-product-surface-soft);
+  --aqua-border: var(--at-product-border);
 
-  --aqua-cyan: #06b6d4;
-  --aqua-sky: #38bdf8;
-  --aqua-blue: #2563eb;
+  --aqua-cyan: var(--at-product-accent);
+  --aqua-sky: var(--at-brand-aqua);
+  --aqua-blue: var(--at-product-accent-secondary);
 
-  --aqua-text: #f8fafc;
-  --aqua-muted: #94a3b8;
-  --aqua-soft: #64748b;
+  --aqua-text: var(--at-product-text);
+  --aqua-muted: var(--at-product-muted);
+  --aqua-soft: var(--at-product-soft-text);
 
-  --aqua-success: #22c55e;
-  --aqua-warning: #f59e0b;
-  --aqua-danger: #ef4444;
+  --aqua-success: var(--at-success);
+  --aqua-warning: var(--at-warning);
+  --aqua-danger: var(--at-danger);
 
   --bs-body-bg: var(--aqua-bg);
   --bs-body-color: var(--aqua-text);
+  --bs-body-font-family: var(--at-font-body);
   --bs-border-color: var(--aqua-border);
+  --bs-border-radius: var(--at-radius-md);
+  --bs-border-radius-lg: var(--at-radius-lg);
+  --bs-border-radius-xl: var(--at-radius-xl);
   --bs-primary: var(--aqua-cyan);
+  --bs-primary-rgb: var(--at-product-accent-rgb);
 }
 
 html,
@@ -31,7 +36,11 @@ body {
 }
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: var(--at-font-body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .aqua-page {
@@ -955,4 +964,40 @@ body {
 .aqua-auth-link:focus-visible {
   color: #bae6fd;
   text-decoration: underline;
+}
+
+
+/* Aqua.Tech Design DNA foundation */
+:where(
+    a,
+    button,
+    input,
+    select,
+    textarea,
+    [tabindex]:not([tabindex="-1"])
+  ):focus-visible {
+  outline: 3px solid var(--at-focus-ring);
+  outline-offset: 3px;
+}
+
+.aqua-mono,
+code,
+kbd,
+samp {
+  font-family: var(--at-font-mono);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
 }

@@ -1,23 +1,25 @@
+import { aquaFlowTheme, aquaTechDesignTokens } from "@/design-system"
+
 export const aquaBrand = {
-  name: "Aqua.Tech",
-  product: "AquaFlow",
+  name: aquaFlowTheme.companyName,
+  product: aquaFlowTheme.productName,
 
   colors: {
-    background: "#020617",
-    surface: "#0F172A",
-    surfaceSoft: "#111827",
+    background: aquaFlowTheme.surface.background,
+    surface: aquaFlowTheme.surface.card,
+    surfaceSoft: aquaFlowTheme.surface.cardSoft,
 
-    aqua: "#06B6D4",
-    sky: "#38BDF8",
-    blue: "#2563EB",
+    aqua: aquaFlowTheme.accent.primary,
+    sky: aquaTechDesignTokens.color.brand.aqua,
+    blue: aquaFlowTheme.accent.secondary,
 
-    text: "#F8FAFC",
-    muted: "#94A3B8",
-    soft: "#64748B",
+    text: aquaFlowTheme.surface.text,
+    muted: aquaFlowTheme.surface.muted,
+    soft: aquaFlowTheme.surface.softText,
 
-    success: "#22C55E",
-    warning: "#F59E0B",
-    danger: "#EF4444",
+    success: aquaTechDesignTokens.color.semantic.success,
+    warning: aquaTechDesignTokens.color.semantic.warning,
+    danger: aquaTechDesignTokens.color.semantic.danger,
   },
 
   gradients: {
@@ -33,8 +35,8 @@ export const aquaBrand = {
   },
 
   language: {
-    tagline: "Growth • Software • AI",
-    systemLine: "Build. Launch. Grow.",
+    tagline: aquaFlowTheme.tagline,
+    systemLine: aquaFlowTheme.systemLine,
     arabicLine: "حلول رقمية ونمو فعلي — من الانطلاقة إلى التوسع",
   },
 

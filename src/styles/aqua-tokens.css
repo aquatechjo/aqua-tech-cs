@@ -1,0 +1,96 @@
+:root {
+  color-scheme: dark;
+
+  --at-brand-ink: #051424;
+  --at-brand-deep: #010f1f;
+  --at-brand-aqua: #89ceff;
+  --at-brand-cyan: #00b4ff;
+  --at-brand-blue: #2563eb;
+
+  --at-success: #22c55e;
+  --at-warning: #f59e0b;
+  --at-danger: #ef4444;
+  --at-info: #2563eb;
+
+  --at-radius-xs: 8px;
+  --at-radius-sm: 12px;
+  --at-radius-md: 16px;
+  --at-radius-lg: 20px;
+  --at-radius-xl: 24px;
+  --at-radius-2xl: 32px;
+  --at-radius-pill: 999px;
+
+  --at-space-1: 4px;
+  --at-space-2: 8px;
+  --at-space-3: 12px;
+  --at-space-4: 16px;
+  --at-space-6: 24px;
+  --at-space-8: 32px;
+  --at-space-12: 48px;
+  --at-space-16: 64px;
+  --at-space-24: 96px;
+  --at-space-30: 120px;
+
+  --at-motion-instant: 120ms;
+  --at-motion-fast: 180ms;
+  --at-motion-normal: 260ms;
+  --at-motion-slow: 420ms;
+  --at-motion-success: 600ms;
+  --at-ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --at-ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+  --at-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  --at-font-arabic:
+    "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  --at-font-latin: Inter, "Segoe UI", Arial, sans-serif;
+  --at-font-mono:
+    "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+  --at-product-accent: #06b6d4;
+  --at-product-accent-rgb: 6, 182, 212;
+  --at-product-accent-secondary: #2563eb;
+  --at-product-accent-secondary-rgb: 37, 99, 235;
+  --at-product-accent-soft: #bff7ff;
+  --at-product-accent-contrast: #ffffff;
+
+  --at-product-bg: #020617;
+  --at-product-bg-soft: #07111f;
+  --at-product-surface: #0f172a;
+  --at-product-surface-soft: #111827;
+  --at-product-border: rgba(255, 255, 255, 0.1);
+  --at-product-text: #f8fafc;
+  --at-product-muted: #94a3b8;
+  --at-product-soft-text: #64748b;
+
+  --at-shadow-xs: 0 2px 8px rgba(2, 6, 23, 0.12);
+  --at-shadow-sm: 0 8px 24px rgba(2, 6, 23, 0.18);
+  --at-shadow-md: 0 16px 48px rgba(2, 6, 23, 0.24);
+  --at-shadow-lg: 0 24px 80px rgba(2, 6, 23, 0.35);
+  --at-focus-ring: rgba(var(--at-product-accent-rgb), 0.34);
+}
+
+html[lang="ar"] {
+  --at-font-body: var(--at-font-arabic);
+}
+
+html:not([lang="ar"]) {
+  --at-font-body: var(--at-font-latin);
+}
+
+[data-aqua-product="aquaflow"] {
+  --at-product-accent: #06b6d4;
+  --at-product-accent-rgb: 6, 182, 212;
+  --at-product-accent-secondary: #2563eb;
+  --at-product-accent-secondary-rgb: 37, 99, 235;
+  --at-product-accent-soft: #bff7ff;
+  --at-product-accent-contrast: #ffffff;
+
+  --at-product-bg: #020617;
+  --at-product-bg-soft: #07111f;
+  --at-product-surface: #0f172a;
+  --at-product-surface-soft: #111827;
+  --at-product-border: rgba(255, 255, 255, 0.1);
+  --at-product-text: #f8fafc;
+  --at-product-muted: #94a3b8;
+  --at-product-soft-text: #64748b;
+}

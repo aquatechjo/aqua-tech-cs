@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit --pretty false",
-    "test:unit": "node --import tsx --test tests/unit/access-control.test.ts tests/unit/organization.test.ts tests/unit/project-execution.test.ts tests/unit/finance.test.ts tests/unit/sales.test.ts tests/unit/time.test.ts tests/unit/hr.test.ts tests/unit/request-security.test.ts tests/unit/session.test.ts tests/unit/password-reset.test.ts",
+    "test:unit": "node --import tsx --test tests/unit/access-control.test.ts tests/unit/organization.test.ts tests/unit/project-execution.test.ts tests/unit/finance.test.ts tests/unit/sales.test.ts tests/unit/time.test.ts tests/unit/hr.test.ts tests/unit/request-security.test.ts tests/unit/session.test.ts tests/unit/password-reset.test.ts tests/unit/design-system.test.ts",
     "check": "npm run lint && npm run typecheck && npm run test:unit && npm run build",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
