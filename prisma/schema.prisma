@@ -72,6 +72,37 @@ enum TaskBlockerStatus {
   DISMISSED
 }
 
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CARD
+  WALLET
+  CHEQUE
+  OTHER
+}
+
+enum PaymentStatus {
+  POSTED
+  REVERSED
+}
+
+enum ExpenseStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  PAID
+  CANCELLED
+}
+
 enum NotificationType {
   INFO
   SUCCESS
@@ -136,6 +167,19 @@ enum ActivityAction {
   TASK_BLOCKER_CREATED
   TASK_BLOCKER_UPDATED
   TASK_BLOCKER_RESOLVED
+  INVOICE_CREATED
+  INVOICE_UPDATED
+  INVOICE_ISSUED
+  INVOICE_CANCELLED
+  PAYMENT_RECORDED
+  PAYMENT_REVERSED
+  EXPENSE_CREATED
+  EXPENSE_UPDATED
+  EXPENSE_SUBMITTED
+  EXPENSE_APPROVED
+  EXPENSE_REJECTED
+  EXPENSE_PAID
+  EXPENSE_CANCELLED
 }
 
 model Company {
@@ -170,6 +214,11 @@ model Company {
   taskParticipants TaskParticipant[]
   taskDependencies TaskDependency[]
   taskBlockers     TaskBlocker[]
+  invoices         Invoice[]
+  invoiceItems     InvoiceItem[]
+  payments         Payment[]
+  expenses         Expense[]
+  documentSequences DocumentSequence[]
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -202,6 +251,11 @@ model User {
   employeeProfile         EmployeeProfile?
   reportedTaskBlockers    TaskBlocker[]    @relation("TaskBlockerReporter")
   resolvedTaskBlockers    TaskBlocker[]    @relation("TaskBlockerResolver")
+  createdInvoices         Invoice[]        @relation("InvoiceCreator")
+  recordedPayments        Payment[]        @relation("PaymentRecorder")
+  reversedPayments        Payment[]        @relation("PaymentReverser")
+  createdExpenses         Expense[]        @relation("ExpenseCreator")
+  approvedExpenses        Expense[]        @relation("ExpenseApprover")
 
   @@index([companyId])
   @@index([role])
@@ -487,6 +541,7 @@ model Client {
   notes    String?
   projects Project[]
   tasks    Task[]
+  invoices Invoice[]
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -525,6 +580,8 @@ model Project {
   tasks       Task[]
   members     ProjectMember[]
   phases      ProjectPhase[]
+  invoices    Invoice[]
+  expenses    Expense[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -722,6 +779,175 @@ model TaskBlocker {
   @@index([severity])
 }
 
+model DocumentSequence {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  key          String
+  currentValue Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, key])
+  @@index([companyId])
+}
+
+model Invoice {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  serviceRequestId String?
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: SetNull)
+
+  createdById String?
+  createdBy   User? @relation("InvoiceCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  invoiceNumber String
+  status        InvoiceStatus @default(DRAFT)
+  currency      String        @default("JOD")
+
+  issueDate DateTime?
+  dueDate   DateTime?
+
+  subtotal       Decimal @db.Decimal(14, 2)
+  discountAmount Decimal @default(0) @db.Decimal(14, 2)
+  taxAmount      Decimal @default(0) @db.Decimal(14, 2)
+  totalAmount    Decimal @db.Decimal(14, 2)
+  amountPaid     Decimal @default(0) @db.Decimal(14, 2)
+
+  notes String?
+  terms String?
+
+  items    InvoiceItem[]
+  payments Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, invoiceNumber])
+  @@index([companyId])
+  @@index([clientId])
+  @@index([projectId])
+  @@index([serviceRequestId])
+  @@index([createdById])
+  @@index([status])
+  @@index([issueDate])
+  @@index([dueDate])
+}
+
+model InvoiceItem {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  description String
+  quantity    Decimal @default(1) @db.Decimal(10, 2)
+  unitPrice   Decimal @db.Decimal(14, 2)
+  lineTotal   Decimal @db.Decimal(14, 2)
+  sortOrder   Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([invoiceId])
+  @@index([sortOrder])
+}
+
+model Payment {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  recordedById String?
+  recordedBy   User? @relation("PaymentRecorder", fields: [recordedById], references: [id], onDelete: SetNull)
+
+  reversedById String?
+  reversedBy   User? @relation("PaymentReverser", fields: [reversedById], references: [id], onDelete: SetNull)
+
+  amount   Decimal       @db.Decimal(14, 2)
+  currency String        @default("JOD")
+  method   PaymentMethod @default(BANK_TRANSFER)
+  status   PaymentStatus @default(POSTED)
+
+  reference String?
+  notes     String?
+  paidAt    DateTime
+
+  reversedAt    DateTime?
+  reversalReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([invoiceId])
+  @@index([recordedById])
+  @@index([reversedById])
+  @@index([status])
+  @@index([paidAt])
+}
+
+model Expense {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  createdById String?
+  createdBy   User? @relation("ExpenseCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  approvedById String?
+  approvedBy   User? @relation("ExpenseApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+
+  expenseNumber String
+  vendorName    String?
+  category      String
+  description   String
+  amount        Decimal @db.Decimal(14, 2)
+  currency      String  @default("JOD")
+  status        ExpenseStatus @default(DRAFT)
+
+  incurredAt  DateTime
+  submittedAt DateTime?
+  approvedAt  DateTime?
+  rejectedAt  DateTime?
+  paidAt      DateTime?
+  cancelledAt DateTime?
+
+  reference  String?
+  receiptUrl String?
+  notes      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, expenseNumber])
+  @@index([companyId])
+  @@index([projectId])
+  @@index([createdById])
+  @@index([approvedById])
+  @@index([status])
+  @@index([incurredAt])
+}
+
 model ServiceRequest {
   id String @id @default(cuid())
 
@@ -759,6 +985,7 @@ model ServiceRequest {
   approvedAt     DateTime?
   rejectedAt     DateTime?
   convertedAt    DateTime?
+  invoices       Invoice[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

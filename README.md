@@ -62,3 +62,4 @@ Implementation notes:
 - [Batch 0 — Security Foundation](docs/BATCH_0_SECURITY_FOUNDATION.md)
 - [Batch 1 — Organization Structure](docs/BATCH_1_ORGANIZATION_STRUCTURE.md)
 - [Batch 2 — Project Execution](docs/BATCH_2_PROJECT_EXECUTION.md)
+- [Batch 3 — Operational Finance](docs/BATCH_3_OPERATIONAL_FINANCE.md)

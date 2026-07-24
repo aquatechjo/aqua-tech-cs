@@ -41,6 +41,20 @@ function actionLabel(action: ActivityAction) {
     TASK_BLOCKER_UPDATED: "تعديل عائق مهمة",
     TASK_BLOCKER_RESOLVED: "معالجة عائق مهمة",
 
+    INVOICE_CREATED: "إنشاء فاتورة",
+    INVOICE_UPDATED: "تعديل فاتورة",
+    INVOICE_ISSUED: "إصدار فاتورة",
+    INVOICE_CANCELLED: "إلغاء فاتورة",
+    PAYMENT_RECORDED: "تسجيل دفعة",
+    PAYMENT_REVERSED: "عكس دفعة",
+    EXPENSE_CREATED: "إنشاء مصروف",
+    EXPENSE_UPDATED: "تعديل مصروف",
+    EXPENSE_SUBMITTED: "إرسال مصروف للاعتماد",
+    EXPENSE_APPROVED: "اعتماد مصروف",
+    EXPENSE_REJECTED: "رفض مصروف",
+    EXPENSE_PAID: "دفع مصروف",
+    EXPENSE_CANCELLED: "إلغاء مصروف",
+
     TASK_CREATED: "إضافة مهمة",
     TASK_UPDATED: "تعديل مهمة",
     TASK_COMPLETED: "إكمال مهمة",
@@ -90,7 +104,11 @@ function actionBadgeClass(action: ActivityAction) {
     action === "TASK_COMPLETED" ||
     action === "SERVICE_REQUEST_RESTORED" ||
     action === "SERVICE_REQUEST_APPROVED" ||
-    action === "SERVICE_REQUEST_CONVERTED"
+    action === "SERVICE_REQUEST_CONVERTED" ||
+    action === "INVOICE_ISSUED" ||
+    action === "PAYMENT_RECORDED" ||
+    action === "EXPENSE_APPROVED" ||
+    action === "EXPENSE_PAID"
   ) {
     return "text-bg-success";
   }
@@ -101,7 +119,11 @@ function actionBadgeClass(action: ActivityAction) {
     action === "PROJECT_ARCHIVED" ||
     action === "TASK_ARCHIVED" ||
     action === "SERVICE_REQUEST_ARCHIVED" ||
-    action === "SERVICE_REQUEST_REJECTED"
+    action === "SERVICE_REQUEST_REJECTED" ||
+    action === "INVOICE_CANCELLED" ||
+    action === "PAYMENT_REVERSED" ||
+    action === "EXPENSE_REJECTED" ||
+    action === "EXPENSE_CANCELLED"
   ) {
     return "text-bg-danger";
   }
@@ -114,7 +136,9 @@ function actionBadgeClass(action: ActivityAction) {
     action === "SERVICE_REQUEST_CREATED" ||
     action === "DEPARTMENT_CREATED" ||
     action === "JOB_ROLE_CREATED" ||
-    action === "TEAM_CREATED"
+    action === "TEAM_CREATED" ||
+    action === "INVOICE_CREATED" ||
+    action === "EXPENSE_CREATED"
   ) {
     return "text-bg-info";
   }

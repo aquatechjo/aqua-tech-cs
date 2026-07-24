@@ -29,6 +29,11 @@ export default async function DashboardLayout({
     { label: "يومي", href: "/dashboard/my-day", enabled: true },
     { label: "المهام", href: "/dashboard/tasks", enabled: true },
     {
+      label: "المالية",
+      href: "/dashboard/finance",
+      enabled: hasRole(user.role, ACCESS_ROLES.financeRead),
+    },
+    {
       label: "النشاطات",
       href: "/dashboard/activity",
       enabled: hasRole(user.role, ACCESS_ROLES.activityLog),

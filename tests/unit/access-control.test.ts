@@ -148,3 +148,12 @@ test("task owners can manage participants but contributors cannot", () => {
     false,
   );
 });
+
+
+test("finance access separates visibility from financial mutations", () => {
+  assert.equal(hasRole("FINANCE_MANAGER", ACCESS_ROLES.financeRead), true);
+  assert.equal(hasRole("FINANCE_MANAGER", ACCESS_ROLES.financeManagement), true);
+  assert.equal(hasRole("OPERATIONS_MANAGER", ACCESS_ROLES.financeRead), true);
+  assert.equal(hasRole("OPERATIONS_MANAGER", ACCESS_ROLES.financeManagement), false);
+  assert.equal(hasRole("SALES_MANAGER", ACCESS_ROLES.financeRead), false);
+});

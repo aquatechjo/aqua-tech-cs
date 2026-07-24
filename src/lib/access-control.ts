@@ -24,6 +24,9 @@ export const ACCESS_ROLES = {
     "OPERATIONS_MANAGER",
   ],
   taskManagement: ["OWNER", "ADMIN", "OPERATIONS_MANAGER"],
+  financeRead: ["OWNER", "ADMIN", "FINANCE_MANAGER", "OPERATIONS_MANAGER"],
+  financeManagement: ["OWNER", "ADMIN", "FINANCE_MANAGER"],
+  expenseSubmission: ["OWNER", "ADMIN", "FINANCE_MANAGER", "OPERATIONS_MANAGER"],
 } as const satisfies Record<string, readonly AccessRole[]>
 
 export type TaskAccessContext = {

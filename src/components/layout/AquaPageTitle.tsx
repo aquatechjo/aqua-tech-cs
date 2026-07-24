@@ -44,6 +44,10 @@ const titles: Record<string, { title: string; subtitle: string }> = {
     title: "المهام",
     subtitle: "إدارة مهام Aqua.Tech وربطها بالمشاريع والفريق",
   },
+  "/dashboard/finance": {
+    title: "المالية التشغيلية",
+    subtitle: "الفواتير والتحصيل والمصروفات وربحية المشاريع",
+  },
   "/dashboard/service-requests": {
     title: "طلبات الخدمة",
     subtitle: "إدارة طلبات العملاء القادمة من الموقع والقنوات المختلفة",
