@@ -29,9 +29,10 @@ export default function LogoutButton() {
       variant="ghost"
       size="sm"
       onClick={handleLogout}
-      disabled={loading}
+      loading={loading}
+      loadingLabel="جارٍ تسجيل الخروج"
     >
-      {loading ? "جاري الخروج..." : "خروج"}
+      خروج
     </AquaButton>
   )
 }

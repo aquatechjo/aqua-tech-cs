@@ -3,7 +3,7 @@ import { clsx } from "clsx"
 
 import type { AquaFieldSize } from "@/design-system"
 
-type AquaInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
+type AquaTextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
   label?: string
   hint?: string
   error?: string
@@ -11,8 +11,8 @@ type AquaInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   wrapperClassName?: string
 }
 
-const AquaInput = React.forwardRef<HTMLInputElement, AquaInputProps>(
-  function AquaInput(
+const AquaTextarea = React.forwardRef<HTMLTextAreaElement, AquaTextareaProps>(
+  function AquaTextarea(
     {
       id,
       label,
@@ -28,7 +28,7 @@ const AquaInput = React.forwardRef<HTMLInputElement, AquaInputProps>(
     ref
   ) {
     const generatedId = React.useId()
-    const controlId = id ?? `aqua-input-${generatedId}`
+    const controlId = id ?? `aqua-textarea-${generatedId}`
     const hintId = hint ? `${controlId}-hint` : undefined
     const errorId = error ? `${controlId}-error` : undefined
     const describedBy = [ariaDescribedBy, errorId, !error ? hintId : undefined]
@@ -48,12 +48,12 @@ const AquaInput = React.forwardRef<HTMLInputElement, AquaInputProps>(
           </label>
         ) : null}
 
-        <input
+        <textarea
           ref={ref}
           id={controlId}
           required={required}
           className={clsx(
-            "form-control aqua-control",
+            "form-control aqua-control aqua-textarea",
             `aqua-control--${size}`,
             error && "aqua-control--invalid",
             className
@@ -77,7 +77,7 @@ const AquaInput = React.forwardRef<HTMLInputElement, AquaInputProps>(
   }
 )
 
-AquaInput.displayName = "AquaInput"
+AquaTextarea.displayName = "AquaTextarea"
 
-export type { AquaInputProps }
-export default AquaInput
+export type { AquaTextareaProps }
+export default AquaTextarea

@@ -1,43 +1,81 @@
 import * as React from "react"
-import { cn } from "@/lib/utils"
+import { clsx } from "clsx"
+
+import type {
+  AquaButtonSize,
+  AquaButtonVariant,
+} from "@/design-system"
 
 type AquaButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "secondary" | "ghost" | "danger"
-  size?: "sm" | "md" | "lg"
+  variant?: AquaButtonVariant
+  size?: AquaButtonSize
+  loading?: boolean
+  loadingLabel?: string
+  fullWidth?: boolean
+  leadingIcon?: React.ReactNode
+  trailingIcon?: React.ReactNode
 }
 
-export default function AquaButton({
-  className,
-  variant = "primary",
-  size = "md",
-  ...props
-}: AquaButtonProps) {
-  const variants = {
-    primary:
-      "bg-gradient-to-r from-cyan-400 to-blue-600 text-white shadow-lg shadow-cyan-500/20 hover:from-cyan-300 hover:to-blue-500",
-    secondary:
-      "border border-cyan-400/20 bg-cyan-400/10 text-cyan-200 hover:bg-cyan-400/15",
-    ghost:
-      "border border-white/10 bg-white/[0.04] text-slate-200 hover:border-cyan-400/30 hover:bg-cyan-400/10 hover:text-cyan-200",
-    danger:
-      "border border-red-400/20 bg-red-500/10 text-red-200 hover:bg-red-500/15",
-  }
+const AquaButton = React.forwardRef<HTMLButtonElement, AquaButtonProps>(
+  function AquaButton(
+    {
+      children,
+      className,
+      variant = "primary",
+      size = "md",
+      loading = false,
+      loadingLabel = "جارٍ التنفيذ",
+      fullWidth = false,
+      leadingIcon,
+      trailingIcon,
+      disabled,
+      type = "button",
+      ...props
+    },
+    ref
+  ) {
+    const isDisabled = disabled || loading
 
-  const sizes = {
-    sm: "px-3 py-2 text-xs",
-    md: "px-4 py-3 text-sm",
-    lg: "px-5 py-4 text-base",
-  }
+    return (
+      <button
+        ref={ref}
+        type={type}
+        className={clsx(
+          "btn aqua-button",
+          `aqua-button--${variant}`,
+          `aqua-button--${size}`,
+          fullWidth && "aqua-button--block",
+          className
+        )}
+        disabled={isDisabled}
+        aria-busy={loading || undefined}
+        {...props}
+      >
+        {loading ? (
+          <span className="aqua-button__spinner" aria-hidden="true" />
+        ) : (
+          leadingIcon && (
+            <span className="aqua-button__icon" aria-hidden="true">
+              {leadingIcon}
+            </span>
+          )
+        )}
 
-  return (
-    <button
-      className={cn(
-        "rounded-2xl font-bold transition disabled:cursor-not-allowed disabled:opacity-60",
-        variants[variant],
-        sizes[size],
-        className
-      )}
-      {...props}
-    />
-  )
-}
+        <span className="aqua-button__label">
+          {loading ? loadingLabel : children}
+        </span>
+
+        {!loading && trailingIcon ? (
+          <span className="aqua-button__icon" aria-hidden="true">
+            {trailingIcon}
+          </span>
+        ) : null}
+      </button>
+    )
+  }
+)
+
+AquaButton.displayName = "AquaButton"
+
+export type { AquaButtonProps }
+export default AquaButton

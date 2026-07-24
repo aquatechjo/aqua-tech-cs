@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
+import { AquaButton } from "@/components/aqua"
+
 export default function LogoutButton() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -23,13 +25,15 @@ export default function LogoutButton() {
   }
 
   return (
-    <button
+    <AquaButton
       type="button"
+      variant="ghost"
+      size="sm"
       onClick={handleLogout}
-      disabled={loading}
-      className="btn aqua-btn-ghost px-4 py-2"
+      loading={loading}
+      loadingLabel="جارٍ تسجيل الخروج"
     >
-      {loading ? "جاري الخروج..." : "تسجيل الخروج"}
-    </button>
+      تسجيل الخروج
+    </AquaButton>
   )
 }

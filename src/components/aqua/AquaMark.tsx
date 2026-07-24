@@ -1,5 +1,7 @@
+import { clsx } from "clsx"
+
+import { aquaFlowTheme } from "@/design-system"
 import { aquaBrand } from "@/lib/brand"
-import { cn } from "@/lib/utils"
 
 type AquaMarkProps = {
   showText?: boolean
@@ -12,32 +14,25 @@ export default function AquaMark({
   size = "md",
   className,
 }: AquaMarkProps) {
-  const markSize = {
-    sm: "h-10 w-10 text-sm rounded-xl",
-    md: "h-12 w-12 text-base rounded-2xl",
-    lg: "h-16 w-16 text-xl rounded-3xl",
-  }
-
   return (
-    <div className={cn("flex items-center gap-3", className)}>
-      <div
-        className={cn(
-          "flex items-center justify-center bg-gradient-to-br from-cyan-400 to-blue-600 font-black text-white shadow-lg shadow-cyan-500/20",
-          markSize[size]
-        )}
+    <div
+      className={clsx("aqua-brand-lockup", className)}
+      aria-label={showText ? undefined : aquaBrand.product}
+    >
+      <span
+        className={clsx("aqua-mark", `aqua-mark--${size}`)}
+        aria-hidden="true"
       >
-        AF
-      </div>
+        {aquaFlowTheme.shortMark}
+      </span>
 
       {showText ? (
-        <div>
-          <div className="text-xl font-black leading-none">
-            {aquaBrand.product}
-          </div>
-          <div className="mt-1 text-xs font-medium text-slate-500">
+        <span className="aqua-brand-lockup__copy">
+          <span className="aqua-brand-lockup__name">{aquaBrand.product}</span>
+          <span className="aqua-brand-lockup__tagline">
             {aquaBrand.language.tagline}
-          </div>
-        </div>
+          </span>
+        </span>
       ) : null}
     </div>
   )

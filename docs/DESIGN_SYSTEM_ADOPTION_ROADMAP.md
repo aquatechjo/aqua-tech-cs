@@ -14,6 +14,8 @@ Status: **this batch**
 
 ## DS-02 — Bootstrap Primitives
 
+Status: **implemented**
+
 - Migrate AquaButton, AquaInput, AquaCard, AquaBadge, and AquaMark to semantic Bootstrap/CSS classes.
 - Add select, textarea, alert, and toast contracts.
 - Remove Tailwind dependency from shared primitives.

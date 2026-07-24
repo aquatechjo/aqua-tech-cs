@@ -3,7 +3,7 @@ import { clsx } from "clsx"
 
 import type { AquaFieldSize } from "@/design-system"
 
-type AquaInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
+type AquaSelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
   label?: string
   hint?: string
   error?: string
@@ -11,8 +11,8 @@ type AquaInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   wrapperClassName?: string
 }
 
-const AquaInput = React.forwardRef<HTMLInputElement, AquaInputProps>(
-  function AquaInput(
+const AquaSelect = React.forwardRef<HTMLSelectElement, AquaSelectProps>(
+  function AquaSelect(
     {
       id,
       label,
@@ -23,12 +23,13 @@ const AquaInput = React.forwardRef<HTMLInputElement, AquaInputProps>(
       className,
       wrapperClassName,
       "aria-describedby": ariaDescribedBy,
+      children,
       ...props
     },
     ref
   ) {
     const generatedId = React.useId()
-    const controlId = id ?? `aqua-input-${generatedId}`
+    const controlId = id ?? `aqua-select-${generatedId}`
     const hintId = hint ? `${controlId}-hint` : undefined
     const errorId = error ? `${controlId}-error` : undefined
     const describedBy = [ariaDescribedBy, errorId, !error ? hintId : undefined]
@@ -48,12 +49,12 @@ const AquaInput = React.forwardRef<HTMLInputElement, AquaInputProps>(
           </label>
         ) : null}
 
-        <input
+        <select
           ref={ref}
           id={controlId}
           required={required}
           className={clsx(
-            "form-control aqua-control",
+            "form-select aqua-control aqua-select",
             `aqua-control--${size}`,
             error && "aqua-control--invalid",
             className
@@ -61,7 +62,9 @@ const AquaInput = React.forwardRef<HTMLInputElement, AquaInputProps>(
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy || undefined}
           {...props}
-        />
+        >
+          {children}
+        </select>
 
         {error ? (
           <p id={errorId} className="aqua-field__message aqua-field__message--error">
@@ -77,7 +80,7 @@ const AquaInput = React.forwardRef<HTMLInputElement, AquaInputProps>(
   }
 )
 
-AquaInput.displayName = "AquaInput"
+AquaSelect.displayName = "AquaSelect"
 
-export type { AquaInputProps }
-export default AquaInput
+export type { AquaSelectProps }
+export default AquaSelect

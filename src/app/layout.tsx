@@ -3,7 +3,10 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import "./globals.css"
 import "@/styles/aqua-tokens.css"
 import "@/styles/aqua-bootstrap.css"
-import "flatpickr/dist/flatpickr.min.css";
+import "@/styles/aqua-primitives.css"
+import "flatpickr/dist/flatpickr.min.css"
+
+import AquaToastViewport from "@/components/aqua/AquaToast"
 
 export const metadata: Metadata = {
   title: {
@@ -24,8 +27,16 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="ar" dir="rtl" data-aqua-brand="aqua-tech" data-aqua-product="aquaflow">
-      <body>{children}</body>
+    <html
+      lang="ar"
+      dir="rtl"
+      data-aqua-brand="aqua-tech"
+      data-aqua-product="aquaflow"
+    >
+      <body>
+        {children}
+        <AquaToastViewport />
+      </body>
     </html>
   )
 }
