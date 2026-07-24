@@ -143,6 +143,16 @@ model Session {
   @@index([expiresAt])
 }
 
+model RateLimitBucket {
+  key         String   @id
+  count       Int      @default(0)
+  windowStart DateTime
+  expiresAt   DateTime
+  updatedAt   DateTime @updatedAt
+
+  @@index([expiresAt])
+}
+
 model ActivityLog {
   id        String  @id @default(cuid())
   companyId String
@@ -361,6 +371,7 @@ model ServiceRequest {
   priority ServiceRequestPriority @default(MEDIUM)
 
   workflowRunId String?
+  idempotencyKey String?
   proposalUrl   String?
 
   proposalSentAt DateTime?
@@ -379,6 +390,7 @@ model ServiceRequest {
   @@index([source])
   @@index([priority])
   @@index([createdAt])
+  @@unique([companyId, idempotencyKey])
 }
 
 enum ClientType {

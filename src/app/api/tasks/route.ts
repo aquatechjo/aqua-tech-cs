@@ -1,8 +1,10 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 import { ActivityAction } from "@/generated/prisma/enums";
+import { ACCESS_ROLES, hasRole } from "@/lib/access-control";
+import { ApiError, err, ok, withApiHandler } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { assertSameOrigin, readJsonBody } from "@/lib/request-security";
 
 const taskSchema = z.object({
   projectId: z.string().optional().nullable(),
@@ -60,7 +62,7 @@ function nullableDecimal(value: string | null | undefined) {
   return normalized;
 }
 
-export async function GET() {
+async function getTasks() {
   const user = await requireAuth();
 
   const tasks = await prisma.task.findMany({
@@ -93,33 +95,50 @@ export async function GET() {
     },
   });
 
-  return NextResponse.json({
-    ok: true,
-    tasks,
-  });
+  return ok({ tasks });
 }
 
-export async function POST(request: Request) {
+async function createTask(request: Request) {
+  assertSameOrigin(request);
+
   const user = await requireAuth();
-  const body = await request.json().catch(() => null);
+  const body = await readJsonBody(request);
 
   const parsed = taskSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json(
+    return err(
+      parsed.error.issues[0]?.message ?? "بيانات المهمة غير صحيحة",
+      400,
       {
-        ok: false,
-        message: parsed.error.issues[0]?.message ?? "بيانات المهمة غير صحيحة",
+        code: "VALIDATION_ERROR",
+        details: parsed.error.flatten(),
       },
-      { status: 400 },
     );
   }
 
   const data = parsed.data;
+  const manager = hasRole(user.role, ACCESS_ROLES.taskManagement);
 
-  let safeProjectId: string | null = data.projectId || null;
+  const safeProjectId: string | null = data.projectId || null;
   let safeClientId: string | null = data.clientId || null;
-  let safeAssignedToId: string | null = data.assignedToId || null;
+  const safeAssignedToId: string | null = data.assignedToId || null;
+
+  if (!manager && safeAssignedToId && safeAssignedToId !== user.id) {
+    throw new ApiError(
+      "لا يمكنك إسناد مهمة لموظف آخر",
+      403,
+      "TASK_ASSIGNMENT_FORBIDDEN",
+    );
+  }
+
+  if (!manager && data.source !== "MANUAL") {
+    throw new ApiError(
+      "مصدر المهمة الآلي متاح للإدارة وعمليات النظام فقط",
+      403,
+      "TASK_SOURCE_FORBIDDEN",
+    );
+  }
 
   if (safeProjectId) {
     const project = await prisma.project.findFirst({
@@ -134,13 +153,9 @@ export async function POST(request: Request) {
     });
 
     if (!project) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "المشروع المحدد غير موجود",
-        },
-        { status: 404 },
-      );
+      return err("المشروع المحدد غير موجود", 404, {
+        code: "PROJECT_NOT_FOUND",
+      });
     }
 
     if (!safeClientId && project.clientId) {
@@ -160,13 +175,9 @@ export async function POST(request: Request) {
     });
 
     if (!client) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "العميل المحدد غير موجود",
-        },
-        { status: 404 },
-      );
+      return err("العميل المحدد غير موجود", 404, {
+        code: "CLIENT_NOT_FOUND",
+      });
     }
   }
 
@@ -183,60 +194,64 @@ export async function POST(request: Request) {
     });
 
     if (!assignedUser) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "الموظف المحدد غير موجود أو غير فعال",
-        },
-        { status: 404 },
-      );
+      return err("الموظف المحدد غير موجود أو غير فعال", 404, {
+        code: "ASSIGNEE_NOT_FOUND",
+      });
     }
   }
 
-  const task = await prisma.task.create({
-    data: {
-      companyId: user.companyId,
-      projectId: safeProjectId,
-      clientId: safeClientId,
-      assignedToId: safeAssignedToId,
-      createdById: user.id,
+  const task = await prisma.$transaction(async (tx) => {
+    const createdTask = await tx.task.create({
+      data: {
+        companyId: user.companyId,
+        projectId: safeProjectId,
+        clientId: safeClientId,
+        assignedToId: safeAssignedToId,
+        createdById: user.id,
 
-      title: data.title,
-      description: nullableText(data.description),
+        title: data.title,
+        description: nullableText(data.description),
 
-      status: data.status,
-      priority: data.priority,
-      source: data.source,
+        status: data.status,
+        priority: data.priority,
+        source: data.source,
 
-      sourceRef: nullableText(data.sourceRef),
-      estimatedHours: nullableDecimal(data.estimatedHours),
-      dueDate: nullableDate(data.dueDate),
-      completedAt: data.status === "DONE" ? new Date() : null,
-    },
-  });
-
-  await prisma.activityLog.create({
-    data: {
-      companyId: user.companyId,
-      userId: user.id,
-      action: ActivityAction.TASK_CREATED,
-      entityType: "Task",
-      entityId: task.id,
-      message: `تم إضافة مهمة جديدة: ${task.title}`,
-      metadata: {
-        taskTitle: task.title,
-        projectId: task.projectId,
-        clientId: task.clientId,
-        assignedToId: task.assignedToId,
-        status: task.status,
-        priority: task.priority,
-        source: task.source,
+        sourceRef: nullableText(data.sourceRef),
+        estimatedHours: nullableDecimal(data.estimatedHours),
+        dueDate: nullableDate(data.dueDate),
+        completedAt: data.status === "DONE" ? new Date() : null,
       },
-    },
+    });
+
+    await tx.activityLog.create({
+      data: {
+        companyId: user.companyId,
+        userId: user.id,
+        action: ActivityAction.TASK_CREATED,
+        entityType: "Task",
+        entityId: createdTask.id,
+        message: `تم إضافة مهمة جديدة: ${createdTask.title}`,
+        metadata: {
+          taskTitle: createdTask.title,
+          projectId: createdTask.projectId,
+          clientId: createdTask.clientId,
+          assignedToId: createdTask.assignedToId,
+          status: createdTask.status,
+          priority: createdTask.priority,
+          source: createdTask.source,
+        },
+      },
+    });
+
+    return createdTask;
   });
 
-  return NextResponse.json({
-    ok: true,
-    task,
-  });
+  return ok({ task }, 201);
 }
+
+export const GET = withApiHandler("TASKS_GET_ERROR", getTasks);
+export const POST = withApiHandler(
+  "TASKS_POST_ERROR",
+  createTask,
+  "حدث خطأ أثناء إضافة المهمة",
+);

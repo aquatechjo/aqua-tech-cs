@@ -5,10 +5,12 @@ import {
   ClientType,
   LeadSource,
 } from "@/generated/prisma/enums";
-import { err, ok } from "@/lib/api-response";
+import { ACCESS_ROLES, assertRole } from "@/lib/access-control";
+import { err, handleApiError, ok } from "@/lib/api-response";
 import { getRequestMeta, requireAuth } from "@/lib/auth";
 import { logActivity } from "@/lib/activity";
 import { prisma } from "@/lib/prisma";
+import { assertSameOrigin, readJsonBody } from "@/lib/request-security";
 
 const updateClientSchema = z.object({
   name: z.string().min(2, "اسم العميل مطلوب").optional(),
@@ -39,9 +41,18 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    assertSameOrigin(request);
+
     const user = await requireAuth();
+
+    assertRole(
+      user.role,
+      ACCESS_ROLES.clientManagement,
+      "لا تملك صلاحية تعديل العملاء",
+    );
+
     const { id } = await params;
-    const body = await request.json();
+    const body = await readJsonBody(request);
     const parsed = updateClientSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -62,29 +73,10 @@ export async function PATCH(
     const data = parsed.data;
     const meta = await getRequestMeta();
 
-    const client = await prisma.client.update({
-      where: { id },
-      data: {
-        name: data.name?.trim(),
-        email: emptyToNull(data.email),
-        phone: emptyToNull(data.phone),
-        website: emptyToNull(data.website),
-        type: data.type,
-        status: data.status,
-        source: data.source,
-        industry: emptyToNull(data.industry),
-        country: emptyToNull(data.country),
-        city: emptyToNull(data.city),
-        notes: emptyToNull(data.notes),
-      },
-    });
-
     let action: ActivityAction = ActivityAction.CLIENT_UPDATED;
-    let message = `تم تعديل بيانات العميل: ${client.name}`;
 
     if (data.status === "ARCHIVED") {
       action = ActivityAction.CLIENT_ARCHIVED;
-      message = `تم أرشفة العميل: ${client.name}`;
     }
 
     if (
@@ -93,28 +85,59 @@ export async function PATCH(
       data.status !== "ARCHIVED"
     ) {
       action = ActivityAction.CLIENT_RESTORED;
-      message = `تم استرجاع العميل: ${client.name}`;
     }
 
-    await logActivity({
-      companyId: user.companyId,
-      userId: user.id,
-      action,
-      entityType: "Client",
-      entityId: client.id,
-      message,
-      metadata: {
-        status: client.status,
-        type: client.type,
-        source: client.source,
-      },
-      ipAddress: meta.ipAddress,
-      userAgent: meta.userAgent,
+    const client = await prisma.$transaction(async (tx) => {
+      const updatedClient = await tx.client.update({
+        where: { id },
+        data: {
+          name: data.name?.trim(),
+          email: emptyToNull(data.email),
+          phone: emptyToNull(data.phone),
+          website: emptyToNull(data.website),
+          type: data.type,
+          status: data.status,
+          source: data.source,
+          industry: emptyToNull(data.industry),
+          country: emptyToNull(data.country),
+          city: emptyToNull(data.city),
+          notes: emptyToNull(data.notes),
+        },
+      });
+
+      const message =
+        action === ActivityAction.CLIENT_ARCHIVED
+          ? `تم أرشفة العميل: ${updatedClient.name}`
+          : action === ActivityAction.CLIENT_RESTORED
+            ? `تم استرجاع العميل: ${updatedClient.name}`
+            : `تم تعديل بيانات العميل: ${updatedClient.name}`;
+
+      await logActivity({
+        companyId: user.companyId,
+        userId: user.id,
+        action,
+        entityType: "Client",
+        entityId: updatedClient.id,
+        message,
+        metadata: {
+          status: updatedClient.status,
+          type: updatedClient.type,
+          source: updatedClient.source,
+        },
+        ipAddress: meta.ipAddress,
+        userAgent: meta.userAgent,
+        db: tx,
+      });
+
+      return updatedClient;
     });
 
     return ok({ client });
   } catch (error) {
-    console.error("[CLIENT_PATCH_ERROR]", error);
-    return err("حدث خطأ أثناء تعديل العميل", 500);
+    return handleApiError(
+      error,
+      "CLIENT_PATCH_ERROR",
+      "حدث خطأ أثناء تعديل العميل",
+    );
   }
 }

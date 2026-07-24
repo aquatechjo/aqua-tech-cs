@@ -18,6 +18,12 @@ export default function AquaDatePicker({
   placeholder?: string;
 }) {
   const inputRef = useRef<FlatpickrInput | null>(null);
+  const onChangeRef = useRef(onChange);
+  const placeholderRef = useRef(placeholder);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   useEffect(() => {
     if (!inputRef.current) return;
@@ -30,16 +36,15 @@ export default function AquaDatePicker({
       altInputClass: "form-control aqua-control aqua-date-input text-center",
       allowInput: false,
       disableMobile: true,
-      defaultDate: value || undefined,
       onReady: (_selectedDates, _dateStr, instance) => {
         if (instance.altInput) {
-          instance.altInput.placeholder = placeholder;
+          instance.altInput.placeholder = placeholderRef.current;
           instance.altInput.setAttribute("dir", "ltr");
           instance.altInput.setAttribute("readOnly", "true");
         }
       },
       onChange: (_selectedDates, dateStr) => {
-        onChange(dateStr);
+        onChangeRef.current(dateStr);
       },
     });
 

@@ -1,40 +1,42 @@
 import { z } from "zod"
 import { ActivityAction, UserRole } from "@/generated/prisma/enums"
-import { err, ok } from "@/lib/api-response"
+import { ACCESS_ROLES, assertRole } from "@/lib/access-control"
+import { ApiError, err, handleApiError, ok } from "@/lib/api-response"
 import { getRequestMeta, requireAuth } from "@/lib/auth"
 import { logActivity } from "@/lib/activity"
 import { hashPassword } from "@/lib/password"
 import { prisma } from "@/lib/prisma"
+import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
 
 const updateUserSchema = z.object({
   name: z.string().min(2, "الاسم مطلوب").optional(),
   email: z.string().email("البريد الإلكتروني غير صحيح").optional(),
   password: z
     .string()
-    .min(8, "كلمة المرور يجب أن تكون 8 أحرف على الأقل")
+    .min(12, "كلمة المرور يجب أن تكون 12 حرفًا على الأقل")
     .optional()
     .or(z.literal("")),
   role: z.nativeEnum(UserRole).optional(),
   isActive: z.boolean().optional(),
 })
 
-function canManageTeam(role: UserRole) {
-  return role === "OWNER" || role === "ADMIN"
-}
-
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    assertSameOrigin(request)
+
     const currentUser = await requireAuth()
 
-    if (!canManageTeam(currentUser.role)) {
-      return err("لا تملك صلاحية تعديل الموظفين", 403)
-    }
+    assertRole(
+      currentUser.role,
+      ACCESS_ROLES.teamManagement,
+      "لا تملك صلاحية تعديل الموظفين"
+    )
 
     const { id } = await params
-    const body = await request.json()
+    const body = await readJsonBody(request)
     const parsed = updateUserSchema.safeParse(body)
 
     if (!parsed.success) {
@@ -54,6 +56,22 @@ export async function PATCH(
 
     const data = parsed.data
 
+    if (targetUser.role === "OWNER" && currentUser.role !== "OWNER") {
+      throw new ApiError(
+        "لا يمكن للمدير تعديل حساب OWNER",
+        403,
+        "OWNER_ACCOUNT_PROTECTED"
+      )
+    }
+
+    if (data.role === "OWNER" && targetUser.role !== "OWNER") {
+      throw new ApiError(
+        "لا يمكن منح دور OWNER من لوحة الفريق",
+        403,
+        "OWNER_ROLE_PROTECTED"
+      )
+    }
+
     if (id === currentUser.id && data.isActive === false) {
       return err("لا يمكنك تعطيل حسابك الحالي", 400)
     }
@@ -63,17 +81,11 @@ export async function PATCH(
     }
 
     if (targetUser.role === "OWNER" && data.role && data.role !== "OWNER") {
-      const ownersCount = await prisma.user.count({
-        where: {
-          companyId: currentUser.companyId,
-          role: "OWNER",
-          isActive: true,
-        },
-      })
-
-      if (ownersCount <= 1) {
-        return err("لا يمكن تغيير دور آخر OWNER نشط في النظام", 400)
-      }
+      throw new ApiError(
+        "لا يمكن تغيير دور OWNER من لوحة الفريق",
+        403,
+        "OWNER_ROLE_PROTECTED"
+      )
     }
 
     const updateData: {
@@ -119,68 +131,81 @@ export async function PATCH(
       updateData.passwordHash = await hashPassword(data.password)
     }
 
-    const updatedUser = await prisma.user.update({
-      where: {
-        id,
-      },
-      data: updateData,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        isActive: true,
-        lastLoginAt: true,
-        createdAt: true,
-      },
-    })
-
-    if (data.isActive === false || updateData.passwordHash) {
-      await prisma.session.updateMany({
-        where: {
-          userId: id,
-        },
-        data: {
-          isActive: false,
-        },
-      })
-    }
-
     const meta = await getRequestMeta()
 
     let action: ActivityAction = ActivityAction.USER_UPDATED
-    let message = `تم تعديل بيانات الموظف: ${updatedUser.name}`
+    let message = ""
 
     if (data.isActive === false) {
       action = ActivityAction.USER_DEACTIVATED
-      message = `تم تعطيل حساب الموظف: ${updatedUser.name}`
     }
 
     if (data.isActive === true) {
       action = ActivityAction.USER_ACTIVATED
-      message = `تم تفعيل حساب الموظف: ${updatedUser.name}`
     }
 
-    await logActivity({
-      companyId: currentUser.companyId,
-      userId: currentUser.id,
-      action,
-      entityType: "User",
-      entityId: updatedUser.id,
-      message,
-      metadata: {
-        changedFields: Object.keys(updateData).filter(
-          (key) => key !== "passwordHash"
-        ),
-        passwordChanged: Boolean(updateData.passwordHash),
-      },
-      ipAddress: meta.ipAddress,
-      userAgent: meta.userAgent,
+    const updatedUser = await prisma.$transaction(async (tx) => {
+      const result = await tx.user.update({
+        where: {
+          id,
+        },
+        data: updateData,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          isActive: true,
+          lastLoginAt: true,
+          createdAt: true,
+        },
+      })
+
+      if (data.isActive === false || updateData.passwordHash) {
+        await tx.session.updateMany({
+          where: {
+            userId: id,
+          },
+          data: {
+            isActive: false,
+          },
+        })
+      }
+
+      message =
+        data.isActive === false
+          ? `تم تعطيل حساب الموظف: ${result.name}`
+          : data.isActive === true
+            ? `تم تفعيل حساب الموظف: ${result.name}`
+            : `تم تعديل بيانات الموظف: ${result.name}`
+
+      await logActivity({
+        companyId: currentUser.companyId,
+        userId: currentUser.id,
+        action,
+        entityType: "User",
+        entityId: result.id,
+        message,
+        metadata: {
+          changedFields: Object.keys(updateData).filter(
+            (key) => key !== "passwordHash"
+          ),
+          passwordChanged: Boolean(updateData.passwordHash),
+        },
+        ipAddress: meta.ipAddress,
+        userAgent: meta.userAgent,
+        db: tx,
+      })
+
+      return result
     })
 
     return ok({ user: updatedUser })
   } catch (error) {
-    console.error("[TEAM_PATCH_ERROR]", error)
-    return err("حدث خطأ أثناء تعديل الموظف", 500)
+    return handleApiError(
+      error,
+      "TEAM_PATCH_ERROR",
+      "حدث خطأ أثناء تعديل الموظف"
+    )
   }
 }

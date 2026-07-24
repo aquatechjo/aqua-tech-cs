@@ -20,7 +20,6 @@ type CurrentUser = {
 };
 
 const roles: UserRole[] = [
-  "OWNER",
   "ADMIN",
   "PROJECT_MANAGER",
   "DEVELOPER",
@@ -48,7 +47,7 @@ export default function TeamClient({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("Aqua@123456");
+  const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>("DEVELOPER");
   const [isActive, setIsActive] = useState(true);
 
@@ -61,7 +60,7 @@ export default function TeamClient({
     setEditingId(null);
     setName("");
     setEmail("");
-    setPassword("Aqua@123456");
+    setPassword("");
     setRole("DEVELOPER");
     setIsActive(true);
     setError("");
@@ -214,20 +213,22 @@ export default function TeamClient({
                   <label className="form-label aqua-muted">كلمة المرور</label>
                   <input
                     dir="ltr"
-                    type="text"
+                    type="password"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     className="form-control aqua-control text-start"
                     placeholder={
                       isEditing
                         ? "اتركها فارغة إذا لا تريد تغييرها"
-                        : "Aqua@123456"
+                        : "12 حرفًا على الأقل"
                     }
+                    required={!isEditing}
+                    minLength={isEditing && !password ? undefined : 12}
                   />
                   <div className="form-text aqua-soft">
                     {isEditing
                       ? "إذا كتبت كلمة مرور جديدة، سيتم تسجيل خروج الموظف من كل الجلسات."
-                      : "يعطيها المدير للموظف لاستخدامها داخل النظام فقط."}
+                      : "استخدم كلمة مرور مؤقتة قوية وفريدة، ثم شاركها مع الموظف بطريقة آمنة."}
                   </div>
                 </div>
 

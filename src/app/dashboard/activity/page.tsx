@@ -1,6 +1,8 @@
 import { ActivityAction } from "@/generated/prisma/enums";
+import { redirect } from "next/navigation";
 import AquaPagination from "@/components/aqua/AquaPagination";
 import AquaPageHeader from "@/components/layout/AquaPageHeader";
+import { ACCESS_ROLES, hasRole } from "@/lib/access-control";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -121,6 +123,11 @@ export default async function ActivityPage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const user = await requireAuth();
+
+  if (!hasRole(user.role, ACCESS_ROLES.activityLog)) {
+    redirect("/dashboard");
+  }
+
   const resolvedSearchParams = await searchParams;
 
   const requestedPage = parsePage(resolvedSearchParams.page);

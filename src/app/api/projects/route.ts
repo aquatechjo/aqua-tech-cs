@@ -1,8 +1,10 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 import { ActivityAction } from "@/generated/prisma/enums";
+import { ACCESS_ROLES, assertRole } from "@/lib/access-control";
+import { err, handleApiError, ok } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { assertSameOrigin, readJsonBody } from "@/lib/request-security";
 
 const projectSchema = z.object({
   clientId: z.string().optional().nullable(),
@@ -53,107 +55,120 @@ function nullableBudget(value: string | null | undefined) {
 }
 
 export async function GET() {
-  const user = await requireAuth();
+  try {
+    const user = await requireAuth();
 
-  const projects = await prisma.project.findMany({
-    where: {
-      companyId: user.companyId,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    include: {
-      client: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-  });
-
-  return NextResponse.json({
-    ok: true,
-    projects,
-  });
-}
-
-export async function POST(request: Request) {
-  const user = await requireAuth();
-  const body = await request.json().catch(() => null);
-
-  const parsed = projectSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return NextResponse.json(
-      {
-        ok: false,
-        message: parsed.error.issues[0]?.message ?? "بيانات المشروع غير صحيحة",
-      },
-      { status: 400 },
-    );
-  }
-
-  const data = parsed.data;
-
-  if (data.clientId) {
-    const client = await prisma.client.findFirst({
+    const projects = await prisma.project.findMany({
       where: {
-        id: data.clientId,
         companyId: user.companyId,
       },
-      select: {
-        id: true,
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 
-    if (!client) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "العميل المحدد غير موجود",
-        },
-        { status: 404 },
+    return ok({ projects });
+  } catch (error) {
+    return handleApiError(error, "PROJECTS_GET_ERROR");
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    assertSameOrigin(request);
+
+    const user = await requireAuth();
+
+    assertRole(
+      user.role,
+      ACCESS_ROLES.projectManagement,
+      "لا تملك صلاحية إضافة المشاريع",
+    );
+
+    const body = await readJsonBody(request);
+
+    const parsed = projectSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return err(
+        parsed.error.issues[0]?.message ?? "بيانات المشروع غير صحيحة",
+        400,
+        { code: "VALIDATION_ERROR", details: parsed.error.flatten() },
       );
     }
+
+    const data = parsed.data;
+
+    if (data.clientId) {
+      const client = await prisma.client.findFirst({
+        where: {
+          id: data.clientId,
+          companyId: user.companyId,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!client) {
+        return err("العميل المحدد غير موجود", 404, {
+          code: "CLIENT_NOT_FOUND",
+        });
+      }
+    }
+
+    const project = await prisma.$transaction(async (tx) => {
+      const createdProject = await tx.project.create({
+        data: {
+          companyId: user.companyId,
+          clientId: data.clientId || null,
+          name: data.name,
+          code: nullableText(data.code),
+          description: nullableText(data.description),
+          status: data.status,
+          priority: data.priority,
+          budget: nullableBudget(data.budget),
+          currency: data.currency || "JOD",
+          startDate: nullableDate(data.startDate),
+          dueDate: nullableDate(data.dueDate),
+          completedAt: data.status === "COMPLETED" ? new Date() : null,
+        },
+      });
+
+      await tx.activityLog.create({
+        data: {
+          companyId: user.companyId,
+          userId: user.id,
+          action: ActivityAction.PROJECT_CREATED,
+          entityType: "Project",
+          entityId: createdProject.id,
+          message: `تم إضافة مشروع جديد: ${createdProject.name}`,
+          metadata: {
+            projectName: createdProject.name,
+            clientId: createdProject.clientId,
+            status: createdProject.status,
+            priority: createdProject.priority,
+          },
+        },
+      });
+
+      return createdProject;
+    });
+
+    return ok({ project }, 201);
+  } catch (error) {
+    return handleApiError(
+      error,
+      "PROJECTS_POST_ERROR",
+      "حدث خطأ أثناء إضافة المشروع",
+    );
   }
-
-  const project = await prisma.project.create({
-    data: {
-      companyId: user.companyId,
-      clientId: data.clientId || null,
-      name: data.name,
-      code: nullableText(data.code),
-      description: nullableText(data.description),
-      status: data.status,
-      priority: data.priority,
-      budget: nullableBudget(data.budget),
-      currency: data.currency || "JOD",
-      startDate: nullableDate(data.startDate),
-      dueDate: nullableDate(data.dueDate),
-      completedAt: data.status === "COMPLETED" ? new Date() : null,
-    },
-  });
-
-  await prisma.activityLog.create({
-    data: {
-      companyId: user.companyId,
-      userId: user.id,
-      action: ActivityAction.PROJECT_CREATED,
-      entityType: "Project",
-      entityId: project.id,
-      message: `تم إضافة مشروع جديد: ${project.name}`,
-      metadata: {
-        projectName: project.name,
-        clientId: project.clientId,
-        status: project.status,
-        priority: project.priority,
-      },
-    },
-  });
-
-  return NextResponse.json({
-    ok: true,
-    project,
-  });
 }

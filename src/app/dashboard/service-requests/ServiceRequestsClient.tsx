@@ -178,11 +178,6 @@ function priorityBadge(priority: ServiceRequestPriority) {
   return "text-bg-info";
 }
 
-function dateLabel(value: string | null) {
-  if (!value) return "—";
-  return value.slice(0, 10);
-}
-
 export default function ServiceRequestsClient({
   serviceRequests,
   clients,

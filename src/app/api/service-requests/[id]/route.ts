@@ -1,11 +1,13 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
   ActivityAction,
   ServiceRequestStatus,
 } from "@/generated/prisma/enums";
+import { ACCESS_ROLES, assertRole } from "@/lib/access-control";
+import { err, ok, withApiHandler } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { assertSameOrigin, readJsonBody } from "@/lib/request-security";
 
 const updateServiceRequestSchema = z.object({
   clientId: z.string().optional().nullable(),
@@ -89,11 +91,18 @@ function getActionForStatusChange(
   return ActivityAction.SERVICE_REQUEST_UPDATED;
 }
 
-export async function GET(
+async function getServiceRequest(
   _request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const user = await requireAuth();
+
+  assertRole(
+    user.role,
+    ACCESS_ROLES.serviceRequestManagement,
+    "لا تملك صلاحية عرض طلبات الخدمة",
+  );
+
   const { id } = await context.params;
 
   const serviceRequest = await prisma.serviceRequest.findFirst({
@@ -125,39 +134,41 @@ export async function GET(
   });
 
   if (!serviceRequest) {
-    return NextResponse.json(
-      {
-        ok: false,
-        message: "طلب الخدمة غير موجود",
-      },
-      { status: 404 },
-    );
+    return err("طلب الخدمة غير موجود", 404, {
+      code: "SERVICE_REQUEST_NOT_FOUND",
+    });
   }
 
-  return NextResponse.json({
-    ok: true,
-    serviceRequest,
-  });
+  return ok({ serviceRequest });
 }
 
-export async function PATCH(
+async function updateServiceRequest(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  assertSameOrigin(request);
+
   const user = await requireAuth();
+
+  assertRole(
+    user.role,
+    ACCESS_ROLES.serviceRequestManagement,
+    "لا تملك صلاحية تعديل طلبات الخدمة",
+  );
+
   const { id } = await context.params;
 
-  const body = await request.json().catch(() => null);
+  const body = await readJsonBody(request);
   const parsed = updateServiceRequestSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json(
+    return err(
+      parsed.error.issues[0]?.message ?? "بيانات طلب الخدمة غير صحيحة",
+      400,
       {
-        ok: false,
-        message:
-          parsed.error.issues[0]?.message ?? "بيانات طلب الخدمة غير صحيحة",
+        code: "VALIDATION_ERROR",
+        details: parsed.error.flatten(),
       },
-      { status: 400 },
     );
   }
 
@@ -169,13 +180,9 @@ export async function PATCH(
   });
 
   if (!existingRequest) {
-    return NextResponse.json(
-      {
-        ok: false,
-        message: "طلب الخدمة غير موجود",
-      },
-      { status: 404 },
-    );
+    return err("طلب الخدمة غير موجود", 404, {
+      code: "SERVICE_REQUEST_NOT_FOUND",
+    });
   }
 
   const data = parsed.data;
@@ -204,13 +211,9 @@ export async function PATCH(
     });
 
     if (!project) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "المشروع المحدد غير موجود",
-        },
-        { status: 404 },
-      );
+      return err("المشروع المحدد غير موجود", 404, {
+        code: "PROJECT_NOT_FOUND",
+      });
     }
 
     if (data.clientId === undefined && project.clientId) {
@@ -230,13 +233,9 @@ export async function PATCH(
     });
 
     if (!client) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "العميل المحدد غير موجود",
-        },
-        { status: 404 },
-      );
+      return err("العميل المحدد غير موجود", 404, {
+        code: "CLIENT_NOT_FOUND",
+      });
     }
   }
 
@@ -253,103 +252,114 @@ export async function PATCH(
     });
 
     if (!assignedUser) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "الموظف المحدد غير موجود أو غير فعال",
-        },
-        { status: 404 },
-      );
+      return err("الموظف المحدد غير موجود أو غير فعال", 404, {
+        code: "ASSIGNEE_NOT_FOUND",
+      });
     }
   }
 
   const action = getActionForStatusChange(existingRequest.status, data.status);
   const now = new Date();
 
-  const serviceRequest = await prisma.serviceRequest.update({
-    where: {
-      id: existingRequest.id,
-    },
-    data: {
-      ...(data.clientId !== undefined || data.projectId !== undefined
-        ? { clientId: safeClientId }
-        : {}),
-      ...(data.projectId !== undefined ? { projectId: safeProjectId } : {}),
-      ...(data.assignedToId !== undefined
-        ? { assignedToId: safeAssignedToId }
-        : {}),
-
-      ...(data.customerName !== undefined
-        ? { customerName: data.customerName }
-        : {}),
-      ...(data.customerEmail !== undefined
-        ? { customerEmail: nullableText(data.customerEmail) }
-        : {}),
-      ...(data.customerPhone !== undefined
-        ? { customerPhone: nullableText(data.customerPhone) }
-        : {}),
-      ...(data.customerCompany !== undefined
-        ? { customerCompany: nullableText(data.customerCompany) }
-        : {}),
-
-      ...(data.serviceType !== undefined ? { serviceType: data.serviceType } : {}),
-      ...(data.budgetRange !== undefined
-        ? { budgetRange: nullableText(data.budgetRange) }
-        : {}),
-      ...(data.timeline !== undefined
-        ? { timeline: nullableText(data.timeline) }
-        : {}),
-      ...(data.message !== undefined ? { message: nullableText(data.message) } : {}),
-
-      ...(data.status !== undefined ? { status: data.status } : {}),
-      ...(data.source !== undefined ? { source: data.source } : {}),
-      ...(data.priority !== undefined ? { priority: data.priority } : {}),
-
-      ...(data.workflowRunId !== undefined
-        ? { workflowRunId: nullableText(data.workflowRunId) }
-        : {}),
-      ...(data.proposalUrl !== undefined
-        ? { proposalUrl: nullableText(data.proposalUrl) }
-        : {}),
-
-      ...(data.status === "PROPOSAL_SENT" && !existingRequest.proposalSentAt
-        ? { proposalSentAt: now }
-        : {}),
-      ...(data.status === "APPROVED" && !existingRequest.approvedAt
-        ? { approvedAt: now }
-        : {}),
-      ...(data.status === "REJECTED" && !existingRequest.rejectedAt
-        ? { rejectedAt: now }
-        : {}),
-      ...(data.status === "CONVERTED" && !existingRequest.convertedAt
-        ? { convertedAt: now }
-        : {}),
-    },
-  });
-
-  await prisma.activityLog.create({
-    data: {
-      companyId: user.companyId,
-      userId: user.id,
-      action,
-      entityType: "ServiceRequest",
-      entityId: serviceRequest.id,
-      message: `تم تعديل طلب الخدمة: ${serviceRequest.customerName}`,
-      metadata: {
-        customerName: serviceRequest.customerName,
-        serviceType: serviceRequest.serviceType,
-        status: serviceRequest.status,
-        source: serviceRequest.source,
-        priority: serviceRequest.priority,
-        clientId: serviceRequest.clientId,
-        projectId: serviceRequest.projectId,
-        assignedToId: serviceRequest.assignedToId,
+  const serviceRequest = await prisma.$transaction(async (tx) => {
+    const updatedRequest = await tx.serviceRequest.update({
+      where: {
+        id: existingRequest.id,
       },
-    },
+      data: {
+        ...(data.clientId !== undefined || data.projectId !== undefined
+          ? { clientId: safeClientId }
+          : {}),
+        ...(data.projectId !== undefined ? { projectId: safeProjectId } : {}),
+        ...(data.assignedToId !== undefined
+          ? { assignedToId: safeAssignedToId }
+          : {}),
+
+        ...(data.customerName !== undefined
+          ? { customerName: data.customerName }
+          : {}),
+        ...(data.customerEmail !== undefined
+          ? { customerEmail: nullableText(data.customerEmail) }
+          : {}),
+        ...(data.customerPhone !== undefined
+          ? { customerPhone: nullableText(data.customerPhone) }
+          : {}),
+        ...(data.customerCompany !== undefined
+          ? { customerCompany: nullableText(data.customerCompany) }
+          : {}),
+
+        ...(data.serviceType !== undefined
+          ? { serviceType: data.serviceType }
+          : {}),
+        ...(data.budgetRange !== undefined
+          ? { budgetRange: nullableText(data.budgetRange) }
+          : {}),
+        ...(data.timeline !== undefined
+          ? { timeline: nullableText(data.timeline) }
+          : {}),
+        ...(data.message !== undefined
+          ? { message: nullableText(data.message) }
+          : {}),
+
+        ...(data.status !== undefined ? { status: data.status } : {}),
+        ...(data.source !== undefined ? { source: data.source } : {}),
+        ...(data.priority !== undefined ? { priority: data.priority } : {}),
+
+        ...(data.workflowRunId !== undefined
+          ? { workflowRunId: nullableText(data.workflowRunId) }
+          : {}),
+        ...(data.proposalUrl !== undefined
+          ? { proposalUrl: nullableText(data.proposalUrl) }
+          : {}),
+
+        ...(data.status === "PROPOSAL_SENT" && !existingRequest.proposalSentAt
+          ? { proposalSentAt: now }
+          : {}),
+        ...(data.status === "APPROVED" && !existingRequest.approvedAt
+          ? { approvedAt: now }
+          : {}),
+        ...(data.status === "REJECTED" && !existingRequest.rejectedAt
+          ? { rejectedAt: now }
+          : {}),
+        ...(data.status === "CONVERTED" && !existingRequest.convertedAt
+          ? { convertedAt: now }
+          : {}),
+      },
+    });
+
+    await tx.activityLog.create({
+      data: {
+        companyId: user.companyId,
+        userId: user.id,
+        action,
+        entityType: "ServiceRequest",
+        entityId: updatedRequest.id,
+        message: `تم تعديل طلب الخدمة: ${updatedRequest.customerName}`,
+        metadata: {
+          customerName: updatedRequest.customerName,
+          serviceType: updatedRequest.serviceType,
+          status: updatedRequest.status,
+          source: updatedRequest.source,
+          priority: updatedRequest.priority,
+          clientId: updatedRequest.clientId,
+          projectId: updatedRequest.projectId,
+          assignedToId: updatedRequest.assignedToId,
+        },
+      },
+    });
+
+    return updatedRequest;
   });
 
-  return NextResponse.json({
-    ok: true,
-    serviceRequest,
-  });
+  return ok({ serviceRequest });
 }
+
+export const GET = withApiHandler(
+  "SERVICE_REQUEST_GET_ERROR",
+  getServiceRequest,
+);
+export const PATCH = withApiHandler(
+  "SERVICE_REQUEST_PATCH_ERROR",
+  updateServiceRequest,
+  "حدث خطأ أثناء تعديل طلب الخدمة",
+);

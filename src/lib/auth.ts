@@ -1,6 +1,8 @@
 import "server-only"
 
 import { cookies, headers } from "next/headers"
+import type { UserRole } from "@/generated/prisma/enums"
+import { ApiError } from "@/lib/api-response"
 import { prisma } from "@/lib/prisma"
 import { SESSION_COOKIE_NAME, hashSessionToken } from "@/lib/session"
 
@@ -41,10 +43,20 @@ export async function requireAuth() {
   const user = await getCurrentUser()
 
   if (!user) {
-    throw new Error("UNAUTHORIZED")
+    throw new ApiError("غير مصرح", 401, "UNAUTHORIZED")
   }
 
   return user
+}
+
+export function requireRoles(
+  role: UserRole,
+  allowedRoles: readonly UserRole[],
+  message = "لا تملك صلاحية تنفيذ هذا الإجراء"
+) {
+  if (!allowedRoles.includes(role)) {
+    throw new ApiError(message, 403, "FORBIDDEN")
+  }
 }
 
 export async function getRequestMeta() {

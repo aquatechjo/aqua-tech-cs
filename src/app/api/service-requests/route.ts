@@ -1,8 +1,10 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 import { ActivityAction } from "@/generated/prisma/enums";
+import { ACCESS_ROLES, assertRole } from "@/lib/access-control";
+import { err, ok, withApiHandler } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { assertSameOrigin, readJsonBody } from "@/lib/request-security";
 
 const serviceRequestSchema = z.object({
   clientId: z.string().optional().nullable(),
@@ -47,8 +49,14 @@ function nullableText(value: string | null | undefined) {
   return trimmed ? trimmed : null;
 }
 
-export async function GET() {
+async function getServiceRequests() {
   const user = await requireAuth();
+
+  assertRole(
+    user.role,
+    ACCESS_ROLES.serviceRequestManagement,
+    "لا تملك صلاحية عرض طلبات الخدمة",
+  );
 
   const serviceRequests = await prisma.serviceRequest.findMany({
     where: {
@@ -80,26 +88,32 @@ export async function GET() {
     },
   });
 
-  return NextResponse.json({
-    ok: true,
-    serviceRequests,
-  });
+  return ok({ serviceRequests });
 }
 
-export async function POST(request: Request) {
+async function createServiceRequest(request: Request) {
+  assertSameOrigin(request);
+
   const user = await requireAuth();
-  const body = await request.json().catch(() => null);
+
+  assertRole(
+    user.role,
+    ACCESS_ROLES.serviceRequestManagement,
+    "لا تملك صلاحية إضافة طلبات الخدمة",
+  );
+
+  const body = await readJsonBody(request);
 
   const parsed = serviceRequestSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json(
+    return err(
+      parsed.error.issues[0]?.message ?? "بيانات طلب الخدمة غير صحيحة",
+      400,
       {
-        ok: false,
-        message:
-          parsed.error.issues[0]?.message ?? "بيانات طلب الخدمة غير صحيحة",
+        code: "VALIDATION_ERROR",
+        details: parsed.error.flatten(),
       },
-      { status: 400 },
     );
   }
 
@@ -122,13 +136,9 @@ export async function POST(request: Request) {
     });
 
     if (!project) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "المشروع المحدد غير موجود",
-        },
-        { status: 404 },
-      );
+      return err("المشروع المحدد غير موجود", 404, {
+        code: "PROJECT_NOT_FOUND",
+      });
     }
 
     if (!safeClientId && project.clientId) {
@@ -148,13 +158,9 @@ export async function POST(request: Request) {
     });
 
     if (!client) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "العميل المحدد غير موجود",
-        },
-        { status: 404 },
-      );
+      return err("العميل المحدد غير موجود", 404, {
+        code: "CLIENT_NOT_FOUND",
+      });
     }
   }
 
@@ -171,69 +177,76 @@ export async function POST(request: Request) {
     });
 
     if (!assignedUser) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "الموظف المحدد غير موجود أو غير فعال",
-        },
-        { status: 404 },
-      );
+      return err("الموظف المحدد غير موجود أو غير فعال", 404, {
+        code: "ASSIGNEE_NOT_FOUND",
+      });
     }
   }
 
   const now = new Date();
 
-  const serviceRequest = await prisma.serviceRequest.create({
-    data: {
-      companyId: user.companyId,
-      clientId: safeClientId,
-      projectId: safeProjectId,
-      assignedToId: safeAssignedToId,
+  const serviceRequest = await prisma.$transaction(async (tx) => {
+    const createdRequest = await tx.serviceRequest.create({
+      data: {
+        companyId: user.companyId,
+        clientId: safeClientId,
+        projectId: safeProjectId,
+        assignedToId: safeAssignedToId,
 
-      customerName: data.customerName,
-      customerEmail: nullableText(data.customerEmail),
-      customerPhone: nullableText(data.customerPhone),
-      customerCompany: nullableText(data.customerCompany),
+        customerName: data.customerName,
+        customerEmail: nullableText(data.customerEmail),
+        customerPhone: nullableText(data.customerPhone),
+        customerCompany: nullableText(data.customerCompany),
 
-      serviceType: data.serviceType,
-      budgetRange: nullableText(data.budgetRange),
-      timeline: nullableText(data.timeline),
-      message: nullableText(data.message),
+        serviceType: data.serviceType,
+        budgetRange: nullableText(data.budgetRange),
+        timeline: nullableText(data.timeline),
+        message: nullableText(data.message),
 
-      status: data.status,
-      source: data.source,
-      priority: data.priority,
+        status: data.status,
+        source: data.source,
+        priority: data.priority,
 
-      workflowRunId: nullableText(data.workflowRunId),
-      proposalUrl: nullableText(data.proposalUrl),
+        workflowRunId: nullableText(data.workflowRunId),
+        proposalUrl: nullableText(data.proposalUrl),
 
-      proposalSentAt: data.status === "PROPOSAL_SENT" ? now : null,
-      approvedAt: data.status === "APPROVED" ? now : null,
-      rejectedAt: data.status === "REJECTED" ? now : null,
-      convertedAt: data.status === "CONVERTED" ? now : null,
-    },
-  });
-
-  await prisma.activityLog.create({
-    data: {
-      companyId: user.companyId,
-      userId: user.id,
-      action: ActivityAction.SERVICE_REQUEST_CREATED,
-      entityType: "ServiceRequest",
-      entityId: serviceRequest.id,
-      message: `تم إضافة طلب خدمة جديد: ${serviceRequest.customerName}`,
-      metadata: {
-        customerName: serviceRequest.customerName,
-        serviceType: serviceRequest.serviceType,
-        source: serviceRequest.source,
-        status: serviceRequest.status,
-        priority: serviceRequest.priority,
+        proposalSentAt: data.status === "PROPOSAL_SENT" ? now : null,
+        approvedAt: data.status === "APPROVED" ? now : null,
+        rejectedAt: data.status === "REJECTED" ? now : null,
+        convertedAt: data.status === "CONVERTED" ? now : null,
       },
-    },
+    });
+
+    await tx.activityLog.create({
+      data: {
+        companyId: user.companyId,
+        userId: user.id,
+        action: ActivityAction.SERVICE_REQUEST_CREATED,
+        entityType: "ServiceRequest",
+        entityId: createdRequest.id,
+        message: `تم إضافة طلب خدمة جديد: ${createdRequest.customerName}`,
+        metadata: {
+          customerName: createdRequest.customerName,
+          serviceType: createdRequest.serviceType,
+          source: createdRequest.source,
+          status: createdRequest.status,
+          priority: createdRequest.priority,
+        },
+      },
+    });
+
+    return createdRequest;
   });
 
-  return NextResponse.json({
-    ok: true,
-    serviceRequest,
-  });
+  return ok({ serviceRequest }, 201);
 }
+
+export const GET = withApiHandler(
+  "SERVICE_REQUESTS_GET_ERROR",
+  getServiceRequests,
+);
+export const POST = withApiHandler(
+  "SERVICE_REQUESTS_POST_ERROR",
+  createServiceRequest,
+  "حدث خطأ أثناء إضافة طلب الخدمة",
+);

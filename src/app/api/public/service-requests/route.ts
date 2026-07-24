@@ -1,10 +1,23 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
+import { Prisma } from "@/generated/prisma/client";
 import {
   ActivityAction,
   NotificationType,
 } from "@/generated/prisma/enums";
+import {
+  ApiError,
+  err,
+  ok,
+  withApiHandler,
+} from "@/lib/api-response";
 import { prisma } from "@/lib/prisma";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import {
+  buildIdempotencyKey,
+  getClientIp,
+  readJsonBody,
+  safeEqualSecrets,
+} from "@/lib/request-security";
 
 const intakeSchema = z.object({
   customerName: z.string().trim().min(2, "اسم العميل مطلوب"),
@@ -22,7 +35,7 @@ const intakeSchema = z.object({
   timeline: z.string().trim().optional().nullable(),
   message: z.string().trim().optional().nullable(),
 
-  workflowRunId: z.string().trim().optional().nullable(),
+  workflowRunId: z.string().trim().max(160).optional().nullable(),
 });
 
 function nullableText(value: string | null | undefined) {
@@ -31,42 +44,70 @@ function nullableText(value: string | null | undefined) {
 }
 
 function getSecret(request: Request) {
-  return (
-    request.headers.get("x-aquaflow-intake-secret") ||
-    request.headers.get("authorization")?.replace("Bearer ", "") ||
-    ""
-  );
+  const authorization = request.headers.get("authorization");
+
+  if (authorization?.startsWith("Bearer ")) {
+    return authorization.slice("Bearer ".length).trim();
+  }
+
+  return request.headers.get("x-aquaflow-intake-secret")?.trim() || "";
 }
 
-export async function POST(request: Request) {
-  const expectedSecret = process.env.WEBSITE_INTAKE_SECRET;
-  const receivedSecret = getSecret(request);
-
-  if (!expectedSecret || receivedSecret !== expectedSecret) {
-    return NextResponse.json(
-      {
-        ok: false,
-        message: "Unauthorized",
+async function findReplay(companyId: string, idempotencyKey: string) {
+  return prisma.serviceRequest.findUnique({
+    where: {
+      companyId_idempotencyKey: {
+        companyId,
+        idempotencyKey,
       },
-      { status: 401 },
+    },
+    select: {
+      id: true,
+    },
+  });
+}
+
+async function createWebsiteServiceRequest(request: Request) {
+  const expectedSecret = process.env.WEBSITE_INTAKE_SECRET?.trim();
+
+  if (!expectedSecret) {
+    throw new ApiError(
+      "Website intake is not configured",
+      503,
+      "INTAKE_NOT_CONFIGURED",
     );
   }
 
-  const body = await request.json().catch(() => null);
+  await enforceRateLimit({
+    namespace: "website-intake",
+    identifier: getClientIp(request),
+    limit: 20,
+    windowMs: 60 * 60 * 1000,
+  });
+
+  const receivedSecret = getSecret(request);
+
+  if (!receivedSecret || !safeEqualSecrets(receivedSecret, expectedSecret)) {
+    return err("Unauthorized", 401, {
+      code: "UNAUTHORIZED",
+    });
+  }
+
+  const body = await readJsonBody(request, 32 * 1024);
   const parsed = intakeSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json(
+    return err(
+      parsed.error.issues[0]?.message ?? "بيانات طلب الخدمة غير صحيحة",
+      400,
       {
-        ok: false,
-        message:
-          parsed.error.issues[0]?.message ?? "بيانات طلب الخدمة غير صحيحة",
+        code: "VALIDATION_ERROR",
+        details: parsed.error.flatten(),
       },
-      { status: 400 },
     );
   }
 
-  const companySlug = process.env.AQUA_COMPANY_SLUG || "aqua-tech";
+  const companySlug = process.env.AQUA_COMPANY_SLUG?.trim() || "aqua-tech";
 
   const company = await prisma.company.findUnique({
     where: {
@@ -74,94 +115,131 @@ export async function POST(request: Request) {
     },
     select: {
       id: true,
-      name: true,
     },
   });
 
   if (!company) {
-    return NextResponse.json(
-      {
-        ok: false,
-        message: "Company not found",
-      },
-      { status: 404 },
-    );
-  }
-
-  const data = parsed.data;
-
-  const serviceRequest = await prisma.serviceRequest.create({
-    data: {
-      companyId: company.id,
-
-      customerName: data.customerName,
-      customerEmail: nullableText(data.customerEmail),
-      customerPhone: nullableText(data.customerPhone),
-      customerCompany: nullableText(data.customerCompany),
-
-      serviceType: data.serviceType,
-      budgetRange: nullableText(data.budgetRange),
-      timeline: nullableText(data.timeline),
-      message: nullableText(data.message),
-
-      status: "NEW",
-      source: "WEBSITE",
-      priority: "MEDIUM",
-
-      workflowRunId: nullableText(data.workflowRunId),
-    },
-  });
-
-  await prisma.activityLog.create({
-    data: {
-      companyId: company.id,
-      userId: null,
-      action: ActivityAction.SERVICE_REQUEST_CREATED,
-      entityType: "ServiceRequest",
-      entityId: serviceRequest.id,
-      message: `وصل طلب خدمة جديد من الموقع: ${serviceRequest.customerName}`,
-      metadata: {
-        source: "WEBSITE",
-        customerName: serviceRequest.customerName,
-        customerEmail: serviceRequest.customerEmail,
-        customerPhone: serviceRequest.customerPhone,
-        serviceType: serviceRequest.serviceType,
-      },
-    },
-  });
-
-  const notifyUsers = await prisma.user.findMany({
-    where: {
-      companyId: company.id,
-      isActive: true,
-      role: {
-        in: ["OWNER", "ADMIN", "SALES", "PROJECT_MANAGER"],
-      },
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (notifyUsers.length > 0) {
-    await prisma.notification.createMany({
-      data: notifyUsers.map((user) => ({
-        companyId: company.id,
-        userId: user.id,
-        title: "طلب خدمة جديد",
-        message: `${serviceRequest.customerName} أرسل طلب ${serviceRequest.serviceType}`,
-        type: NotificationType.INFO,
-        entityType: "ServiceRequest",
-        entityId: serviceRequest.id,
-      })),
+    return err("Company not found", 404, {
+      code: "COMPANY_NOT_FOUND",
     });
   }
 
-  return NextResponse.json(
-    {
-      ok: true,
-      serviceRequestId: serviceRequest.id,
-    },
-    { status: 201 },
+  const data = parsed.data;
+  const idempotencyKey = buildIdempotencyKey(
+    request.headers.get("idempotency-key"),
+    data.workflowRunId,
   );
+
+  if (idempotencyKey) {
+    const existingRequest = await findReplay(company.id, idempotencyKey);
+
+    if (existingRequest) {
+      return ok({
+        serviceRequestId: existingRequest.id,
+        replayed: true,
+      });
+    }
+  }
+
+  try {
+    const serviceRequest = await prisma.$transaction(async (tx) => {
+      const createdRequest = await tx.serviceRequest.create({
+        data: {
+          companyId: company.id,
+
+          customerName: data.customerName,
+          customerEmail: nullableText(data.customerEmail),
+          customerPhone: nullableText(data.customerPhone),
+          customerCompany: nullableText(data.customerCompany),
+
+          serviceType: data.serviceType,
+          budgetRange: nullableText(data.budgetRange),
+          timeline: nullableText(data.timeline),
+          message: nullableText(data.message),
+
+          status: "NEW",
+          source: "WEBSITE",
+          priority: "MEDIUM",
+
+          workflowRunId: nullableText(data.workflowRunId),
+          idempotencyKey,
+        },
+      });
+
+      await tx.activityLog.create({
+        data: {
+          companyId: company.id,
+          userId: null,
+          action: ActivityAction.SERVICE_REQUEST_CREATED,
+          entityType: "ServiceRequest",
+          entityId: createdRequest.id,
+          message: `وصل طلب خدمة جديد من الموقع: ${createdRequest.customerName}`,
+          metadata: {
+            source: "WEBSITE",
+            serviceType: createdRequest.serviceType,
+          },
+        },
+      });
+
+      const notifyUsers = await tx.user.findMany({
+        where: {
+          companyId: company.id,
+          isActive: true,
+          role: {
+            in: ["OWNER", "ADMIN", "SALES", "PROJECT_MANAGER"],
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (notifyUsers.length > 0) {
+        await tx.notification.createMany({
+          data: notifyUsers.map((user) => ({
+            companyId: company.id,
+            userId: user.id,
+            title: "طلب خدمة جديد",
+            message: `${createdRequest.customerName} أرسل طلب ${createdRequest.serviceType}`,
+            type: NotificationType.INFO,
+            entityType: "ServiceRequest",
+            entityId: createdRequest.id,
+          })),
+        });
+      }
+
+      return createdRequest;
+    });
+
+    return ok(
+      {
+        serviceRequestId: serviceRequest.id,
+        replayed: false,
+      },
+      201,
+    );
+  } catch (error) {
+    if (
+      idempotencyKey &&
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      const existingRequest = await findReplay(company.id, idempotencyKey);
+
+      if (existingRequest) {
+        return ok({
+          serviceRequestId: existingRequest.id,
+          replayed: true,
+        });
+      }
+    }
+
+    throw error;
+  }
 }
+
+export const POST = withApiHandler(
+  "PUBLIC_SERVICE_REQUEST_ERROR",
+  createWebsiteServiceRequest,
+  "حدث خطأ أثناء استقبال طلب الخدمة",
+);

@@ -28,7 +28,7 @@ export default async function NotificationsPage({
 
   const where = {
     companyId: user.companyId,
-    OR: [{ userId: user.id }, { userId: null }],
+    userId: user.id,
   }
 
   const [totalNotifications, unreadCount, notificationsByType] =

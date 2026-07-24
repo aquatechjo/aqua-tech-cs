@@ -4,23 +4,29 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "next typegen && tsc --noEmit --pretty false",
+    "test:unit": "node --import tsx --test tests/unit/access-control.test.ts tests/unit/request-security.test.ts tests/unit/session.test.ts",
+    "check": "npm run lint && npm run typecheck && npm run test:unit && npm run build",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.8.0",
-    "@prisma/client": "^7.8.0",
+    "@prisma/adapter-pg": "7.9.0",
+    "@prisma/client": "7.9.0",
     "bcryptjs": "^3.0.3",
     "bootstrap": "^5.3.8",
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",
     "flatpickr": "^4.6.13",
     "lucide-react": "^1.21.0",
-    "next": "16.2.9",
+    "next": "16.2.11",
     "pg": "^8.22.0",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
     "zod": "^4.4.3"
@@ -33,11 +39,16 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.9",
-    "prisma": "^7.8.0",
+    "eslint-config-next": "16.2.11",
+    "prisma": "7.9.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "tsx": "^4.22.4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "find-my-way": "9.7.0",
+    "postcss": "8.5.22",
+    "sharp": "0.35.3"
   }
 }

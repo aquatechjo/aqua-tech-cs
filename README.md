@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AquaFlow
 
-## Getting Started
+AquaFlow is Aqua Tech's private internal core system. It manages the company's
+people, clients, projects, tasks, service requests, notifications, and audited
+operations while remaining ready to integrate with specialized external tools.
 
-First, run the development server:
+It is not a public SaaS product and does not provide public registration.
+
+## Stack
+
+- Next.js 16
+- React 19
+- Prisma 7
+- PostgreSQL
+- Bootstrap 5
+
+## Local setup
+
+1. Copy `.env.example` to `.env` and set the required values.
+2. Install packages:
+
+   ```bash
+   npm install
+   ```
+
+3. Apply database migrations:
+
+   ```bash
+   npm run db:deploy
+   ```
+
+4. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+## Quality checks
+
+Run the complete local gate before committing:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run check
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The gate runs ESLint, TypeScript, unit tests, Prisma generation, and the
+production build.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Safe first seed
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The seed has no built-in credentials. Set `SEED_OWNER_EMAIL` and a unique
+`SEED_OWNER_PASSWORD` of at least 12 characters before running:
 
-## Learn More
+```bash
+npm run db:seed
+```
 
-To learn more about Next.js, take a look at the following resources:
+Never commit `.env` or production credentials.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See [docs/BATCH_0_SECURITY_FOUNDATION.md](docs/BATCH_0_SECURITY_FOUNDATION.md)
+for the Batch 0 changes and deployment checklist.

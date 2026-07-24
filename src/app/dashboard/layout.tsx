@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth";
 import LogoutButton from "@/components/auth/LogoutButton";
 import AquaPageTitle from "@/components/layout/AquaPageTitle";
 import AquaSidebarNav from "@/components/layout/AquaSidebarNav";
+import { ACCESS_ROLES, hasRole } from "@/lib/access-control";
 
 export default async function DashboardLayout({
   children,
@@ -21,13 +22,17 @@ export default async function DashboardLayout({
     { label: "العملاء", href: "/dashboard/clients", enabled: true },
     { label: "المشاريع", href: "/dashboard/projects", enabled: true },
     { label: "المهام", href: "/dashboard/tasks", enabled: true },
-    { label: "النشاطات", href: "/dashboard/activity", enabled: true },
+    {
+      label: "النشاطات",
+      href: "/dashboard/activity",
+      enabled: hasRole(user.role, ACCESS_ROLES.activityLog),
+    },
     { label: "التنبيهات", href: "/dashboard/notifications", enabled: true },
     { label: "الإعدادات", href: "/dashboard/settings", enabled: true },
     {
       label: "طلبات الخدمة",
       href: "/dashboard/service-requests",
-      enabled: true,
+      enabled: hasRole(user.role, ACCESS_ROLES.serviceRequestManagement),
     },
   ];
 

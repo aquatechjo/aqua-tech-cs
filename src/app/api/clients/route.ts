@@ -5,10 +5,12 @@ import {
   ClientType,
   LeadSource,
 } from "@/generated/prisma/enums"
-import { err, ok } from "@/lib/api-response"
+import { ACCESS_ROLES, assertRole } from "@/lib/access-control"
+import { err, handleApiError, ok } from "@/lib/api-response"
 import { getRequestMeta, requireAuth } from "@/lib/auth"
 import { logActivity } from "@/lib/activity"
 import { prisma } from "@/lib/prisma"
+import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
 
 const createClientSchema = z.object({
   name: z.string().min(2, "اسم العميل مطلوب"),
@@ -31,8 +33,17 @@ function emptyToNull(value?: string) {
 
 export async function POST(request: Request) {
   try {
+    assertSameOrigin(request)
+
     const user = await requireAuth()
-    const body = await request.json()
+
+    assertRole(
+      user.role,
+      ACCESS_ROLES.clientManagement,
+      "لا تملك صلاحية إضافة العملاء"
+    )
+
+    const body = await readJsonBody(request)
     const parsed = createClientSchema.safeParse(body)
 
     if (!parsed.success) {
@@ -42,42 +53,50 @@ export async function POST(request: Request) {
     const data = parsed.data
     const meta = await getRequestMeta()
 
-    const client = await prisma.client.create({
-      data: {
-        companyId: user.companyId,
-        name: data.name.trim(),
-        email: emptyToNull(data.email),
-        phone: emptyToNull(data.phone),
-        website: emptyToNull(data.website),
-        type: data.type,
-        status: data.status,
-        source: data.source,
-        industry: emptyToNull(data.industry),
-        country: emptyToNull(data.country),
-        city: emptyToNull(data.city),
-        notes: emptyToNull(data.notes),
-      },
-    })
+    const client = await prisma.$transaction(async (tx) => {
+      const createdClient = await tx.client.create({
+        data: {
+          companyId: user.companyId,
+          name: data.name.trim(),
+          email: emptyToNull(data.email),
+          phone: emptyToNull(data.phone),
+          website: emptyToNull(data.website),
+          type: data.type,
+          status: data.status,
+          source: data.source,
+          industry: emptyToNull(data.industry),
+          country: emptyToNull(data.country),
+          city: emptyToNull(data.city),
+          notes: emptyToNull(data.notes),
+        },
+      })
 
-    await logActivity({
-      companyId: user.companyId,
-      userId: user.id,
-      action: ActivityAction.CLIENT_CREATED,
-      entityType: "Client",
-      entityId: client.id,
-      message: `تم إضافة عميل جديد: ${client.name}`,
-      metadata: {
-        type: client.type,
-        status: client.status,
-        source: client.source,
-      },
-      ipAddress: meta.ipAddress,
-      userAgent: meta.userAgent,
+      await logActivity({
+        companyId: user.companyId,
+        userId: user.id,
+        action: ActivityAction.CLIENT_CREATED,
+        entityType: "Client",
+        entityId: createdClient.id,
+        message: `تم إضافة عميل جديد: ${createdClient.name}`,
+        metadata: {
+          type: createdClient.type,
+          status: createdClient.status,
+          source: createdClient.source,
+        },
+        ipAddress: meta.ipAddress,
+        userAgent: meta.userAgent,
+        db: tx,
+      })
+
+      return createdClient
     })
 
     return ok({ client }, 201)
   } catch (error) {
-    console.error("[CLIENT_POST_ERROR]", error)
-    return err("حدث خطأ أثناء إضافة العميل", 500)
+    return handleApiError(
+      error,
+      "CLIENT_POST_ERROR",
+      "حدث خطأ أثناء إضافة العميل"
+    )
   }
 }

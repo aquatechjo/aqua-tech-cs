@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation"
 export default function LoginForm() {
   const router = useRouter()
 
-  const [email, setEmail] = useState("admin@aquatech.local")
-  const [password, setPassword] = useState("Admin@123456")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
@@ -109,7 +109,7 @@ export default function LoginForm() {
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
                       className="form-control aqua-control text-start"
-                      placeholder="admin@aquatech.local"
+                      placeholder="name@example.com"
                     />
                   </div>
 

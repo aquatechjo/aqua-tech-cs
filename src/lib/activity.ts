@@ -1,4 +1,5 @@
 import { ActivityAction } from "@/generated/prisma/enums"
+import type { Prisma } from "@/generated/prisma/client"
 import { prisma } from "@/lib/prisma"
 
 export async function logActivity({
@@ -11,6 +12,7 @@ export async function logActivity({
   metadata,
   ipAddress,
   userAgent,
+  db = prisma,
 }: {
   companyId: string
   userId?: string | null
@@ -21,8 +23,9 @@ export async function logActivity({
   metadata?: unknown
   ipAddress?: string | null
   userAgent?: string | null
+  db?: Prisma.TransactionClient | typeof prisma
 }) {
-  await prisma.activityLog.create({
+  await db.activityLog.create({
     data: {
       companyId,
       userId,

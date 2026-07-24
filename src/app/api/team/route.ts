@@ -1,21 +1,21 @@
 import { z } from "zod"
 import { ActivityAction, UserRole } from "@/generated/prisma/enums"
-import { err, ok } from "@/lib/api-response"
+import { ACCESS_ROLES, assertRole } from "@/lib/access-control"
+import { err, handleApiError, ok } from "@/lib/api-response"
 import { getRequestMeta, requireAuth } from "@/lib/auth"
 import { logActivity } from "@/lib/activity"
 import { hashPassword } from "@/lib/password"
 import { prisma } from "@/lib/prisma"
+import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
 
 const createUserSchema = z.object({
   name: z.string().min(2, "الاسم مطلوب"),
   email: z.string().email("البريد الإلكتروني غير صحيح"),
-  password: z.string().min(8, "كلمة المرور يجب أن تكون 8 أحرف على الأقل"),
-  role: z.nativeEnum(UserRole),
+  password: z.string().min(12, "كلمة المرور يجب أن تكون 12 حرفًا على الأقل"),
+  role: z.nativeEnum(UserRole).refine((role) => role !== "OWNER", {
+    message: "لا يمكن إنشاء حساب OWNER من لوحة الفريق",
+  }),
 })
-
-function canManageTeam(role: UserRole) {
-  return role === "OWNER" || role === "ADMIN"
-}
 
 export async function GET() {
   try {
@@ -41,20 +41,23 @@ export async function GET() {
 
     return ok({ users })
   } catch (error) {
-    console.error("[TEAM_GET_ERROR]", error)
-    return err("غير مصرح", 401)
+    return handleApiError(error, "TEAM_GET_ERROR")
   }
 }
 
 export async function POST(request: Request) {
   try {
+    assertSameOrigin(request)
+
     const currentUser = await requireAuth()
 
-    if (!canManageTeam(currentUser.role)) {
-      return err("لا تملك صلاحية إضافة موظفين", 403)
-    }
+    assertRole(
+      currentUser.role,
+      ACCESS_ROLES.teamManagement,
+      "لا تملك صلاحية إضافة موظفين"
+    )
 
-    const body = await request.json()
+    const body = await readJsonBody(request)
     const parsed = createUserSchema.safeParse(body)
 
     if (!parsed.success) {
@@ -77,43 +80,51 @@ export async function POST(request: Request) {
     const passwordHash = await hashPassword(password)
     const meta = await getRequestMeta()
 
-    const newUser = await prisma.user.create({
-      data: {
-        companyId: currentUser.companyId,
-        name,
-        email: normalizedEmail,
-        passwordHash,
-        role,
-        isActive: true,
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        isActive: true,
-        createdAt: true,
-      },
-    })
+    const newUser = await prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
+        data: {
+          companyId: currentUser.companyId,
+          name: name.trim(),
+          email: normalizedEmail,
+          passwordHash,
+          role,
+          isActive: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          isActive: true,
+          createdAt: true,
+        },
+      })
 
-    await logActivity({
-      companyId: currentUser.companyId,
-      userId: currentUser.id,
-      action: ActivityAction.USER_CREATED,
-      entityType: "User",
-      entityId: newUser.id,
-      message: `تم إضافة موظف جديد: ${newUser.name}`,
-      metadata: {
-        email: newUser.email,
-        role: newUser.role,
-      },
-      ipAddress: meta.ipAddress,
-      userAgent: meta.userAgent,
+      await logActivity({
+        companyId: currentUser.companyId,
+        userId: currentUser.id,
+        action: ActivityAction.USER_CREATED,
+        entityType: "User",
+        entityId: createdUser.id,
+        message: `تم إضافة موظف جديد: ${createdUser.name}`,
+        metadata: {
+          email: createdUser.email,
+          role: createdUser.role,
+        },
+        ipAddress: meta.ipAddress,
+        userAgent: meta.userAgent,
+        db: tx,
+      })
+
+      return createdUser
     })
 
     return ok({ user: newUser }, 201)
   } catch (error) {
-    console.error("[TEAM_POST_ERROR]", error)
-    return err("حدث خطأ أثناء إضافة الموظف", 500)
+    return handleApiError(
+      error,
+      "TEAM_POST_ERROR",
+      "حدث خطأ أثناء إضافة الموظف"
+    )
   }
 }

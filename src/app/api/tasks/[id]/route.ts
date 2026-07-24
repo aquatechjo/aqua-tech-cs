@@ -1,8 +1,14 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 import { ActivityAction } from "@/generated/prisma/enums";
+import {
+  ACCESS_ROLES,
+  assertCanEditTask,
+  hasRole,
+} from "@/lib/access-control";
+import { ApiError, err, ok, withApiHandler } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { assertSameOrigin, readJsonBody } from "@/lib/request-security";
 
 const updateTaskSchema = z.object({
   projectId: z.string().optional().nullable(),
@@ -60,7 +66,7 @@ function nullableDecimal(value: string | null | undefined) {
   return normalized;
 }
 
-export async function GET(
+async function getTask(
   _request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
@@ -103,38 +109,34 @@ export async function GET(
   });
 
   if (!task) {
-    return NextResponse.json(
-      {
-        ok: false,
-        message: "المهمة غير موجودة",
-      },
-      { status: 404 },
-    );
+    return err("المهمة غير موجودة", 404, {
+      code: "TASK_NOT_FOUND",
+    });
   }
 
-  return NextResponse.json({
-    ok: true,
-    task,
-  });
+  return ok({ task });
 }
 
-export async function PATCH(
+async function updateTask(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  assertSameOrigin(request);
+
   const user = await requireAuth();
   const { id } = await context.params;
 
-  const body = await request.json().catch(() => null);
+  const body = await readJsonBody(request);
   const parsed = updateTaskSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json(
+    return err(
+      parsed.error.issues[0]?.message ?? "بيانات المهمة غير صحيحة",
+      400,
       {
-        ok: false,
-        message: parsed.error.issues[0]?.message ?? "بيانات المهمة غير صحيحة",
+        code: "VALIDATION_ERROR",
+        details: parsed.error.flatten(),
       },
-      { status: 400 },
     );
   }
 
@@ -146,18 +148,37 @@ export async function PATCH(
   });
 
   if (!existingTask) {
-    return NextResponse.json(
-      {
-        ok: false,
-        message: "المهمة غير موجودة",
-      },
-      { status: 404 },
-    );
+    return err("المهمة غير موجودة", 404, {
+      code: "TASK_NOT_FOUND",
+    });
   }
 
   const data = parsed.data;
+  const manager = hasRole(user.role, ACCESS_ROLES.taskManagement);
 
-  let safeProjectId =
+  assertCanEditTask(user, existingTask);
+
+  if (
+    !manager &&
+    data.assignedToId !== undefined &&
+    data.assignedToId !== user.id
+  ) {
+    throw new ApiError(
+      "لا يمكنك إعادة إسناد المهمة لموظف آخر",
+      403,
+      "TASK_ASSIGNMENT_FORBIDDEN",
+    );
+  }
+
+  if (!manager && data.source !== undefined) {
+    throw new ApiError(
+      "لا يمكنك تغيير مصدر المهمة",
+      403,
+      "TASK_SOURCE_FORBIDDEN",
+    );
+  }
+
+  const safeProjectId =
     data.projectId !== undefined ? data.projectId || null : existingTask.projectId;
 
   let safeClientId =
@@ -181,13 +202,9 @@ export async function PATCH(
     });
 
     if (!project) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "المشروع المحدد غير موجود",
-        },
-        { status: 404 },
-      );
+      return err("المشروع المحدد غير موجود", 404, {
+        code: "PROJECT_NOT_FOUND",
+      });
     }
 
     if (data.clientId === undefined && project.clientId) {
@@ -207,13 +224,9 @@ export async function PATCH(
     });
 
     if (!client) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "العميل المحدد غير موجود",
-        },
-        { status: 404 },
-      );
+      return err("العميل المحدد غير موجود", 404, {
+        code: "CLIENT_NOT_FOUND",
+      });
     }
   }
 
@@ -230,13 +243,9 @@ export async function PATCH(
     });
 
     if (!assignedUser) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "الموظف المحدد غير موجود أو غير فعال",
-        },
-        { status: 404 },
-      );
+      return err("الموظف المحدد غير موجود أو غير فعال", 404, {
+        code: "ASSIGNEE_NOT_FOUND",
+      });
     }
   }
 
@@ -254,65 +263,77 @@ export async function PATCH(
     action = ActivityAction.TASK_COMPLETED;
   }
 
-  const task = await prisma.task.update({
-    where: {
-      id: existingTask.id,
-    },
-    data: {
-      ...(data.projectId !== undefined ? { projectId: safeProjectId } : {}),
-      ...(data.clientId !== undefined || data.projectId !== undefined
-        ? { clientId: safeClientId }
-        : {}),
-      ...(data.assignedToId !== undefined
-        ? { assignedToId: safeAssignedToId }
-        : {}),
-
-      ...(data.title !== undefined ? { title: data.title } : {}),
-      ...(data.description !== undefined
-        ? { description: nullableText(data.description) }
-        : {}),
-
-      ...(data.status !== undefined ? { status: data.status } : {}),
-      ...(data.priority !== undefined ? { priority: data.priority } : {}),
-      ...(data.source !== undefined ? { source: data.source } : {}),
-
-      ...(data.sourceRef !== undefined
-        ? { sourceRef: nullableText(data.sourceRef) }
-        : {}),
-      ...(data.estimatedHours !== undefined
-        ? { estimatedHours: nullableDecimal(data.estimatedHours) }
-        : {}),
-      ...(data.dueDate !== undefined ? { dueDate: nullableDate(data.dueDate) } : {}),
-
-      ...(data.status === "DONE" && !existingTask.completedAt
-        ? { completedAt: new Date() }
-        : {}),
-      ...(data.status && data.status !== "DONE" ? { completedAt: null } : {}),
-    },
-  });
-
-  await prisma.activityLog.create({
-    data: {
-      companyId: user.companyId,
-      userId: user.id,
-      action,
-      entityType: "Task",
-      entityId: task.id,
-      message: `تم تعديل المهمة: ${task.title}`,
-      metadata: {
-        taskTitle: task.title,
-        projectId: task.projectId,
-        clientId: task.clientId,
-        assignedToId: task.assignedToId,
-        status: task.status,
-        priority: task.priority,
-        source: task.source,
+  const task = await prisma.$transaction(async (tx) => {
+    const updatedTask = await tx.task.update({
+      where: {
+        id: existingTask.id,
       },
-    },
+      data: {
+        ...(data.projectId !== undefined ? { projectId: safeProjectId } : {}),
+        ...(data.clientId !== undefined || data.projectId !== undefined
+          ? { clientId: safeClientId }
+          : {}),
+        ...(data.assignedToId !== undefined
+          ? { assignedToId: safeAssignedToId }
+          : {}),
+
+        ...(data.title !== undefined ? { title: data.title } : {}),
+        ...(data.description !== undefined
+          ? { description: nullableText(data.description) }
+          : {}),
+
+        ...(data.status !== undefined ? { status: data.status } : {}),
+        ...(data.priority !== undefined ? { priority: data.priority } : {}),
+        ...(data.source !== undefined ? { source: data.source } : {}),
+
+        ...(data.sourceRef !== undefined
+          ? { sourceRef: nullableText(data.sourceRef) }
+          : {}),
+        ...(data.estimatedHours !== undefined
+          ? { estimatedHours: nullableDecimal(data.estimatedHours) }
+          : {}),
+        ...(data.dueDate !== undefined
+          ? { dueDate: nullableDate(data.dueDate) }
+          : {}),
+
+        ...(data.status === "DONE" && !existingTask.completedAt
+          ? { completedAt: new Date() }
+          : {}),
+        ...(data.status && data.status !== "DONE"
+          ? { completedAt: null }
+          : {}),
+      },
+    });
+
+    await tx.activityLog.create({
+      data: {
+        companyId: user.companyId,
+        userId: user.id,
+        action,
+        entityType: "Task",
+        entityId: updatedTask.id,
+        message: `تم تعديل المهمة: ${updatedTask.title}`,
+        metadata: {
+          taskTitle: updatedTask.title,
+          projectId: updatedTask.projectId,
+          clientId: updatedTask.clientId,
+          assignedToId: updatedTask.assignedToId,
+          status: updatedTask.status,
+          priority: updatedTask.priority,
+          source: updatedTask.source,
+        },
+      },
+    });
+
+    return updatedTask;
   });
 
-  return NextResponse.json({
-    ok: true,
-    task,
-  });
+  return ok({ task });
 }
+
+export const GET = withApiHandler("TASK_GET_ERROR", getTask);
+export const PATCH = withApiHandler(
+  "TASK_PATCH_ERROR",
+  updateTask,
+  "حدث خطأ أثناء تعديل المهمة",
+);

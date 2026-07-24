@@ -1,8 +1,13 @@
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { ACCESS_ROLES, hasRole } from "@/lib/access-control";
 
 export default async function DashboardPage() {
   const user = await requireAuth();
+  const canViewCompanyActivity = hasRole(
+    user.role,
+    ACCESS_ROLES.activityLog,
+  );
 
   const [teamCount, activeSessions, unreadNotifications, recentActivities] =
     await Promise.all([
@@ -27,7 +32,10 @@ export default async function DashboardPage() {
       }),
 
       prisma.activityLog.findMany({
-        where: { companyId: user.companyId },
+        where: {
+          companyId: user.companyId,
+          ...(canViewCompanyActivity ? {} : { userId: user.id }),
+        },
         orderBy: { createdAt: "desc" },
         take: 5,
       }),

@@ -1,10 +1,12 @@
 import AquaPagination from "@/components/aqua/AquaPagination"
+import { redirect } from "next/navigation"
 import {
   ServiceRequestPriority,
   ServiceRequestSource,
   ServiceRequestStatus,
 } from "@/generated/prisma/enums"
 import { requireAuth } from "@/lib/auth"
+import { ACCESS_ROLES, hasRole } from "@/lib/access-control"
 import { prisma } from "@/lib/prisma"
 import ServiceRequestsClient from "./ServiceRequestsClient"
 
@@ -85,6 +87,11 @@ export default async function ServiceRequestsPage({
   }>
 }) {
   const user = await requireAuth()
+
+  if (!hasRole(user.role, ACCESS_ROLES.serviceRequestManagement)) {
+    redirect("/dashboard")
+  }
+
   const resolvedSearchParams = await searchParams
 
   const requestedPage = parsePage(resolvedSearchParams.page)
