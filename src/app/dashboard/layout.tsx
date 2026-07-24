@@ -39,6 +39,11 @@ export default async function DashboardLayout({
       enabled: true,
     },
     {
+      label: "الموارد البشرية",
+      href: "/dashboard/hr",
+      enabled: true,
+    },
+    {
       label: "المالية",
       href: "/dashboard/finance",
       enabled: hasRole(user.role, ACCESS_ROLES.financeRead),

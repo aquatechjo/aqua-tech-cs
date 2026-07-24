@@ -110,6 +110,35 @@ enum TimesheetStatus {
   REJECTED
 }
 
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+  REMOTE
+  HALF_DAY
+  ON_LEAVE
+  HOLIDAY
+}
+
+enum AttendanceSource {
+  SELF_SERVICE
+  MANUAL
+  SYSTEM
+}
+
+enum LeaveRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum LeaveDayPortion {
+  FULL_DAY
+  FIRST_HALF
+  SECOND_HALF
+}
+
 enum SalesOpportunityStage {
   NEW
   DISCOVERY
@@ -243,6 +272,21 @@ enum ActivityAction {
   TIMESHEET_SUBMITTED
   TIMESHEET_APPROVED
   TIMESHEET_REJECTED
+  WORK_SCHEDULE_CREATED
+  WORK_SCHEDULE_UPDATED
+  ATTENDANCE_CHECKED_IN
+  ATTENDANCE_CHECKED_OUT
+  ATTENDANCE_UPDATED
+  LEAVE_TYPE_CREATED
+  LEAVE_TYPE_UPDATED
+  LEAVE_BALANCE_ADJUSTED
+  LEAVE_REQUEST_SUBMITTED
+  LEAVE_REQUEST_APPROVED
+  LEAVE_REQUEST_REJECTED
+  LEAVE_REQUEST_CANCELLED
+  HOLIDAY_CREATED
+  HOLIDAY_UPDATED
+  HOLIDAY_DELETED
 }
 
 model Company {
@@ -287,6 +331,12 @@ model Company {
   salesProposals     SalesProposal[]
   timeEntries        TimeEntry[]
   timesheets         Timesheet[]
+  workSchedules      WorkSchedule[]
+  attendanceRecords  AttendanceRecord[]
+  leaveTypes         LeaveType[]
+  leaveBalances      LeaveBalance[]
+  leaveRequests      LeaveRequest[]
+  publicHolidays     PublicHoliday[]
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -330,6 +380,11 @@ model User {
   timeEntries              TimeEntry[]          @relation("TimeEntryOwner")
   timesheets               Timesheet[]          @relation("TimesheetOwner")
   approvedTimesheets       Timesheet[]          @relation("TimesheetApprover")
+  attendanceRecords        AttendanceRecord[]   @relation("AttendanceOwner")
+  updatedAttendanceRecords AttendanceRecord[]   @relation("AttendanceUpdater")
+  leaveBalances            LeaveBalance[]       @relation("LeaveBalanceOwner")
+  leaveRequests            LeaveRequest[]       @relation("LeaveRequester")
+  reviewedLeaveRequests    LeaveRequest[]       @relation("LeaveReviewer")
 
   @@index([companyId])
   @@index([role])
@@ -454,6 +509,9 @@ model EmployeeProfile {
   startDate        DateTime?
   endDate          DateTime?
 
+  workScheduleId String?
+  workSchedule   WorkSchedule? @relation(fields: [workScheduleId], references: [id], onDelete: SetNull)
+
   teamMemberships   TeamMembership[]
   projectMemberships ProjectMember[]
   taskParticipations  TaskParticipant[]
@@ -468,6 +526,7 @@ model EmployeeProfile {
   @@index([departmentId])
   @@index([jobRoleId])
   @@index([managerId])
+  @@index([workScheduleId])
   @@index([status])
 }
 
@@ -930,6 +989,184 @@ model TimeEntry {
   @@index([workDate])
   @@index([billable])
   @@index([startedAt])
+}
+
+model WorkSchedule {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  name        String
+  code        String
+  description String?
+  workingDays Int[]
+  startMinute Int      @default(540)
+  endMinute   Int      @default(1020)
+  breakMinutes Int     @default(60)
+  graceMinutes Int     @default(15)
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+
+  employeeProfiles EmployeeProfile[]
+  attendanceRecords AttendanceRecord[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@index([isDefault])
+  @@index([isActive])
+}
+
+model AttendanceRecord {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation("AttendanceOwner", fields: [userId], references: [id], onDelete: Cascade)
+
+  updatedById String?
+  updatedBy   User?   @relation("AttendanceUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  workScheduleId String?
+  workSchedule   WorkSchedule? @relation(fields: [workScheduleId], references: [id], onDelete: SetNull)
+
+  workDate DateTime
+  status   AttendanceStatus @default(PRESENT)
+  source   AttendanceSource @default(SELF_SERVICE)
+
+  checkInAt  DateTime?
+  checkOutAt DateTime?
+
+  scheduledStartMinute Int?
+  scheduledEndMinute   Int?
+  breakMinutes         Int     @default(0)
+  graceMinutes         Int     @default(0)
+  workedMinutes        Int     @default(0)
+  lateMinutes          Int     @default(0)
+  overtimeMinutes      Int     @default(0)
+  notes                String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, userId, workDate])
+  @@index([companyId])
+  @@index([userId])
+  @@index([updatedById])
+  @@index([workScheduleId])
+  @@index([workDate])
+  @@index([status])
+}
+
+model LeaveType {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  name        String
+  code        String
+  description String?
+  annualAllowanceDays Decimal @default(0) @db.Decimal(6, 2)
+  carryoverLimitDays  Decimal @default(0) @db.Decimal(6, 2)
+  isPaid              Boolean @default(true)
+  requiresApproval    Boolean @default(true)
+  isActive            Boolean @default(true)
+
+  balances LeaveBalance[]
+  requests LeaveRequest[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@index([isActive])
+}
+
+model LeaveBalance {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation("LeaveBalanceOwner", fields: [userId], references: [id], onDelete: Cascade)
+
+  leaveTypeId String
+  leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+
+  year Int
+  openingDays Decimal @default(0) @db.Decimal(6, 2)
+  accruedDays Decimal @default(0) @db.Decimal(6, 2)
+  adjustedDays Decimal @default(0) @db.Decimal(6, 2)
+  usedDays    Decimal @default(0) @db.Decimal(6, 2)
+  notes       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, userId, leaveTypeId, year])
+  @@index([companyId])
+  @@index([userId])
+  @@index([leaveTypeId])
+  @@index([year])
+}
+
+model LeaveRequest {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation("LeaveRequester", fields: [userId], references: [id], onDelete: Cascade)
+
+  leaveTypeId String
+  leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Restrict)
+
+  reviewedById String?
+  reviewedBy   User?   @relation("LeaveReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  startDate    DateTime
+  endDate      DateTime
+  startPortion LeaveDayPortion @default(FULL_DAY)
+  endPortion   LeaveDayPortion @default(FULL_DAY)
+  totalDays    Decimal @db.Decimal(6, 2)
+  status       LeaveRequestStatus @default(PENDING)
+  reason       String?
+  reviewNote   String?
+
+  submittedAt DateTime @default(now())
+  reviewedAt  DateTime?
+  cancelledAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([userId])
+  @@index([leaveTypeId])
+  @@index([reviewedById])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([status])
+}
+
+model PublicHoliday {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  name  String
+  date  DateTime
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, date])
+  @@index([companyId])
+  @@index([date])
 }
 
 model DocumentSequence {

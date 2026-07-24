@@ -49,6 +49,10 @@ const titles: Record<string, { title: string; subtitle: string }> = {
     title: "المهام",
     subtitle: "إدارة مهام Aqua.Tech وربطها بالمشاريع والفريق",
   },
+  "/dashboard/hr": {
+    title: "الموارد البشرية والحضور",
+    subtitle: "جداول الدوام والحضور والإجازات والأرصدة والعطل",
+  },
   "/dashboard/finance": {
     title: "المالية التشغيلية",
     subtitle: "الفواتير والتحصيل والمصروفات وربحية المشاريع",

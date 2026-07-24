@@ -79,6 +79,22 @@ function actionLabel(action: ActivityAction) {
     TIMESHEET_APPROVED: "اعتماد سجل الساعات",
     TIMESHEET_REJECTED: "رفض سجل الساعات",
 
+    WORK_SCHEDULE_CREATED: "إنشاء جدول دوام",
+    WORK_SCHEDULE_UPDATED: "تعديل جدول دوام",
+    ATTENDANCE_CHECKED_IN: "تسجيل حضور",
+    ATTENDANCE_CHECKED_OUT: "تسجيل انصراف",
+    ATTENDANCE_UPDATED: "تعديل سجل حضور",
+    LEAVE_TYPE_CREATED: "إنشاء نوع إجازة",
+    LEAVE_TYPE_UPDATED: "تعديل نوع إجازة",
+    LEAVE_BALANCE_ADJUSTED: "تعديل رصيد إجازة",
+    LEAVE_REQUEST_SUBMITTED: "تقديم طلب إجازة",
+    LEAVE_REQUEST_APPROVED: "اعتماد طلب إجازة",
+    LEAVE_REQUEST_REJECTED: "رفض طلب إجازة",
+    LEAVE_REQUEST_CANCELLED: "إلغاء طلب إجازة",
+    HOLIDAY_CREATED: "إضافة عطلة",
+    HOLIDAY_UPDATED: "تعديل عطلة",
+    HOLIDAY_DELETED: "حذف عطلة",
+
     TASK_CREATED: "إضافة مهمة",
     TASK_UPDATED: "تعديل مهمة",
     TASK_COMPLETED: "إكمال مهمة",
@@ -138,7 +154,10 @@ function actionBadgeClass(action: ActivityAction) {
     action === "SALES_ACTIVITY_COMPLETED" ||
     action === "SALES_PROPOSAL_ACCEPTED" ||
     action === "TIME_TIMER_STOPPED" ||
-    action === "TIMESHEET_APPROVED"
+    action === "TIMESHEET_APPROVED" ||
+    action === "ATTENDANCE_CHECKED_IN" ||
+    action === "ATTENDANCE_CHECKED_OUT" ||
+    action === "LEAVE_REQUEST_APPROVED"
   ) {
     return "text-bg-success";
   }
@@ -157,7 +176,10 @@ function actionBadgeClass(action: ActivityAction) {
     action === "SALES_OPPORTUNITY_LOST" ||
     action === "SALES_PROPOSAL_REJECTED" ||
     action === "TIME_ENTRY_DELETED" ||
-    action === "TIMESHEET_REJECTED"
+    action === "TIMESHEET_REJECTED" ||
+    action === "LEAVE_REQUEST_REJECTED" ||
+    action === "LEAVE_REQUEST_CANCELLED" ||
+    action === "HOLIDAY_DELETED"
   ) {
     return "text-bg-danger";
   }
@@ -177,7 +199,10 @@ function actionBadgeClass(action: ActivityAction) {
     action === "SALES_ACTIVITY_CREATED" ||
     action === "SALES_PROPOSAL_CREATED" ||
     action === "TIME_ENTRY_CREATED" ||
-    action === "TIME_TIMER_STARTED"
+    action === "TIME_TIMER_STARTED" ||
+    action === "WORK_SCHEDULE_CREATED" ||
+    action === "LEAVE_TYPE_CREATED" ||
+    action === "HOLIDAY_CREATED"
   ) {
     return "text-bg-info";
   }
@@ -187,7 +212,8 @@ function actionBadgeClass(action: ActivityAction) {
     action === "SERVICE_REQUEST_PROPOSAL_SENT" ||
     action === "SALES_OPPORTUNITY_STAGE_CHANGED" ||
     action === "SALES_PROPOSAL_SENT" ||
-    action === "TIMESHEET_SUBMITTED"
+    action === "TIMESHEET_SUBMITTED" ||
+    action === "LEAVE_REQUEST_SUBMITTED"
   ) {
     return "text-bg-warning";
   }

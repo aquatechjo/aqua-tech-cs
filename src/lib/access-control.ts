@@ -34,6 +34,12 @@ export const ACCESS_ROLES = {
   timeCostRead: ["OWNER", "ADMIN", "OPERATIONS_MANAGER", "FINANCE_MANAGER"],
   timeRateManagement: ["OWNER", "ADMIN", "FINANCE_MANAGER"],
   timeCapacityManagement: ["OWNER", "ADMIN", "OPERATIONS_MANAGER"],
+  hrCompanyRead: ["OWNER", "ADMIN", "OPERATIONS_MANAGER"],
+  hrManagement: ["OWNER", "ADMIN"],
+  attendanceManagement: ["OWNER", "ADMIN", "OPERATIONS_MANAGER"],
+  leaveApproval: ["OWNER", "ADMIN", "OPERATIONS_MANAGER"],
+  workScheduleManagement: ["OWNER", "ADMIN"],
+  holidayManagement: ["OWNER", "ADMIN"],
 } as const satisfies Record<string, readonly AccessRole[]>
 
 export type TaskAccessContext = {
@@ -231,6 +237,35 @@ export function assertCanApproveTimesheet(
       approver.id === ownerUserId
         ? "TIMESHEET_SELF_APPROVAL_FORBIDDEN"
         : "TIMESHEET_APPROVAL_FORBIDDEN",
+    )
+  }
+}
+
+export function canViewCompanyHr(role: AccessRole) {
+  return hasRole(role, ACCESS_ROLES.hrCompanyRead)
+}
+
+export function canApproveLeave(
+  approver: { id: string; role: AccessRole },
+  requesterUserId: string,
+) {
+  if (!hasRole(approver.role, ACCESS_ROLES.leaveApproval)) return false
+  return approver.role === "OWNER" || approver.id !== requesterUserId
+}
+
+export function assertCanApproveLeave(
+  approver: { id: string; role: AccessRole },
+  requesterUserId: string,
+) {
+  if (!canApproveLeave(approver, requesterUserId)) {
+    throw new ApiError(
+      approver.id === requesterUserId
+        ? "لا يمكنك اعتماد طلب إجازتك بنفسك"
+        : "لا تملك صلاحية اعتماد طلبات الإجازة",
+      403,
+      approver.id === requesterUserId
+        ? "LEAVE_SELF_APPROVAL_FORBIDDEN"
+        : "LEAVE_APPROVAL_FORBIDDEN",
     )
   }
 }

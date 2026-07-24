@@ -3,6 +3,8 @@ import test from "node:test";
 import {
   ACCESS_ROLES,
   canApproveTimesheet,
+  canApproveLeave,
+  canViewCompanyHr,
   canAssignTaskOwner,
   canEditTask,
   canManageProjectExecution,
@@ -194,4 +196,19 @@ test("time access separates personal logging company visibility and approval", (
     ),
     false,
   )
+})
+
+
+test("HR access separates self service from company administration", () => {
+  assert.equal(canViewCompanyHr("MEMBER"), false)
+  assert.equal(canViewCompanyHr("OPERATIONS_MANAGER"), true)
+  assert.equal(
+    canApproveLeave({ id: "manager", role: "OPERATIONS_MANAGER" }, "employee"),
+    true,
+  )
+  assert.equal(
+    canApproveLeave({ id: "employee", role: "OPERATIONS_MANAGER" }, "employee"),
+    false,
+  )
+  assert.equal(canApproveLeave({ id: "owner", role: "OWNER" }, "owner"), true)
 })
