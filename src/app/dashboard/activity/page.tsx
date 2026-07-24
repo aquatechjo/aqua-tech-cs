@@ -55,6 +55,21 @@ function actionLabel(action: ActivityAction) {
     EXPENSE_PAID: "دفع مصروف",
     EXPENSE_CANCELLED: "إلغاء مصروف",
 
+    SALES_OPPORTUNITY_CREATED: "إنشاء فرصة بيع",
+    SALES_OPPORTUNITY_UPDATED: "تعديل فرصة بيع",
+    SALES_OPPORTUNITY_STAGE_CHANGED: "نقل مرحلة فرصة",
+    SALES_OPPORTUNITY_WON: "فوز فرصة بيع",
+    SALES_OPPORTUNITY_LOST: "خسارة فرصة بيع",
+    SALES_OPPORTUNITY_CONVERTED: "تحويل فرصة إلى مشروع",
+    SALES_ACTIVITY_CREATED: "إضافة متابعة مبيعات",
+    SALES_ACTIVITY_UPDATED: "تعديل متابعة مبيعات",
+    SALES_ACTIVITY_COMPLETED: "إكمال متابعة مبيعات",
+    SALES_PROPOSAL_CREATED: "إنشاء عرض تجاري",
+    SALES_PROPOSAL_UPDATED: "تعديل عرض تجاري",
+    SALES_PROPOSAL_SENT: "إرسال عرض تجاري",
+    SALES_PROPOSAL_ACCEPTED: "قبول عرض تجاري",
+    SALES_PROPOSAL_REJECTED: "رفض عرض تجاري",
+
     TASK_CREATED: "إضافة مهمة",
     TASK_UPDATED: "تعديل مهمة",
     TASK_COMPLETED: "إكمال مهمة",
@@ -108,7 +123,11 @@ function actionBadgeClass(action: ActivityAction) {
     action === "INVOICE_ISSUED" ||
     action === "PAYMENT_RECORDED" ||
     action === "EXPENSE_APPROVED" ||
-    action === "EXPENSE_PAID"
+    action === "EXPENSE_PAID" ||
+    action === "SALES_OPPORTUNITY_WON" ||
+    action === "SALES_OPPORTUNITY_CONVERTED" ||
+    action === "SALES_ACTIVITY_COMPLETED" ||
+    action === "SALES_PROPOSAL_ACCEPTED"
   ) {
     return "text-bg-success";
   }
@@ -123,7 +142,9 @@ function actionBadgeClass(action: ActivityAction) {
     action === "INVOICE_CANCELLED" ||
     action === "PAYMENT_REVERSED" ||
     action === "EXPENSE_REJECTED" ||
-    action === "EXPENSE_CANCELLED"
+    action === "EXPENSE_CANCELLED" ||
+    action === "SALES_OPPORTUNITY_LOST" ||
+    action === "SALES_PROPOSAL_REJECTED"
   ) {
     return "text-bg-danger";
   }
@@ -138,14 +159,19 @@ function actionBadgeClass(action: ActivityAction) {
     action === "JOB_ROLE_CREATED" ||
     action === "TEAM_CREATED" ||
     action === "INVOICE_CREATED" ||
-    action === "EXPENSE_CREATED"
+    action === "EXPENSE_CREATED" ||
+    action === "SALES_OPPORTUNITY_CREATED" ||
+    action === "SALES_ACTIVITY_CREATED" ||
+    action === "SALES_PROPOSAL_CREATED"
   ) {
     return "text-bg-info";
   }
 
   if (
     action === "SERVICE_REQUEST_CONTACTED" ||
-    action === "SERVICE_REQUEST_PROPOSAL_SENT"
+    action === "SERVICE_REQUEST_PROPOSAL_SENT" ||
+    action === "SALES_OPPORTUNITY_STAGE_CHANGED" ||
+    action === "SALES_PROPOSAL_SENT"
   ) {
     return "text-bg-warning";
   }

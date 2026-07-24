@@ -24,6 +24,11 @@ export default async function DashboardLayout({
       href: "/dashboard/organization",
       enabled: true,
     },
+    {
+      label: "المبيعات",
+      href: "/dashboard/sales",
+      enabled: hasRole(user.role, ACCESS_ROLES.salesRead),
+    },
     { label: "العملاء", href: "/dashboard/clients", enabled: true },
     { label: "المشاريع", href: "/dashboard/projects", enabled: true },
     { label: "يومي", href: "/dashboard/my-day", enabled: true },

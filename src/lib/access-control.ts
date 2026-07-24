@@ -23,6 +23,8 @@ export const ACCESS_ROLES = {
     "SALES_MANAGER",
     "OPERATIONS_MANAGER",
   ],
+  salesRead: ["OWNER", "ADMIN", "SALES_MANAGER", "OPERATIONS_MANAGER"],
+  salesManagement: ["OWNER", "ADMIN", "SALES_MANAGER"],
   taskManagement: ["OWNER", "ADMIN", "OPERATIONS_MANAGER"],
   financeRead: ["OWNER", "ADMIN", "FINANCE_MANAGER", "OPERATIONS_MANAGER"],
   financeManagement: ["OWNER", "ADMIN", "FINANCE_MANAGER"],

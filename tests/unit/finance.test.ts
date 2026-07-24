@@ -119,6 +119,7 @@ test("expense transitions enforce submission approval and payment order", () => 
 test("document numbers are stable and padded", () => {
   assert.equal(documentNumber("INV", 2026, 1), "INV-2026-0001")
   assert.equal(documentNumber("EXP", 2026, 87), "EXP-2026-0087")
+  assert.equal(documentNumber("PROP", 2026, 12), "PROP-2026-0012")
 })
 
 

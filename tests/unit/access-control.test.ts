@@ -157,3 +157,11 @@ test("finance access separates visibility from financial mutations", () => {
   assert.equal(hasRole("OPERATIONS_MANAGER", ACCESS_ROLES.financeManagement), false);
   assert.equal(hasRole("SALES_MANAGER", ACCESS_ROLES.financeRead), false);
 });
+
+test("sales access separates pipeline visibility from sales mutations", () => {
+  assert.equal(hasRole("SALES_MANAGER", ACCESS_ROLES.salesRead), true);
+  assert.equal(hasRole("SALES_MANAGER", ACCESS_ROLES.salesManagement), true);
+  assert.equal(hasRole("OPERATIONS_MANAGER", ACCESS_ROLES.salesRead), true);
+  assert.equal(hasRole("OPERATIONS_MANAGER", ACCESS_ROLES.salesManagement), false);
+  assert.equal(hasRole("FINANCE_MANAGER", ACCESS_ROLES.salesRead), false);
+});

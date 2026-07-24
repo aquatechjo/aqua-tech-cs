@@ -37,6 +37,7 @@ type ServiceRequestItem = {
 
   assignedToId: string | null;
   assignedTo: UserOption | null;
+  salesOpportunity: { id: string } | null;
 
   customerName: string;
   customerEmail: string | null;
@@ -222,6 +223,7 @@ export default function ServiceRequestsClient({
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [salesActionId, setSalesActionId] = useState<string | null>(null);
 
   const isEditing = Boolean(editingId);
 
@@ -371,6 +373,43 @@ export default function ServiceRequestsClient({
     }
 
     router.refresh();
+  }
+
+  async function createSalesOpportunity(request: ServiceRequestItem) {
+    if (request.salesOpportunity) {
+      router.push(`/dashboard/sales/opportunities/${request.salesOpportunity.id}`);
+      return;
+    }
+
+    setError("");
+    setSalesActionId(request.id);
+
+    try {
+      const response = await fetch(
+        "/api/sales/opportunities/from-service-request",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ serviceRequestId: request.id }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        setError(data.message || "فشل إنشاء فرصة البيع");
+        return;
+      }
+
+      router.push(`/dashboard/sales/opportunities/${data.data.opportunityId}`);
+      router.refresh();
+    } catch {
+      setError("حدث خطأ أثناء الاتصال بالخادم");
+    } finally {
+      setSalesActionId(null);
+    }
   }
 
   async function convertRequest(request: ServiceRequestItem) {
@@ -904,6 +943,21 @@ export default function ServiceRequestsClient({
                               </button>
                             ) : null}
 
+                            {request.status !== "ARCHIVED" ? (
+                              <button
+                                type="button"
+                                disabled={salesActionId === request.id}
+                                onClick={() => createSalesOpportunity(request)}
+                                className="btn aqua-btn-ghost btn-sm"
+                              >
+                                {salesActionId === request.id
+                                  ? "جاري..."
+                                  : request.salesOpportunity
+                                    ? "فتح الفرصة"
+                                    : "فرصة بيع"}
+                              </button>
+                            ) : null}
+
                             {request.status !== "CONVERTED" &&
                             request.status !== "ARCHIVED" &&
                             request.status !== "REJECTED" ? (
@@ -912,7 +966,7 @@ export default function ServiceRequestsClient({
                                 onClick={() => convertRequest(request)}
                                 className="btn aqua-btn-ghost btn-sm"
                               >
-                                تحويل
+                                تحويل مباشر
                               </button>
                             ) : null}
 

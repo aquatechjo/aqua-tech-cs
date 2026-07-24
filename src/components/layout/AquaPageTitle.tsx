@@ -25,9 +25,14 @@ const titles: Record<string, { title: string; subtitle: string }> = {
     subtitle: "مركز التنبيهات الداخلية",
   },
 
+  "/dashboard/sales": {
+    title: "المبيعات",
+    subtitle: "خط الفرص والمتابعات والعروض والتحويل إلى مشاريع",
+  },
+
   "/dashboard/clients": {
     title: "العملاء",
-    subtitle: "إدارة العملاء والفرص داخل Aqua.Tech",
+    subtitle: "إدارة العملاء الحاليين وسجلهم داخل Aqua.Tech",
   },
 
   "/dashboard/projects": {

@@ -103,6 +103,40 @@ enum ExpenseStatus {
   CANCELLED
 }
 
+enum SalesOpportunityStage {
+  NEW
+  DISCOVERY
+  QUALIFIED
+  PROPOSAL
+  NEGOTIATION
+  ON_HOLD
+  WON
+  LOST
+}
+
+enum SalesActivityType {
+  CALL
+  WHATSAPP
+  EMAIL
+  MEETING
+  FOLLOW_UP
+  NOTE
+}
+
+enum SalesActivityStatus {
+  PLANNED
+  COMPLETED
+  CANCELLED
+}
+
+enum SalesProposalStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
 enum NotificationType {
   INFO
   SUCCESS
@@ -180,6 +214,20 @@ enum ActivityAction {
   EXPENSE_REJECTED
   EXPENSE_PAID
   EXPENSE_CANCELLED
+  SALES_OPPORTUNITY_CREATED
+  SALES_OPPORTUNITY_UPDATED
+  SALES_OPPORTUNITY_STAGE_CHANGED
+  SALES_OPPORTUNITY_WON
+  SALES_OPPORTUNITY_LOST
+  SALES_OPPORTUNITY_CONVERTED
+  SALES_ACTIVITY_CREATED
+  SALES_ACTIVITY_UPDATED
+  SALES_ACTIVITY_COMPLETED
+  SALES_PROPOSAL_CREATED
+  SALES_PROPOSAL_UPDATED
+  SALES_PROPOSAL_SENT
+  SALES_PROPOSAL_ACCEPTED
+  SALES_PROPOSAL_REJECTED
 }
 
 model Company {
@@ -219,6 +267,9 @@ model Company {
   payments         Payment[]
   expenses         Expense[]
   documentSequences DocumentSequence[]
+  salesOpportunities SalesOpportunity[]
+  salesActivities    SalesActivity[]
+  salesProposals     SalesProposal[]
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -256,6 +307,9 @@ model User {
   reversedPayments        Payment[]        @relation("PaymentReverser")
   createdExpenses         Expense[]        @relation("ExpenseCreator")
   approvedExpenses        Expense[]        @relation("ExpenseApprover")
+  ownedSalesOpportunities  SalesOpportunity[] @relation("SalesOpportunityOwner")
+  createdSalesActivities   SalesActivity[]     @relation("SalesActivityCreator")
+  createdSalesProposals    SalesProposal[]     @relation("SalesProposalCreator")
 
   @@index([companyId])
   @@index([role])
@@ -542,6 +596,7 @@ model Client {
   projects Project[]
   tasks    Task[]
   invoices Invoice[]
+  salesOpportunities SalesOpportunity[]
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -582,6 +637,7 @@ model Project {
   phases      ProjectPhase[]
   invoices    Invoice[]
   expenses    Expense[]
+  salesOpportunity SalesOpportunity?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -986,6 +1042,7 @@ model ServiceRequest {
   rejectedAt     DateTime?
   convertedAt    DateTime?
   invoices       Invoice[]
+  salesOpportunity SalesOpportunity?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -999,6 +1056,135 @@ model ServiceRequest {
   @@index([source])
   @@index([priority])
   @@index([createdAt])
+}
+
+model SalesOpportunity {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  serviceRequestId String? @unique
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: SetNull)
+
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  projectId String? @unique
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  ownerId String?
+  owner   User? @relation("SalesOpportunityOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+
+  title       String
+  contactName String
+  companyName String?
+  email       String?
+  phone       String?
+  serviceType String
+
+  stage    SalesOpportunityStage @default(NEW)
+  priority ServiceRequestPriority @default(MEDIUM)
+  source   ServiceRequestSource   @default(MANUAL)
+
+  estimatedValue Decimal @default(0) @db.Decimal(14, 2)
+  currency       String  @default("JOD")
+  probability    Int     @default(10)
+
+  expectedCloseDate DateTime?
+  nextFollowUpAt   DateTime?
+  lastContactAt    DateTime?
+
+  lostReason String?
+  notes      String?
+  wonAt      DateTime?
+  lostAt     DateTime?
+
+  activities SalesActivity[]
+  proposals  SalesProposal[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([clientId])
+  @@index([projectId])
+  @@index([ownerId])
+  @@index([stage])
+  @@index([priority])
+  @@index([source])
+  @@index([expectedCloseDate])
+  @@index([nextFollowUpAt])
+  @@index([updatedAt])
+}
+
+model SalesActivity {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  opportunityId String
+  opportunity   SalesOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  createdById String?
+  createdBy   User? @relation("SalesActivityCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  type    SalesActivityType
+  status  SalesActivityStatus @default(PLANNED)
+  subject String
+  details String?
+  outcome String?
+
+  scheduledAt DateTime?
+  completedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([opportunityId])
+  @@index([createdById])
+  @@index([type])
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([completedAt])
+}
+
+model SalesProposal {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  opportunityId String
+  opportunity   SalesOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  createdById String?
+  createdBy   User? @relation("SalesProposalCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  proposalNumber String
+  version        Int
+  status         SalesProposalStatus @default(DRAFT)
+  title          String
+  amount         Decimal @db.Decimal(14, 2)
+  currency       String  @default("JOD")
+
+  validUntil DateTime?
+  url        String?
+  notes      String?
+
+  sentAt     DateTime?
+  acceptedAt DateTime?
+  rejectedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, proposalNumber])
+  @@unique([opportunityId, version])
+  @@index([companyId])
+  @@index([opportunityId])
+  @@index([createdById])
+  @@index([status])
+  @@index([validUntil])
 }
 
 enum ClientType {

@@ -4,6 +4,8 @@ import { err, ok, withApiHandler } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { assertSameOrigin } from "@/lib/request-security";
+import { wonOpportunityState } from "@/lib/sales";
+import { opportunitySeedFromServiceRequest } from "@/lib/sales-server";
 
 function leadSource(source: string): LeadSource {
   if (
@@ -102,13 +104,14 @@ async function convertServiceRequest(
           description: serviceRequest.message,
           status: "PLANNING",
           priority: serviceRequest.priority,
-          currency: "JOD",
+          currency: user.company.currency,
         },
       });
 
       projectId = project.id;
     }
 
+    const convertedAt = serviceRequest.convertedAt ?? new Date();
     const convertedRequest = await tx.serviceRequest.update({
       where: {
         id: serviceRequest.id,
@@ -117,9 +120,60 @@ async function convertServiceRequest(
         clientId,
         projectId,
         status: "CONVERTED",
-        convertedAt: serviceRequest.convertedAt ?? new Date(),
+        convertedAt,
       },
     });
+
+    const existingOpportunity = await tx.salesOpportunity.findUnique({
+      where: {
+        serviceRequestId: serviceRequest.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    let salesOpportunityId: string;
+
+    if (existingOpportunity) {
+      const updatedOpportunity = await tx.salesOpportunity.update({
+        where: {
+          id: existingOpportunity.id,
+        },
+        data: {
+          clientId,
+          projectId,
+          ...wonOpportunityState(convertedAt),
+        },
+      });
+      salesOpportunityId = updatedOpportunity.id;
+    } else {
+      const seed = opportunitySeedFromServiceRequest(serviceRequest);
+      const opportunity = await tx.salesOpportunity.create({
+        data: {
+          companyId: user.companyId,
+          serviceRequestId: serviceRequest.id,
+          clientId,
+          projectId,
+          ownerId: seed.ownerId,
+          title: seed.title,
+          contactName: seed.contactName,
+          companyName: seed.companyName,
+          email: seed.email,
+          phone: seed.phone,
+          serviceType: seed.serviceType,
+          stage: "WON",
+          priority: serviceRequest.priority,
+          source: serviceRequest.source,
+          estimatedValue: "0.00",
+          currency: user.company.currency,
+          probability: 100,
+          wonAt: convertedAt,
+          notes: seed.notes,
+        },
+      });
+      salesOpportunityId = opportunity.id;
+    }
 
     await tx.activityLog.create({
       data: {
@@ -137,8 +191,25 @@ async function convertServiceRequest(
       },
     });
 
+    await tx.activityLog.create({
+      data: {
+        companyId: user.companyId,
+        userId: user.id,
+        action: ActivityAction.SALES_OPPORTUNITY_CONVERTED,
+        entityType: "SalesOpportunity",
+        entityId: salesOpportunityId,
+        message: `تم توثيق فرصة البيع الفائزة: ${convertedRequest.customerName}`,
+        metadata: {
+          serviceRequestId: convertedRequest.id,
+          clientId,
+          projectId,
+        },
+      },
+    });
+
     return {
       serviceRequest: convertedRequest,
+      salesOpportunityId,
       clientId,
       projectId,
       replayed: false,

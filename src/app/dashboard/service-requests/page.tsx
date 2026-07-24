@@ -232,6 +232,11 @@ export default async function ServiceRequestsPage({
           email: true,
         },
       },
+      salesOpportunity: {
+        select: {
+          id: true,
+        },
+      },
     },
   })
 
@@ -243,6 +248,7 @@ export default async function ServiceRequestsPage({
     project: request.project,
     assignedToId: request.assignedToId,
     assignedTo: request.assignedTo,
+    salesOpportunity: request.salesOpportunity,
 
     customerName: request.customerName,
     customerEmail: request.customerEmail,

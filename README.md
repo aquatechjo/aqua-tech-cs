@@ -63,3 +63,4 @@ Implementation notes:
 - [Batch 1 — Organization Structure](docs/BATCH_1_ORGANIZATION_STRUCTURE.md)
 - [Batch 2 — Project Execution](docs/BATCH_2_PROJECT_EXECUTION.md)
 - [Batch 3 — Operational Finance](docs/BATCH_3_OPERATIONAL_FINANCE.md)
+- [Batch 4 — Sales CRM & Pipeline](docs/BATCH_4_SALES_CRM_PIPELINE.md)
