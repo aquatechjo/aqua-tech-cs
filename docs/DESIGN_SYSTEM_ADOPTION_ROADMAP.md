@@ -86,6 +86,17 @@ Status: **implemented**
 - Use the company timezone with Latin digits for operational timestamps.
 - Establish the dashboard as the first reference for AquaFlow-wide adoption.
 
+
+## AD-02 — My Day Adoption
+
+Status: **implemented**
+
+- Migrate My Day to canonical Aqua cards, panels, alerts, badges, and link actions.
+- Preserve assignment visibility, due-date buckets, blockers, progress, and company timezone logic.
+- Establish a daily focus hierarchy for overdue, today, upcoming, unscheduled, and later work.
+- Add a responsive focus rail and direct operational links to tasks, projects, and time.
+- Use Arabic Jordan date formatting with Latin digits and logical RTL styling.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.
