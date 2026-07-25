@@ -260,39 +260,43 @@ export default async function MyDayPage() {
       item.blockers.length > 0
   ).length
 
+  const operationalState: {
+    label: string
+    variant: AquaBadgeVariant
+  } =
+    items.length === 0
+      ? { label: "لا توجد مهام نشطة", variant: "muted" }
+      : attentionCount > 0
+        ? { label: `${attentionCount} بحاجة للمراجعة`, variant: "warning" }
+        : { label: "اليوم تحت السيطرة", variant: "success" }
+
   return (
     <div className="aqua-my-day">
-      <AquaCard variant="surface" padding="lg" glow className="aqua-my-day-hero">
+      <AquaCard variant="surface" padding="md" glow className="aqua-my-day-hero">
         <div className="aqua-my-day-hero__copy">
-          <div className="aqua-my-day-hero__badges">
-            <AquaBadge variant="aqua">Personal operations</AquaBadge>
-            <AquaBadge variant={attentionCount > 0 ? "warning" : "success"} dot>
-              {attentionCount > 0
-                ? `${attentionCount} عناصر تحتاج انتباهًا`
-                : "اليوم تحت السيطرة"}
+          <div className="aqua-my-day-hero__meta-line">
+            <span className="aqua-my-day-hero__eyebrow">يوم العمل</span>
+            <AquaBadge variant={operationalState.variant} dot>
+              {operationalState.label}
             </AquaBadge>
           </div>
 
-          <span className="aqua-my-day-hero__eyebrow" dir="ltr">
-            MY DAY · AQUA.TECH OS
-          </span>
-          <h1>يومي، مرتب حسب ما يحتاج قرارًا أولًا</h1>
-          <p>
-            المهام المسندة إليك كمسؤول أو مشارك، مرتبة حسب الاستحقاق مع تقدم
-            التنفيذ والعوائق والسياق المرتبط بكل مشروع.
-          </p>
+          <h1>أولويات اليوم</h1>
+          <p>ابدأ بالمتأخر والعوائق، ثم انتقل إلى استحقاقات اليوم.</p>
 
           <div className="aqua-my-day-hero__actions">
             <AquaLinkButton
               href="/dashboard/tasks"
               variant="primary"
+              size="sm"
               trailingIcon={<ArrowUpLeft />}
             >
-              فتح كل المهام
+              كل المهام
             </AquaLinkButton>
             <AquaLinkButton
               href="/dashboard/time"
               variant="secondary"
+              size="sm"
               leadingIcon={<Clock3 />}
             >
               الوقت والطاقة
@@ -301,14 +305,19 @@ export default async function MyDayPage() {
         </div>
 
         <div className="aqua-my-day-hero__context">
-          <span className="aqua-my-day-hero__context-icon" aria-hidden="true">
-            <Sparkles />
-          </span>
-          <span>يوم التشغيل</span>
-          <strong>{formatOperationalDay(now, timezone)}</strong>
+          <div className="aqua-my-day-hero__context-heading">
+            <span className="aqua-my-day-hero__context-icon" aria-hidden="true">
+              <Sparkles />
+            </span>
+            <div>
+              <span>يوم التشغيل</span>
+              <strong>{formatOperationalDay(now, timezone)}</strong>
+            </div>
+          </div>
+
           <dl>
             <div>
-              <dt>المهام النشطة</dt>
+              <dt>نشطة</dt>
               <dd>{items.length}</dd>
             </div>
             <div>
@@ -331,7 +340,7 @@ export default async function MyDayPage() {
             <AquaCard
               key={metric.label}
               variant="soft"
-              padding="md"
+              padding="sm"
               className="aqua-my-day-metric"
               data-tone={metric.tone}
             >
@@ -368,13 +377,16 @@ export default async function MyDayPage() {
         <main className="aqua-my-day-buckets">
           {items.length === 0 ? (
             <AquaEmptyState
+              compact
+              className="aqua-my-day-empty"
               icon={<CheckCircle2 />}
-              title="لا توجد مهام نشطة مسندة إليك"
-              description="ستظهر هنا المهام عند إسنادك كمسؤول أو مشارك في التنفيذ."
+              title="لا توجد مهام مسندة إليك"
+              description="ستظهر هنا فور إسنادك كمسؤول أو مشارك."
               action={
                 <AquaLinkButton
                   href="/dashboard/tasks"
                   variant="secondary"
+                  size="sm"
                   trailingIcon={<ArrowUpLeft />}
                 >
                   فتح سجل المهام
@@ -510,40 +522,28 @@ export default async function MyDayPage() {
 
         <aside className="aqua-my-day-rail" aria-label="سياق يوم العمل">
           <AquaDataPanel
-            eyebrow="Daily focus"
             title="خطة التركيز"
-            description="ترتيب عملي بسيط قبل بدء التنفيذ."
             className="aqua-my-day-focus-panel"
           >
             <ol className="aqua-my-day-focus-steps">
               <li>
                 <span>1</span>
-                <div>
-                  <strong>المتأخر أولًا</strong>
-                  <p>أغلقه أو غيّر موعده أو وضّح سبب التأخير.</p>
-                </div>
+                <strong>ابدأ بالمتأخر</strong>
               </li>
               <li>
                 <span>2</span>
-                <div>
-                  <strong>أزل العوائق</strong>
-                  <p>لا تترك المهمة متعطلة دون مالك للخطوة التالية.</p>
-                </div>
+                <strong>عالج العوائق</strong>
               </li>
               <li>
                 <span>3</span>
-                <div>
-                  <strong>نفّذ استحقاقات اليوم</strong>
-                  <p>ركّز على الإنجاز قبل الانتقال إلى القادم.</p>
-                </div>
+                <strong>نفّذ مهام اليوم</strong>
               </li>
             </ol>
           </AquaDataPanel>
 
           <AquaDataPanel
-            eyebrow="Quick links"
             title="مسارات مرتبطة"
-            description="انتقل إلى المصدر الكامل عند الحاجة."
+            className="aqua-my-day-links-panel"
           >
             <div className="aqua-my-day-links">
               <AquaLinkButton

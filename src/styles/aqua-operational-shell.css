@@ -1,0 +1,403 @@
+/* AquaFlow Adoption — AD-02.1 Compact Operational Shell */
+
+.aqua-shell:not(.aqua-shell--showcase) {
+  --aqua-shell-sidebar-width: 272px;
+  --aqua-shell-content-gutter: clamp(16px, 1.7vw, 28px);
+  --aqua-shell-topbar-padding-block: 10px;
+  --aqua-shell-nav-gap: 3px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar {
+  gap: 12px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--at-product-bg) 96%, transparent);
+  box-shadow: 10px 0 32px rgba(2, 6, 23, 0.12);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__header {
+  min-block-size: 46px;
+  padding-inline: 4px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar .aqua-brand-lockup {
+  gap: 10px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar .aqua-brand-lockup__name {
+  font-size: 1rem;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar .aqua-brand-lockup__tagline {
+  font-size: 0.64rem;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__company {
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.aqua-sidebar__company-heading {
+  display: flex;
+  min-inline-size: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__company-name {
+  min-inline-size: 0;
+  font-size: 0.82rem;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__company-meta {
+  font-size: 0.62rem;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar-nav {
+  gap: 18px;
+  padding-inline-end: 2px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar-nav__section {
+  gap: 5px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar-nav__label {
+  padding-inline: 10px;
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-nav-link {
+  min-block-size: 39px;
+  gap: 10px;
+  padding: 8px 11px;
+  border-radius: 11px;
+  font-size: 0.8rem;
+  font-weight: 670;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-nav-link:hover:not(.aqua-nav-link--disabled) {
+  transform: none;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-nav-link--active,
+.aqua-shell:not(.aqua-shell--showcase) .aqua-nav-link[aria-current="page"] {
+  border-color: rgba(var(--at-product-accent-rgb), 0.24);
+  background: rgba(var(--at-product-accent-rgb), 0.105);
+  box-shadow: inset -2px 0 0 var(--at-product-accent);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-nav-dot {
+  inline-size: 6px;
+  block-size: 6px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 11px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__stack-label {
+  font-size: 0.58rem;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__stack-items {
+  flex-wrap: nowrap;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__stack-item {
+  padding: 3px 6px;
+  font-size: 0.54rem;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar {
+  background: color-mix(in srgb, var(--at-product-bg) 90%, transparent);
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__inner {
+  min-block-size: 72px;
+  gap: 16px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__heading-group,
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__actions {
+  gap: 10px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-page-heading {
+  display: grid;
+  gap: 2px;
+}
+
+.aqua-page-heading__content {
+  display: flex;
+  min-inline-size: 0;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-page-heading__title {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: clamp(1rem, 1.45vw, 1.18rem);
+  line-height: 1.25;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-page-heading__subtitle {
+  max-inline-size: min(42vw, 620px);
+  margin: 0;
+  overflow: hidden;
+  font-size: 0.69rem;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-breadcrumbs__list {
+  gap: 6px;
+  font-size: 0.62rem;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__identity {
+  display: flex;
+  max-inline-size: 230px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 9px 6px 7px;
+  border-radius: 12px;
+}
+
+.aqua-topbar__avatar {
+  display: inline-flex;
+  inline-size: 30px;
+  block-size: 30px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(var(--at-product-accent-rgb), 0.25);
+  border-radius: 10px;
+  background: rgba(var(--at-product-accent-rgb), 0.1);
+  color: var(--at-product-accent-soft);
+  font-family: var(--at-font-mono);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.aqua-topbar__identity-copy {
+  display: grid;
+  min-inline-size: 0;
+  gap: 1px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__email {
+  font-size: 0.73rem;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__role {
+  margin: 0;
+  font-size: 0.58rem;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__actions > .aqua-button {
+  min-block-size: 36px;
+}
+
+@media (max-height: 760px) and (min-width: 1200px) {
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__footer {
+    display: none;
+  }
+
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar-nav {
+    gap: 12px;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .aqua-shell:not(.aqua-shell--showcase) {
+    --aqua-shell-content-gutter: clamp(14px, 2.4vw, 24px);
+  }
+}
+
+@media (max-width: 767.98px) {
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__inner {
+    min-block-size: 62px;
+    align-items: center;
+  }
+
+  .aqua-page-heading__content {
+    display: block;
+  }
+
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-page-heading__subtitle {
+    display: none;
+  }
+
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__identity {
+    inline-size: 38px;
+    min-inline-size: 38px;
+    padding: 3px;
+  }
+
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__identity-copy {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 479.98px) {
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__identity {
+    display: none;
+  }
+
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__inner {
+    gap: 8px;
+  }
+
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-breadcrumbs {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-nav-link {
+    transition: none;
+  }
+}
+
+
+/* AD-02.2 — Operational shell density refinement */
+
+.aqua-shell:not(.aqua-shell--showcase) {
+  --aqua-shell-sidebar-width: 256px;
+  --aqua-shell-topbar-padding-block: 7px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar {
+  gap: 9px;
+  padding: 10px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__header {
+  min-block-size: 42px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__company {
+  padding: 8px 10px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__company-meta {
+  font-size: 0.58rem;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar-nav {
+  gap: 12px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar-nav__section {
+  gap: 3px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar-nav__label {
+  padding-inline: 8px;
+  font-size: 0.58rem;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-nav-link {
+  min-block-size: 36px;
+  gap: 8px;
+  padding: 7px 9px;
+  font-size: 0.76rem;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__footer {
+  display: none;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__inner {
+  min-block-size: 64px;
+  gap: 12px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__heading-group,
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__actions {
+  gap: 8px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-page-heading__title {
+  font-size: 1rem;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-page-heading__subtitle {
+  max-inline-size: min(38vw, 520px);
+  font-size: 0.64rem;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__identity {
+  max-inline-size: 190px;
+  gap: 7px;
+  padding: 5px 7px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__avatar {
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: 9px;
+  font-size: 0.68rem;
+}
+
+.aqua-topbar__account-label {
+  overflow: hidden;
+  color: var(--at-product-text);
+  font-size: 0.68rem;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__email {
+  overflow: hidden;
+  color: var(--at-product-soft-text);
+  font-size: 0.56rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__logout .aqua-button {
+  min-block-size: 34px;
+  padding-inline: 9px;
+  font-size: 0.7rem;
+}
+
+@media (min-height: 980px) and (min-width: 1200px) {
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__footer {
+    display: flex;
+  }
+}
+
+@media (max-width: 1399.98px) and (min-width: 768px) {
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__email {
+    display: none;
+  }
+
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__identity {
+    max-inline-size: 140px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__inner {
+    min-block-size: 58px;
+  }
+}

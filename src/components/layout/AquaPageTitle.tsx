@@ -55,11 +55,10 @@ export default function AquaPageTitle() {
         </ol>
       </nav>
 
-      <div className="aqua-page-heading__eyebrow" dir="ltr">
-        Aqua.Tech OS
+      <div className="aqua-page-heading__content">
+        <h1 className="aqua-page-heading__title">{page.title}</h1>
+        <p className="aqua-page-heading__subtitle">{page.subtitle}</p>
       </div>
-      <h1 className="aqua-page-heading__title">{page.title}</h1>
-      <p className="aqua-page-heading__subtitle">{page.subtitle}</p>
     </div>
   )
 }

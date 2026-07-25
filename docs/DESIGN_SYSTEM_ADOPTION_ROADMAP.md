@@ -97,6 +97,28 @@ Status: **implemented**
 - Add a responsive focus rail and direct operational links to tasks, projects, and time.
 - Use Arabic Jordan date formatting with Latin digits and logical RTL styling.
 
+
+## AD-02.1 — Compact Shell and My Day Polish
+
+Status: **implemented**
+
+- Reduce presentation-scale headings and spacing on the daily operational surface.
+- Prevent action buttons from competing with or colliding with page content.
+- Compact the AquaFlow topbar, account identity, sidebar width, company card, and navigation rows.
+- Keep the reusable Design System package unchanged by treating this as AquaFlow Product Personality density.
+- Preserve mobile drawer accessibility, RTL logical layout, reduced motion, and all My Day business behavior.
+
+
+## AD-02.2 — Operational Density and Dynamic States
+
+Status: **implemented**
+
+- Derive the My Day status badge from actual task volume and attention signals.
+- Reduce the hero, metric cards, empty state, focus rail, and action density for daily operations.
+- Localize and shorten account identity presentation in the topbar while preserving the full email as supporting context.
+- Compress the AquaFlow sidebar to a 256px product-level density and hide nonessential stack metadata on typical laptop heights.
+- Preserve task classification, assignment visibility, permissions, timezone behavior, mobile drawer accessibility, RTL, and reduced motion.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.

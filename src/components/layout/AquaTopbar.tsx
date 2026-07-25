@@ -23,6 +23,15 @@ export default function AquaTopbar({
   onOpenNavigation,
   menuButtonRef,
 }: AquaTopbarProps) {
+  const roleLabel =
+    ({
+      OWNER: "مالك النظام",
+      ADMIN: "مدير النظام",
+      MANAGER: "مدير",
+      EMPLOYEE: "موظف",
+    } as Record<string, string>)[userRole] ?? userRole
+  const identityInitial = roleLabel.trim().charAt(0) || "م"
+
   return (
     <header className="aqua-topbar">
       <div className="aqua-topbar__inner">
@@ -47,12 +56,24 @@ export default function AquaTopbar({
         </div>
 
         <div className="aqua-topbar__actions">
-          <div className="aqua-topbar__identity" dir="ltr">
-            <div className="aqua-topbar__email">{userEmail}</div>
-            <div className="aqua-topbar__role">{userRole}</div>
+          <div
+            className="aqua-topbar__identity"
+            title={`الحساب: ${userEmail}`}
+          >
+            <span className="aqua-topbar__avatar" aria-hidden="true">
+              {identityInitial}
+            </span>
+            <span className="aqua-topbar__identity-copy">
+              <span className="aqua-topbar__account-label">{roleLabel}</span>
+              <span className="aqua-topbar__email" dir="ltr">
+                {userEmail}
+              </span>
+            </span>
           </div>
 
-          <LogoutButton />
+          <div className="aqua-topbar__logout">
+            <LogoutButton />
+          </div>
         </div>
       </div>
     </header>

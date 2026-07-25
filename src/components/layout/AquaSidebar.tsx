@@ -31,7 +31,7 @@ export default function AquaSidebar({
       aria-label={mode === "drawer" ? "قائمة التنقل" : undefined}
     >
       <div className="aqua-sidebar__header">
-        <AquaMark size="md" />
+        <AquaMark size="sm" />
 
         {mode === "drawer" && onClose ? (
           <AquaButton
@@ -50,11 +50,11 @@ export default function AquaSidebar({
       </div>
 
       <div className="aqua-sidebar__company">
-        <AquaBadge size="sm">Internal OS</AquaBadge>
-        <div className="aqua-sidebar__company-name">{companyName}</div>
-        <div className="aqua-sidebar__company-meta" dir="ltr">
-          Growth • Software • AI
+        <div className="aqua-sidebar__company-heading">
+          <div className="aqua-sidebar__company-name">{companyName}</div>
+          <AquaBadge size="sm">Internal OS</AquaBadge>
         </div>
+        <div className="aqua-sidebar__company-meta">بيئة التشغيل الداخلية</div>
       </div>
 
       <div className="aqua-sidebar__navigation">
@@ -62,9 +62,9 @@ export default function AquaSidebar({
       </div>
 
       <div className="aqua-sidebar__footer" dir="ltr">
-        <div className="aqua-sidebar__stack-label">{"</>"} Aqua.Tech Stack</div>
+        <span className="aqua-sidebar__stack-label">Aqua.Tech Stack</span>
         <div className="aqua-sidebar__stack-items" aria-label="تقنيات النظام">
-          {['Next.js', 'AI', 'API', 'DB'].map((item) => (
+          {["Next.js", "AI", "API", "DB"].map((item) => (
             <span className="aqua-sidebar__stack-item" key={item}>
               {item}
             </span>
