@@ -1,7 +1,10 @@
 "use client"
 
+import { CircleAlert, MailCheck, Send } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
+
+import { AquaAlert, AquaButton, AquaInput } from "@/components/aqua"
 import AuthShell from "@/components/auth/AuthShell"
 
 export default function ForgotPasswordForm() {
@@ -40,54 +43,66 @@ export default function ForgotPasswordForm() {
   }
 
   return (
-    <AuthShell>
-      <div className="mb-4">
-        <h2 className="fw-black mb-2">استعادة كلمة المرور</h2>
-        <p className="aqua-muted mb-0">
-          أدخل بريد حسابك وسنرسل رابطًا آمنًا صالحًا لمدة محدودة.
-        </p>
-      </div>
+    <AuthShell
+      title="استعادة كلمة المرور"
+      description="أدخل بريد حسابك وسنرسل رابطًا آمنًا صالحًا لمدة محدودة."
+    >
+      {success ? (
+        <div className="aqua-auth-result">
+          <AquaAlert
+            variant="success"
+            title="تم استلام الطلب"
+            icon={<MailCheck />}
+          >
+            {success}
+          </AquaAlert>
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label htmlFor="forgot-email" className="form-label aqua-muted">
-            البريد الإلكتروني
-          </label>
-          <input
+          <p className="aqua-auth-result__hint">
+            افحص البريد الوارد والرسائل غير المرغوب فيها. لا نكشف ما إذا كان
+            البريد مسجلًا لحماية الحسابات.
+          </p>
+        </div>
+      ) : (
+        <form className="aqua-auth-form" onSubmit={handleSubmit} noValidate>
+          <AquaInput
             id="forgot-email"
+            label="البريد الإلكتروني"
             dir="ltr"
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="form-control aqua-control text-start"
+            className="text-start"
             placeholder="name@example.com"
             autoComplete="email"
+            inputMode="email"
+            autoFocus
             required
           />
-        </div>
 
-        {success ? (
-          <div className="alert alert-success rounded-4 border-0 mt-3" role="status">
-            {success}
-          </div>
-        ) : null}
+          {error ? (
+            <AquaAlert
+              variant="danger"
+              title="تعذر إرسال الرابط"
+              icon={<CircleAlert />}
+            >
+              {error}
+            </AquaAlert>
+          ) : null}
 
-        {error ? (
-          <div className="alert alert-danger rounded-4 border-0 mt-3" role="alert">
-            {error}
-          </div>
-        ) : null}
+          <AquaButton
+            type="submit"
+            size="lg"
+            fullWidth
+            loading={loading}
+            loadingLabel="جاري الإرسال..."
+            leadingIcon={<Send />}
+          >
+            إرسال رابط الاستعادة
+          </AquaButton>
+        </form>
+      )}
 
-        <button
-          type="submit"
-          disabled={loading || Boolean(success)}
-          className="btn aqua-btn-primary w-100 py-3 mt-3"
-        >
-          {loading ? "جاري الإرسال..." : "إرسال رابط الاستعادة"}
-        </button>
-      </form>
-
-      <div className="text-center mt-4">
+      <div className="aqua-auth-secondary-action">
         <Link className="aqua-auth-link" href="/login">
           العودة إلى تسجيل الدخول
         </Link>

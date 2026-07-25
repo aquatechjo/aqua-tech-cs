@@ -2,7 +2,7 @@
 
 ## DS-01 — Design Foundation
 
-Status: **this batch**
+Status: **implemented**
 
 - Approve the 70/30 DNA model.
 - Add canonical tokens.
@@ -43,9 +43,14 @@ Status: **implemented**
 
 ## DS-05 — Auth and Public Surfaces
 
+Status: **implemented**
+
 - Rebuild login, forgot-password, and reset-password using canonical components.
-- Define marketing-to-product continuity.
-- Standardize branded email templates and system-generated documents.
+- Define marketing-to-product continuity through `aqua-public.css`.
+- Separate transactional email templates from provider transport.
+- Migrate password-reset email to the branded reusable template layer.
+- Add the canonical AquaSystemDocument browser and print shell.
+- Add public-surface, email-safety, and document-contract unit checks.
 
 ## DS-06 — Starter and Package
 

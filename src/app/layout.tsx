@@ -6,6 +6,7 @@ import "@/styles/aqua-bootstrap.css"
 import "@/styles/aqua-primitives.css"
 import "@/styles/aqua-shell.css"
 import "@/styles/aqua-patterns.css"
+import "@/styles/aqua-public.css"
 import "flatpickr/dist/flatpickr.min.css"
 
 import AquaToastViewport from "@/components/aqua/AquaToast"

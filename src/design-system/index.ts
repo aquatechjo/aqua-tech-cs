@@ -1,5 +1,6 @@
 export * from "./component-contracts"
 export * from "./pattern-contracts"
 export * from "./product-theme"
+export * from "./public-contracts"
 export * from "./shell-contracts"
 export * from "./tokens"

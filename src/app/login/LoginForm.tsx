@@ -1,8 +1,11 @@
 "use client"
 
+import { CircleAlert, LockKeyhole } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+
+import { AquaAlert, AquaButton, AquaInput } from "@/components/aqua"
 import AuthShell from "@/components/auth/AuthShell"
 import PasswordInput from "@/components/auth/PasswordInput"
 
@@ -45,61 +48,64 @@ export default function LoginForm() {
   }
 
   return (
-    <AuthShell>
-      <div className="mb-4">
-        <h2 className="fw-black mb-2">تسجيل الدخول</h2>
-        <p className="aqua-muted mb-0">ادخل إلى نظام Aqua.Tech الداخلي</p>
-      </div>
+    <AuthShell
+      title="تسجيل الدخول"
+      description="استخدم حساب Aqua.Tech المصرّح له للوصول إلى مساحة التشغيل."
+    >
+      <form className="aqua-auth-form" onSubmit={handleSubmit} noValidate>
+        <AquaInput
+          id="login-email"
+          label="البريد الإلكتروني"
+          dir="ltr"
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          className="text-start"
+          placeholder="name@example.com"
+          autoComplete="username"
+          inputMode="email"
+          autoFocus
+          required
+        />
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label htmlFor="login-email" className="form-label aqua-muted">
-            البريد الإلكتروني
-          </label>
-          <input
-            id="login-email"
-            dir="ltr"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            className="form-control aqua-control text-start"
-            placeholder="name@example.com"
-            autoComplete="username"
-            required
-          />
-        </div>
-
-        <div className="mb-3">
-          <div className="d-flex align-items-center justify-content-between gap-3">
-            <label htmlFor="login-password" className="form-label aqua-muted">
-              كلمة المرور
-            </label>
-            <Link className="aqua-auth-link small mb-2" href="/forgot-password">
+        <PasswordInput
+          id="login-password"
+          label="كلمة المرور"
+          value={password}
+          onChange={setPassword}
+          autoComplete="current-password"
+          labelAction={
+            <Link className="aqua-auth-link" href="/forgot-password">
               نسيت كلمة المرور؟
             </Link>
-          </div>
-          <PasswordInput
-            id="login-password"
-            value={password}
-            onChange={setPassword}
-            autoComplete="current-password"
-          />
-        </div>
+          }
+        />
 
         {error ? (
-          <div className="alert alert-danger rounded-4 border-0 mt-3" role="alert">
+          <AquaAlert
+            variant="danger"
+            title="تعذر تسجيل الدخول"
+            icon={<CircleAlert />}
+          >
             {error}
-          </div>
+          </AquaAlert>
         ) : null}
 
-        <button
+        <AquaButton
           type="submit"
-          disabled={loading}
-          className="btn aqua-btn-primary w-100 py-3 mt-3"
+          size="lg"
+          fullWidth
+          loading={loading}
+          loadingLabel="جاري التحقق..."
+          leadingIcon={<LockKeyhole />}
         >
-          {loading ? "جاري الدخول..." : "دخول النظام"}
-        </button>
+          دخول النظام
+        </AquaButton>
       </form>
+
+      <p className="aqua-auth-security-note">
+        يتم إنشاء جلسة مشفّرة لهذا الجهاز فقط بعد التحقق من بيانات الحساب.
+      </p>
     </AuthShell>
   )
 }

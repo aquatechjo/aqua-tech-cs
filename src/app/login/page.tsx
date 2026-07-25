@@ -2,6 +2,10 @@ import { redirect } from "next/navigation"
 import { getCurrentUser } from "@/lib/auth"
 import LoginForm from "./LoginForm"
 
+export const metadata = {
+  title: "تسجيل الدخول",
+}
+
 export default async function LoginPage() {
   const user = await getCurrentUser()
 

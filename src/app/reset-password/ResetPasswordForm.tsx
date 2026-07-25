@@ -1,7 +1,13 @@
 "use client"
 
-import Link from "next/link"
+import { Check, Circle, CircleAlert, KeyRound, ShieldCheck } from "lucide-react"
 import { useState } from "react"
+
+import {
+  AquaAlert,
+  AquaButton,
+  AquaLinkButton,
+} from "@/components/aqua"
 import AuthShell from "@/components/auth/AuthShell"
 import PasswordInput from "@/components/auth/PasswordInput"
 
@@ -12,6 +18,9 @@ export default function ResetPasswordForm({ token }: { token: string }) {
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
 
+  const hasMinimumLength = password.length >= 12
+  const passwordsMatch = confirmation.length > 0 && password === confirmation
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError("")
@@ -21,7 +30,12 @@ export default function ResetPasswordForm({ token }: { token: string }) {
       return
     }
 
-    if (password !== confirmation) {
+    if (!hasMinimumLength) {
+      setError("كلمة المرور يجب أن تكون 12 حرفًا على الأقل")
+      return
+    }
+
+    if (!passwordsMatch) {
       setError("كلمتا المرور غير متطابقتين")
       return
     }
@@ -52,78 +66,93 @@ export default function ResetPasswordForm({ token }: { token: string }) {
   }
 
   return (
-    <AuthShell>
-      <div className="mb-4">
-        <h2 className="fw-black mb-2">تعيين كلمة مرور جديدة</h2>
-        <p className="aqua-muted mb-0">
-          استخدم كلمة مرور قوية لا تقل عن 12 حرفًا.
-        </p>
-      </div>
-
-      {success ? (
-        <div>
-          <div className="alert alert-success rounded-4 border-0" role="status">
-            تم تغيير كلمة المرور وإلغاء جميع الجلسات القديمة بنجاح.
-          </div>
-          <Link className="btn aqua-btn-primary w-100 py-3 mt-3" href="/login">
-            تسجيل الدخول بكلمة المرور الجديدة
-          </Link>
+    <AuthShell
+      title="تعيين كلمة مرور جديدة"
+      description="اختر كلمة مرور قوية ومختلفة عن كلمة المرور الحالية."
+    >
+      {!token ? (
+        <div className="aqua-auth-result">
+          <AquaAlert
+            variant="danger"
+            title="الرابط غير صالح"
+            icon={<CircleAlert />}
+          >
+            رابط إعادة التعيين غير مكتمل. اطلب رابطًا جديدًا من صفحة
+            الاستعادة.
+          </AquaAlert>
+          <AquaLinkButton href="/forgot-password" size="lg" fullWidth>
+            طلب رابط استعادة جديد
+          </AquaLinkButton>
+        </div>
+      ) : success ? (
+        <div className="aqua-auth-result">
+          <AquaAlert
+            variant="success"
+            title="تم تحديث كلمة المرور"
+            icon={<ShieldCheck />}
+          >
+            تم إلغاء جميع الجلسات القديمة. سجّل الدخول مجددًا باستخدام كلمة
+            المرور الجديدة.
+          </AquaAlert>
+          <AquaLinkButton href="/login" size="lg" fullWidth>
+            تسجيل الدخول
+          </AquaLinkButton>
         </div>
       ) : (
-        <form onSubmit={handleSubmit}>
-          {!token ? (
-            <div className="alert alert-danger rounded-4 border-0" role="alert">
-              رابط إعادة التعيين غير صالح أو غير مكتمل. اطلب رابطًا جديدًا.
-            </div>
-          ) : null}
+        <form className="aqua-auth-form" onSubmit={handleSubmit} noValidate>
+          <PasswordInput
+            id="new-password"
+            label="كلمة المرور الجديدة"
+            value={password}
+            onChange={setPassword}
+            autoComplete="new-password"
+            hint="استخدم 12 حرفًا على الأقل وتجنب كلمات المرور السابقة."
+          />
 
-          <div className="mb-3">
-            <label htmlFor="new-password" className="form-label aqua-muted">
-              كلمة المرور الجديدة
-            </label>
-            <PasswordInput
-              id="new-password"
-              value={password}
-              onChange={setPassword}
-              autoComplete="new-password"
-            />
-          </div>
+          <PasswordInput
+            id="confirm-password"
+            label="تأكيد كلمة المرور"
+            value={confirmation}
+            onChange={setConfirmation}
+            autoComplete="new-password"
+          />
 
-          <div className="mb-3">
-            <label htmlFor="confirm-password" className="form-label aqua-muted">
-              تأكيد كلمة المرور
-            </label>
-            <PasswordInput
-              id="confirm-password"
-              value={confirmation}
-              onChange={setConfirmation}
-              autoComplete="new-password"
-            />
+          <div className="aqua-password-guidance" aria-live="polite">
+            <p>متطلبات كلمة المرور</p>
+            <ul>
+              <li data-complete={hasMinimumLength}>
+                {hasMinimumLength ? <Check /> : <Circle />}
+                12 حرفًا على الأقل
+              </li>
+              <li data-complete={passwordsMatch}>
+                {passwordsMatch ? <Check /> : <Circle />}
+                تطابق الحقلين
+              </li>
+            </ul>
           </div>
 
           {error ? (
-            <div className="alert alert-danger rounded-4 border-0 mt-3" role="alert">
+            <AquaAlert
+              variant="danger"
+              title="تعذر حفظ كلمة المرور"
+              icon={<CircleAlert />}
+            >
               {error}
-            </div>
+            </AquaAlert>
           ) : null}
 
-          <button
+          <AquaButton
             type="submit"
-            disabled={loading || !token}
-            className="btn aqua-btn-primary w-100 py-3 mt-3"
+            size="lg"
+            fullWidth
+            loading={loading}
+            loadingLabel="جاري الحفظ..."
+            leadingIcon={<KeyRound />}
           >
-            {loading ? "جاري الحفظ..." : "حفظ كلمة المرور الجديدة"}
-          </button>
+            حفظ كلمة المرور الجديدة
+          </AquaButton>
         </form>
       )}
-
-      {!success ? (
-        <div className="text-center mt-4">
-          <Link className="aqua-auth-link" href="/forgot-password">
-            طلب رابط استعادة جديد
-          </Link>
-        </div>
-      ) : null}
     </AuthShell>
   )
 }
