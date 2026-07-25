@@ -85,6 +85,11 @@ export const aquaRouteDefinitions: readonly AquaRouteDefinition[] = [
     subtitle: "سجل العمليات الداخلية داخل AquaFlow",
   },
   {
+    path: "/dashboard/design-system",
+    title: "نظام التصميم",
+    subtitle: "Showcase الحزمة والمكونات وقواعد الحوكمة",
+  },
+  {
     path: "/dashboard/notifications",
     title: "التنبيهات",
     subtitle: "مركز التنبيهات الداخلية",

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "packageName": "@aqua-tech/design-system",
+  "version": "0.6.0",
+  "source": "AquaFlow",
+  "cssImportOrder": [
+    "aqua-tokens.css",
+    "aqua-bootstrap.css",
+    "aqua-primitives.css",
+    "aqua-shell.css",
+    "aqua-patterns.css",
+    "aqua-public.css"
+  ],
+  "componentEntry": "./src/index.ts",
+  "generatedDirectories": [
+    "src/components",
+    "src/design-system",
+    "styles"
+  ]
+}

@@ -8,11 +8,16 @@
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "next typegen && tsc --noEmit --pretty false",
-    "test:unit": "node --import tsx --test tests/unit/access-control.test.ts tests/unit/organization.test.ts tests/unit/project-execution.test.ts tests/unit/finance.test.ts tests/unit/sales.test.ts tests/unit/time.test.ts tests/unit/hr.test.ts tests/unit/request-security.test.ts tests/unit/session.test.ts tests/unit/password-reset.test.ts tests/unit/design-system.test.ts tests/unit/design-system-primitives.test.ts tests/unit/design-system-shell.test.ts tests/unit/design-system-patterns.test.ts tests/unit/design-system-public.test.ts",
-    "check": "npm run lint && npm run typecheck && npm run test:unit && npm run build",
+    "test:unit": "node --import tsx --test tests/unit/access-control.test.ts tests/unit/organization.test.ts tests/unit/project-execution.test.ts tests/unit/finance.test.ts tests/unit/sales.test.ts tests/unit/time.test.ts tests/unit/hr.test.ts tests/unit/request-security.test.ts tests/unit/session.test.ts tests/unit/password-reset.test.ts tests/unit/design-system.test.ts tests/unit/design-system-primitives.test.ts tests/unit/design-system-shell.test.ts tests/unit/design-system-patterns.test.ts tests/unit/design-system-public.test.ts tests/unit/design-system-package.test.ts tests/unit/design-system-visual.test.ts",
+    "check": "npm run ds:check && npm run lint && npm run typecheck && npm run test:unit && npm run build",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "ds:sync": "node scripts/sync-aqua-design-system.mjs",
+    "ds:check": "node scripts/sync-aqua-design-system.mjs --check",
+    "ds:starter": "node scripts/create-aqua-product-starter.mjs",
+    "ds:visual:update": "node scripts/update-aqua-visual-baseline.mjs",
+    "test:visual": "node --import tsx --test tests/unit/design-system-visual.test.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.9.0",

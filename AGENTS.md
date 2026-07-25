@@ -30,3 +30,13 @@ Mandatory rules:
 12. Destructive or state-changing actions that need confirmation must use the canonical accessible confirmation dialog; do not use `window.confirm`.
 13. Mobile tables must explicitly choose `scroll` or `stack` strategy, and stacked cells must provide `data-label` values.
 14. Shared workflow patterns belong in `aqua-patterns.css`; do not add new cross-page table, modal, tabs, or filter rules to `aqua-bootstrap.css`.
+
+## DS-06 package governance
+
+- Canonical Design System source lives in `src/components/aqua`, `src/design-system`, and `src/styles/aqua-*.css`.
+- Never hand-edit generated files in `packages/aqua-design-system/src` or `packages/aqua-design-system/styles`.
+- Run `npm run ds:sync` after approved shared-component changes.
+- `npm run ds:check` must pass before the normal quality gate.
+- Update the visual baseline only for deliberate, reviewed changes.
+- Use semantic versioning and document consumer migration impact.
+- Product-specific identity belongs in product-theme configuration, not shared component forks.

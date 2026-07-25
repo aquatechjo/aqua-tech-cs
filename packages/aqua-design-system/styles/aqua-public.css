@@ -1,0 +1,478 @@
+.aqua-public-surface {
+  position: relative;
+  isolation: isolate;
+  min-block-size: 100vh;
+  overflow: hidden;
+  background: var(--at-product-bg);
+  color: var(--at-product-text);
+}
+
+.aqua-public-surface > .aqua-tech-pattern {
+  z-index: 0;
+}
+
+.aqua-public-surface__container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  min-block-size: 100vh;
+  padding-block: clamp(var(--at-space-8), 7vw, var(--at-space-16));
+}
+
+.aqua-public-surface__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(420px, 0.72fr);
+  gap: clamp(var(--at-space-8), 7vw, var(--at-space-24));
+  align-items: center;
+  inline-size: 100%;
+}
+
+.aqua-public-skip-link {
+  position: fixed;
+  inset-block-start: var(--at-space-3);
+  inset-inline-start: var(--at-space-3);
+  z-index: 100;
+  padding: var(--at-space-3) var(--at-space-4);
+  border-radius: var(--at-radius-sm);
+  background: var(--at-product-text);
+  color: var(--at-product-bg);
+  font-weight: 800;
+  text-decoration: none;
+  transform: translateY(-160%);
+  transition: transform var(--at-motion-fast) var(--at-ease-standard);
+}
+
+.aqua-public-skip-link:focus {
+  transform: translateY(0);
+}
+
+.aqua-public-story {
+  max-inline-size: 720px;
+}
+
+.aqua-public-story__title {
+  margin: var(--at-space-6) 0 var(--at-space-4);
+  color: var(--at-product-text);
+  font-size: clamp(2.75rem, 6vw, 5.65rem);
+  font-weight: 950;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+
+.aqua-public-story__title span {
+  display: block;
+  margin-block-start: var(--at-space-2);
+  background: linear-gradient(
+    90deg,
+    var(--at-product-accent-soft),
+    var(--at-brand-aqua),
+    var(--at-product-accent-secondary)
+  );
+  background-clip: text;
+  color: transparent;
+}
+
+.aqua-public-story__description {
+  max-inline-size: 650px;
+  margin: 0;
+  color: var(--at-product-muted);
+  font-size: clamp(1rem, 1.6vw, 1.18rem);
+  line-height: 1.95;
+}
+
+.aqua-public-story__pillars {
+  display: grid;
+  gap: var(--at-space-3);
+  margin-block-start: var(--at-space-8);
+}
+
+.aqua-public-pillar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--at-space-3);
+  align-items: start;
+  max-inline-size: 630px;
+  padding: var(--at-space-4);
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: var(--at-radius-lg);
+  background: rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(12px);
+}
+
+.aqua-public-pillar__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 42px;
+  block-size: 42px;
+  border: 1px solid rgba(var(--at-product-accent-rgb), 0.2);
+  border-radius: var(--at-radius-sm);
+  background: rgba(var(--at-product-accent-rgb), 0.08);
+  color: var(--at-product-accent-soft);
+}
+
+.aqua-public-pillar h3 {
+  margin: 0;
+  color: var(--at-product-text);
+  font-size: 0.95rem;
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+.aqua-public-pillar p {
+  margin: var(--at-space-1) 0 0;
+  color: var(--at-product-muted);
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+
+.aqua-public-story__signature {
+  margin: var(--at-space-8) 0 0;
+  color: var(--at-product-soft-text);
+  font-family: var(--at-font-latin);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.aqua-public-auth {
+  inline-size: 100%;
+  max-inline-size: 520px;
+  justify-self: end;
+  scroll-margin-block-start: var(--at-space-8);
+}
+
+.aqua-public-auth:focus {
+  outline: none;
+}
+
+.aqua-public-auth__card {
+  position: relative;
+  overflow: hidden;
+}
+
+.aqua-public-auth__card::before {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--at-product-accent-rgb), 0.7),
+    transparent
+  );
+  content: "";
+}
+
+.aqua-public-auth__brand {
+  display: flex;
+  gap: var(--at-space-3);
+  align-items: center;
+  justify-content: space-between;
+  margin-block-end: var(--at-space-8);
+}
+
+.aqua-public-auth__heading {
+  margin-block-end: var(--at-space-6);
+}
+
+.aqua-public-auth__heading h1 {
+  margin: 0;
+  color: var(--at-product-text);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 950;
+  line-height: 1.25;
+}
+
+.aqua-public-auth__heading p {
+  margin: var(--at-space-2) 0 0;
+  color: var(--at-product-muted);
+  font-size: 0.94rem;
+  line-height: 1.8;
+}
+
+.aqua-auth-form,
+.aqua-auth-result {
+  display: grid;
+  gap: var(--at-space-4);
+}
+
+.aqua-field__label-row {
+  display: flex;
+  gap: var(--at-space-3);
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.aqua-password-field {
+  position: relative;
+}
+
+.aqua-password-field .aqua-control {
+  padding-inline-end: 3.15rem !important;
+}
+
+.aqua-password-toggle {
+  position: absolute;
+  inset-block: 50% auto;
+  inset-inline-end: var(--at-space-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 38px;
+  block-size: 38px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--at-radius-sm);
+  background: transparent;
+  color: var(--at-product-muted);
+  transform: translateY(-50%);
+  transition:
+    background-color var(--at-motion-fast) var(--at-ease-standard),
+    color var(--at-motion-fast) var(--at-ease-standard),
+    box-shadow var(--at-motion-fast) var(--at-ease-standard);
+}
+
+.aqua-password-toggle:hover {
+  background: rgba(var(--at-product-accent-rgb), 0.08);
+  color: var(--at-product-accent-soft);
+}
+
+.aqua-password-toggle:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px var(--at-focus-ring);
+}
+
+.aqua-auth-link {
+  color: var(--at-product-accent-soft);
+  font-size: 0.82rem;
+  font-weight: 750;
+  text-underline-offset: 0.22em;
+}
+
+.aqua-auth-link:hover,
+.aqua-auth-link:focus-visible {
+  color: var(--at-product-text);
+}
+
+.aqua-auth-secondary-action {
+  margin-block-start: var(--at-space-6);
+  text-align: center;
+}
+
+.aqua-auth-security-note,
+.aqua-auth-result__hint {
+  margin: var(--at-space-4) 0 0;
+  color: var(--at-product-soft-text);
+  font-size: 0.78rem;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.aqua-password-guidance {
+  padding: var(--at-space-4);
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-md);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.aqua-password-guidance > p {
+  margin: 0 0 var(--at-space-2);
+  color: var(--at-product-text);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.aqua-password-guidance ul {
+  display: grid;
+  gap: var(--at-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aqua-password-guidance li {
+  display: flex;
+  gap: var(--at-space-2);
+  align-items: center;
+  color: var(--at-product-muted);
+  font-size: 0.78rem;
+}
+
+.aqua-password-guidance li svg {
+  inline-size: 0.95rem;
+  block-size: 0.95rem;
+  flex: 0 0 auto;
+}
+
+.aqua-password-guidance li[data-complete="true"] {
+  color: #bbf7d0;
+}
+
+.aqua-public-auth__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--at-space-2);
+  align-items: center;
+  justify-content: center;
+  margin-block-start: var(--at-space-8);
+  padding-block-start: var(--at-space-4);
+  border-block-start: 1px solid rgba(255, 255, 255, 0.065);
+  color: var(--at-product-soft-text);
+  font-family: var(--at-font-latin);
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+}
+
+.aqua-system-document {
+  inline-size: min(100%, 210mm);
+  min-block-size: 297mm;
+  margin-inline: auto;
+  padding: 18mm;
+  background: #ffffff;
+  color: #0f172a;
+  font-family: var(--at-font-body);
+  box-shadow: var(--at-shadow-md);
+}
+
+.aqua-system-document[data-aqua-density="compact"] {
+  padding: 12mm;
+}
+
+.aqua-system-document__header,
+.aqua-system-document__footer {
+  display: flex;
+  gap: var(--at-space-4);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.aqua-system-document__header {
+  padding-block-end: var(--at-space-6);
+  border-block-end: 2px solid #dbeafe;
+}
+
+.aqua-system-document__brand {
+  display: flex;
+  gap: var(--at-space-3);
+  align-items: center;
+}
+
+.aqua-system-document__brand > div {
+  display: grid;
+  gap: var(--at-space-1);
+}
+
+.aqua-system-document__brand strong {
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.aqua-system-document__brand span,
+.aqua-system-document__meta span {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.aqua-system-document__meta {
+  display: grid;
+  gap: var(--at-space-1);
+  text-align: end;
+}
+
+.aqua-system-document__meta strong {
+  color: #0f172a;
+  font-size: 0.85rem;
+  font-weight: 850;
+}
+
+.aqua-system-document__title {
+  margin: var(--at-space-8) 0 var(--at-space-6);
+  color: #0f172a;
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.aqua-system-document__body {
+  color: #334155;
+  line-height: 1.8;
+}
+
+.aqua-system-document__footer {
+  margin-block-start: var(--at-space-12);
+  padding-block-start: var(--at-space-4);
+  border-block-start: 1px solid #e2e8f0;
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 991.98px) {
+  .aqua-public-surface > .aqua-tech-pattern {
+  z-index: 0;
+}
+
+.aqua-public-surface__container {
+    align-items: flex-start;
+  }
+
+  .aqua-public-surface__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .aqua-public-story {
+    display: none;
+  }
+
+  .aqua-public-auth {
+    max-inline-size: 560px;
+    justify-self: center;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .aqua-public-surface > .aqua-tech-pattern {
+  z-index: 0;
+}
+
+.aqua-public-surface__container {
+    padding-block: var(--at-space-4);
+    padding-inline: var(--at-space-3);
+  }
+
+  .aqua-public-auth__brand {
+    align-items: flex-start;
+    margin-block-end: var(--at-space-6);
+  }
+
+  .aqua-public-auth__brand .aqua-badge {
+    max-inline-size: 8rem;
+    text-align: center;
+  }
+
+  .aqua-public-auth__footer {
+    margin-block-start: var(--at-space-6);
+  }
+}
+
+@media print {
+  .aqua-system-document {
+    inline-size: auto;
+    min-block-size: auto;
+    margin: 0;
+    padding: 12mm;
+    box-shadow: none;
+    print-color-adjust: exact;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aqua-public-skip-link,
+  .aqua-password-toggle {
+    transition-duration: 0.01ms !important;
+  }
+}

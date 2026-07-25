@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "designSystemVersion": "0.6.0",
+  "algorithm": "sha256",
+  "sourceHash": "92a9d50c0313db8bc0f6530287b35062bbf5b91a29d80e45e5a7fd59e4c08012",
+  "sources": [
+    "src/design-system/component-contracts.ts",
+    "src/design-system/pattern-contracts.ts",
+    "src/design-system/public-contracts.ts",
+    "src/design-system/shell-contracts.ts",
+    "src/design-system/package-contracts.ts",
+    "src/design-system/showcase-spec.ts",
+    "src/styles/aqua-tokens.css",
+    "src/styles/aqua-bootstrap.css",
+    "src/styles/aqua-primitives.css",
+    "src/styles/aqua-shell.css",
+    "src/styles/aqua-patterns.css",
+    "src/styles/aqua-public.css",
+    "src/styles/aqua-showcase.css",
+    "src/app/dashboard/design-system/DesignSystemShowcase.tsx"
+  ],
+  "reviewSurfaces": [
+    "desktop-rtl",
+    "mobile-rtl",
+    "keyboard-focus",
+    "reduced-motion",
+    "system-document-print"
+  ]
+}

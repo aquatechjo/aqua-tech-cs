@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 
-import type { AquaDocumentDensity, AquaProductTheme } from "@/design-system"
-import { aquaFlowTheme } from "@/design-system"
+import type { AquaDocumentDensity, AquaProductTheme } from "../design-system"
+import { aquaFlowTheme } from "../design-system"
 
 import AquaMark from "./AquaMark"
 

@@ -1,0 +1,830 @@
+/* Aqua.Tech Design System — DS-02 Bootstrap primitives */
+
+.aqua-button {
+  --aqua-button-background: transparent;
+  --aqua-button-border: transparent;
+  --aqua-button-color: var(--at-product-text);
+  --aqua-button-hover-background: var(--aqua-button-background);
+  --aqua-button-hover-border: var(--aqua-button-border);
+  --aqua-button-hover-color: var(--aqua-button-color);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--at-space-2);
+  min-block-size: 44px;
+  border: 1px solid var(--aqua-button-border);
+  border-radius: var(--at-radius-md);
+  background: var(--aqua-button-background);
+  color: var(--aqua-button-color);
+  font: inherit;
+  font-weight: 800;
+  line-height: 1.2;
+  text-decoration: none;
+  box-shadow: none;
+  transition:
+    transform var(--at-motion-fast) var(--at-ease-standard),
+    background var(--at-motion-fast) var(--at-ease-standard),
+    border-color var(--at-motion-fast) var(--at-ease-standard),
+    color var(--at-motion-fast) var(--at-ease-standard),
+    box-shadow var(--at-motion-fast) var(--at-ease-standard),
+    opacity var(--at-motion-fast) var(--at-ease-standard);
+}
+
+.aqua-button:hover:not(:disabled) {
+  border-color: var(--aqua-button-hover-border);
+  background: var(--aqua-button-hover-background);
+  color: var(--aqua-button-hover-color);
+  transform: translateY(-1px);
+}
+
+.aqua-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.aqua-button:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 4px var(--at-focus-ring);
+}
+
+.aqua-button:disabled,
+.aqua-button[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.56;
+  transform: none;
+}
+
+.aqua-button--primary {
+  --aqua-button-background: linear-gradient(
+    90deg,
+    var(--at-product-accent),
+    var(--at-product-accent-secondary)
+  );
+  --aqua-button-color: var(--at-product-accent-contrast);
+  --aqua-button-hover-background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--at-product-accent) 88%, white),
+    color-mix(in srgb, var(--at-product-accent-secondary) 88%, white)
+  );
+  --aqua-button-hover-color: var(--at-product-accent-contrast);
+
+  box-shadow: 0 14px 34px rgba(var(--at-product-accent-rgb), 0.2);
+}
+
+.aqua-button--secondary {
+  --aqua-button-background: rgba(var(--at-product-accent-rgb), 0.1);
+  --aqua-button-border: rgba(var(--at-product-accent-rgb), 0.25);
+  --aqua-button-color: var(--at-product-accent-soft);
+  --aqua-button-hover-background: rgba(var(--at-product-accent-rgb), 0.17);
+  --aqua-button-hover-border: rgba(var(--at-product-accent-rgb), 0.42);
+  --aqua-button-hover-color: var(--at-product-text);
+}
+
+.aqua-button--ghost {
+  --aqua-button-background: rgba(255, 255, 255, 0.035);
+  --aqua-button-border: var(--at-product-border);
+  --aqua-button-color: var(--at-product-text);
+  --aqua-button-hover-background: rgba(var(--at-product-accent-rgb), 0.09);
+  --aqua-button-hover-border: rgba(var(--at-product-accent-rgb), 0.34);
+  --aqua-button-hover-color: var(--at-product-accent-soft);
+}
+
+.aqua-button--danger {
+  --aqua-button-background: rgba(239, 68, 68, 0.1);
+  --aqua-button-border: rgba(239, 68, 68, 0.28);
+  --aqua-button-color: #fecaca;
+  --aqua-button-hover-background: rgba(239, 68, 68, 0.18);
+  --aqua-button-hover-border: rgba(239, 68, 68, 0.45);
+  --aqua-button-hover-color: #ffffff;
+}
+
+.aqua-button--sm {
+  padding: var(--at-space-2) var(--at-space-3);
+  font-size: 0.8125rem;
+}
+
+.aqua-button--md {
+  padding: var(--at-space-3) var(--at-space-4);
+  font-size: 0.875rem;
+}
+
+.aqua-button--lg {
+  min-block-size: 52px;
+  padding: var(--at-space-4) var(--at-space-6);
+  font-size: 1rem;
+}
+
+.aqua-button--block {
+  inline-size: 100%;
+}
+
+.aqua-button__icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.1em;
+  block-size: 1.1em;
+}
+
+.aqua-button__icon > svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.aqua-button__spinner {
+  inline-size: 1em;
+  block-size: 1em;
+  flex: 0 0 auto;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: var(--at-radius-pill);
+  animation: aqua-spin var(--at-motion-slow) linear infinite;
+}
+
+.aqua-field {
+  display: grid;
+  gap: var(--at-space-2);
+  min-inline-size: 0;
+}
+
+.aqua-field__label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--at-space-1);
+  margin: 0;
+  color: var(--at-product-text);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.aqua-field__required {
+  color: #fca5a5;
+}
+
+.form-control.aqua-control,
+.form-select.aqua-control {
+  inline-size: 100%;
+  min-block-size: 48px;
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-md);
+  background-color: color-mix(in srgb, var(--at-product-bg) 78%, transparent);
+  color: var(--at-product-text);
+  font: inherit;
+  line-height: 1.45;
+  text-align: start;
+  box-shadow: none;
+  transition:
+    border-color var(--at-motion-fast) var(--at-ease-standard),
+    background-color var(--at-motion-fast) var(--at-ease-standard),
+    box-shadow var(--at-motion-fast) var(--at-ease-standard),
+    color var(--at-motion-fast) var(--at-ease-standard);
+}
+
+.form-control.aqua-control:hover:not(:disabled):not([readonly]),
+.form-select.aqua-control:hover:not(:disabled) {
+  border-color: rgba(var(--at-product-accent-rgb), 0.3);
+}
+
+.form-control.aqua-control:focus,
+.form-select.aqua-control:focus {
+  border-color: var(--at-product-accent);
+  background-color: color-mix(in srgb, var(--at-product-bg) 90%, transparent);
+  color: var(--at-product-text);
+  box-shadow: 0 0 0 4px var(--at-focus-ring);
+}
+
+.form-control.aqua-control::placeholder {
+  color: var(--at-product-soft-text);
+  opacity: 1;
+}
+
+.form-control.aqua-control:disabled,
+.form-select.aqua-control:disabled {
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.065);
+  background-color: rgba(255, 255, 255, 0.025);
+  color: color-mix(in srgb, var(--at-product-muted) 72%, transparent);
+  opacity: 0.74;
+}
+
+.form-control.aqua-control[readonly] {
+  background-color: rgba(255, 255, 255, 0.03);
+  color: var(--at-product-muted);
+}
+
+.form-control.aqua-control.aqua-control--invalid,
+.form-select.aqua-control.aqua-control--invalid {
+  border-color: rgba(239, 68, 68, 0.62);
+}
+
+.form-control.aqua-control.aqua-control--invalid:focus,
+.form-select.aqua-control.aqua-control--invalid:focus {
+  border-color: var(--at-danger);
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.16);
+}
+
+.aqua-control--sm {
+  min-block-size: 44px !important;
+  padding: var(--at-space-2) var(--at-space-3) !important;
+  font-size: 0.8125rem !important;
+}
+
+.aqua-control--md {
+  padding: var(--at-space-3) var(--at-space-4) !important;
+  font-size: 0.875rem !important;
+}
+
+.aqua-control--lg {
+  min-block-size: 54px !important;
+  padding: var(--at-space-4) var(--at-space-4) !important;
+  font-size: 1rem !important;
+}
+
+.aqua-select {
+  background-position: left var(--at-space-4) center;
+  padding-inline-end: var(--at-space-4) !important;
+  padding-inline-start: 2.75rem !important;
+}
+
+html[dir="ltr"] .aqua-select,
+[dir="ltr"] .aqua-select {
+  background-position: right var(--at-space-4) center;
+  padding-inline-start: var(--at-space-4) !important;
+  padding-inline-end: 2.75rem !important;
+}
+
+.aqua-textarea {
+  min-block-size: 128px !important;
+  resize: vertical;
+}
+
+.aqua-field__message {
+  margin: 0;
+  color: var(--at-product-muted);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.aqua-field__message--error {
+  color: #fca5a5;
+}
+
+.aqua-card {
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-xl);
+  color: var(--at-product-text);
+  box-shadow: var(--at-shadow-md);
+  backdrop-filter: blur(16px);
+}
+
+.aqua-card--surface {
+  background: color-mix(in srgb, var(--at-product-surface) 76%, transparent);
+}
+
+.aqua-card--soft {
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-card--outlined {
+  background: transparent;
+  box-shadow: none;
+}
+
+.aqua-card--glow {
+  border-color: rgba(var(--at-product-accent-rgb), 0.2);
+  box-shadow:
+    var(--at-shadow-lg),
+    0 0 48px rgba(var(--at-product-accent-rgb), 0.08);
+}
+
+.aqua-card--padding-none {
+  padding: 0;
+}
+
+.aqua-card--padding-sm {
+  padding: var(--at-space-4);
+}
+
+.aqua-card--padding-md {
+  padding: var(--at-space-6);
+}
+
+.aqua-card--padding-lg {
+  padding: var(--at-space-8);
+}
+
+.aqua-badge {
+  --aqua-badge-rgb: var(--at-product-accent-rgb);
+  --aqua-badge-color: var(--at-product-accent-soft);
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  max-inline-size: 100%;
+  border: 1px solid rgba(var(--aqua-badge-rgb), 0.24);
+  border-radius: var(--at-radius-pill);
+  background: rgba(var(--aqua-badge-rgb), 0.1);
+  color: var(--aqua-badge-color);
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: normal;
+}
+
+.aqua-badge--sm {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.6875rem;
+}
+
+.aqua-badge--md {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+.aqua-badge--blue,
+.aqua-badge--info {
+  --aqua-badge-rgb: 37, 99, 235;
+  --aqua-badge-color: #bfdbfe;
+}
+
+.aqua-badge--success {
+  --aqua-badge-rgb: 34, 197, 94;
+  --aqua-badge-color: #bbf7d0;
+}
+
+.aqua-badge--warning {
+  --aqua-badge-rgb: 245, 158, 11;
+  --aqua-badge-color: #fde68a;
+}
+
+.aqua-badge--danger {
+  --aqua-badge-rgb: 239, 68, 68;
+  --aqua-badge-color: #fecaca;
+}
+
+.aqua-badge--muted {
+  --aqua-badge-rgb: 148, 163, 184;
+  --aqua-badge-color: #cbd5e1;
+}
+
+.aqua-badge__dot {
+  inline-size: 0.45rem;
+  block-size: 0.45rem;
+  flex: 0 0 auto;
+  border-radius: var(--at-radius-pill);
+  background: currentColor;
+  box-shadow: 0 0 0 3px rgba(var(--aqua-badge-rgb), 0.12);
+}
+
+.aqua-brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--at-space-3);
+  min-inline-size: 0;
+}
+
+.aqua-mark {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--at-radius-md);
+  background: linear-gradient(
+    135deg,
+    var(--at-product-accent),
+    var(--at-product-accent-secondary)
+  );
+  color: var(--at-product-accent-contrast);
+  font-family: var(--at-font-latin);
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 14px 34px rgba(var(--at-product-accent-rgb), 0.2);
+}
+
+.aqua-mark--sm {
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: var(--at-radius-sm);
+  font-size: 0.8125rem;
+}
+
+.aqua-mark--md {
+  inline-size: 48px;
+  block-size: 48px;
+  font-size: 0.9375rem;
+}
+
+.aqua-mark--lg {
+  inline-size: 64px;
+  block-size: 64px;
+  border-radius: var(--at-radius-lg);
+  font-size: 1.2rem;
+}
+
+.aqua-brand-lockup__copy {
+  display: grid;
+  gap: var(--at-space-1);
+  min-inline-size: 0;
+}
+
+.aqua-brand-lockup__name {
+  color: var(--at-product-text);
+  font-size: 1.25rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.aqua-brand-lockup__tagline {
+  overflow: hidden;
+  color: var(--at-product-soft-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aqua-alert {
+  --aqua-alert-rgb: 37, 99, 235;
+  --aqua-alert-color: #bfdbfe;
+
+  display: flex;
+  align-items: flex-start;
+  gap: var(--at-space-3);
+  margin: 0;
+  border: 1px solid rgba(var(--aqua-alert-rgb), 0.24);
+  border-radius: var(--at-radius-md);
+  background: rgba(var(--aqua-alert-rgb), 0.08);
+  color: var(--aqua-alert-color);
+  padding: var(--at-space-4);
+}
+
+.aqua-alert--success {
+  --aqua-alert-rgb: 34, 197, 94;
+  --aqua-alert-color: #bbf7d0;
+}
+
+.aqua-alert--warning {
+  --aqua-alert-rgb: 245, 158, 11;
+  --aqua-alert-color: #fde68a;
+}
+
+.aqua-alert--danger {
+  --aqua-alert-rgb: 239, 68, 68;
+  --aqua-alert-color: #fecaca;
+}
+
+.aqua-alert--neutral {
+  --aqua-alert-rgb: 148, 163, 184;
+  --aqua-alert-color: #cbd5e1;
+}
+
+.aqua-alert__icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin-block-start: 0.1rem;
+}
+
+.aqua-alert__icon > svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.aqua-alert__content {
+  display: grid;
+  gap: var(--at-space-1);
+  min-inline-size: 0;
+}
+
+.aqua-alert__title {
+  color: currentColor;
+  font-weight: 900;
+}
+
+.aqua-alert__message {
+  color: color-mix(in srgb, currentColor 82%, var(--at-product-text));
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+
+.aqua-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--at-product-accent);
+}
+
+.aqua-spinner__ring {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  border: 2px solid rgba(var(--at-product-accent-rgb), 0.22);
+  border-block-start-color: currentColor;
+  border-radius: var(--at-radius-pill);
+  animation: aqua-spin 0.75s linear infinite;
+}
+
+.aqua-spinner--sm {
+  inline-size: 18px;
+  block-size: 18px;
+}
+
+.aqua-spinner--md {
+  inline-size: 28px;
+  block-size: 28px;
+}
+
+.aqua-spinner--lg {
+  inline-size: 44px;
+  block-size: 44px;
+}
+
+.aqua-skeleton {
+  display: block;
+  max-inline-size: 100%;
+  overflow: hidden;
+  border-radius: var(--at-radius-sm);
+  background: rgba(255, 255, 255, 0.055);
+  position: relative;
+}
+
+.aqua-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.085),
+    transparent
+  );
+  transform: translateX(-100%);
+  animation: aqua-skeleton-shimmer 1.5s var(--at-ease-standard) infinite;
+}
+
+html[dir="rtl"] .aqua-skeleton::after {
+  transform: translateX(100%);
+  animation-name: aqua-skeleton-shimmer-rtl;
+}
+
+.aqua-skeleton--text {
+  inline-size: 100%;
+  block-size: 0.9rem;
+}
+
+.aqua-skeleton--circle {
+  inline-size: 48px;
+  block-size: 48px;
+  border-radius: var(--at-radius-pill);
+}
+
+.aqua-skeleton--card {
+  inline-size: 100%;
+  block-size: 180px;
+  border-radius: var(--at-radius-xl);
+}
+
+.aqua-empty-state {
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.aqua-empty-state__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 64px;
+  block-size: 64px;
+  margin-block-end: var(--at-space-4);
+  border: 1px solid rgba(var(--at-product-accent-rgb), 0.2);
+  border-radius: var(--at-radius-lg);
+  background: rgba(var(--at-product-accent-rgb), 0.09);
+  color: var(--at-product-accent-soft);
+}
+
+.aqua-empty-state__icon > svg {
+  inline-size: 30px;
+  block-size: 30px;
+}
+
+.aqua-empty-state__title {
+  margin: 0;
+  color: var(--at-product-text);
+  font-size: 1.2rem;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.aqua-empty-state__description {
+  max-inline-size: 40rem;
+  margin: var(--at-space-2) 0 0;
+  color: var(--at-product-muted);
+  font-size: 0.9rem;
+  line-height: 1.75;
+}
+
+.aqua-empty-state__action {
+  margin-block-start: var(--at-space-4);
+}
+
+.aqua-empty-state--compact .aqua-empty-state__icon {
+  inline-size: 48px;
+  block-size: 48px;
+  margin-block-end: var(--at-space-3);
+}
+
+.aqua-background {
+  position: relative;
+  min-block-size: 100vh;
+  overflow: hidden;
+  background: var(--at-product-bg);
+  color: var(--at-product-text);
+}
+
+.aqua-background__glow,
+.aqua-background__grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.aqua-background__glow {
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(var(--at-product-accent-rgb), 0.24),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(var(--at-product-accent-secondary-rgb), 0.22),
+      transparent 36%
+    );
+}
+
+.aqua-background__grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+.aqua-background__content {
+  position: relative;
+  z-index: 1;
+}
+
+.aqua-tech-pattern {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.aqua-tech-pattern__surface,
+.aqua-tech-pattern__glow,
+.aqua-tech-pattern__grid {
+  position: absolute;
+  inset: 0;
+}
+
+.aqua-tech-pattern__surface {
+  background: var(--at-product-bg);
+}
+
+.aqua-tech-pattern__glow {
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(var(--at-product-accent-rgb), 0.2),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(var(--at-product-accent-secondary-rgb), 0.16),
+      transparent 34%
+    );
+}
+
+.aqua-tech-pattern__grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+.aqua-tech-pattern__symbol {
+  position: absolute;
+  display: none;
+  user-select: none;
+  color: rgba(var(--at-product-accent-rgb), 0.035);
+  font-family: var(--at-font-mono);
+  font-weight: 900;
+}
+
+.aqua-tech-pattern__symbol--code {
+  inset-block-start: 7rem;
+  inset-inline-end: 2.5rem;
+  font-size: 4.5rem;
+}
+
+.aqua-tech-pattern__symbol--api {
+  inset-block-end: 4rem;
+  inset-inline-end: 33%;
+  font-size: 3.75rem;
+  color: rgba(var(--at-product-accent-secondary-rgb), 0.035);
+}
+
+.aqua-tech-pattern__symbol--sql {
+  inset-block-end: 7rem;
+  inset-inline-start: 24rem;
+  font-size: 3rem;
+}
+
+.aqua-toast-viewport [data-sonner-toast] {
+  border: 1px solid var(--at-product-border) !important;
+  border-radius: var(--at-radius-md) !important;
+  background: color-mix(in srgb, var(--at-product-surface) 94%, transparent) !important;
+  color: var(--at-product-text) !important;
+  font-family: var(--at-font-body) !important;
+  box-shadow: var(--at-shadow-lg) !important;
+  backdrop-filter: blur(18px);
+}
+
+.aqua-toast-viewport [data-sonner-toast] [data-description] {
+  color: var(--at-product-muted) !important;
+}
+
+.aqua-toast-viewport [data-sonner-toast] button:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px var(--at-focus-ring);
+}
+
+@keyframes aqua-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes aqua-skeleton-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes aqua-skeleton-shimmer-rtl {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@media (min-width: 992px) {
+  .aqua-tech-pattern__symbol {
+    display: block;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .aqua-card--padding-lg {
+    padding: var(--at-space-6);
+  }
+
+  .aqua-button--lg {
+    min-block-size: 48px;
+    padding: var(--at-space-3) var(--at-space-4);
+  }
+
+  .aqua-brand-lockup__tagline {
+    max-inline-size: 12rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aqua-button,
+  .form-control.aqua-control,
+  .form-select.aqua-control {
+    transition-duration: 0.01ms !important;
+  }
+
+  .aqua-button:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .aqua-button__spinner,
+  .aqua-spinner__ring {
+    animation-duration: 1.5s;
+  }
+
+  .aqua-skeleton::after {
+    animation: none;
+    opacity: 0;
+  }
+}

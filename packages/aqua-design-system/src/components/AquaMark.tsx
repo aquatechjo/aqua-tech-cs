@@ -1,7 +1,7 @@
 import { clsx } from "clsx"
 
-import type { AquaProductTheme } from "@/design-system"
-import { aquaFlowTheme } from "@/design-system"
+import type { AquaProductTheme } from "../design-system"
+import { aquaFlowTheme } from "../design-system"
 
 type AquaMarkProps = {
   showText?: boolean

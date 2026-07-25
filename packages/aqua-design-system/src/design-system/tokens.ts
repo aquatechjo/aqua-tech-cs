@@ -1,0 +1,71 @@
+export const aquaTechDesignTokens = {
+  color: {
+    brand: {
+      ink: "#051424",
+      deep: "#010F1F",
+      aqua: "#89CEFF",
+      cyan: "#00B4FF",
+      blue: "#2563EB",
+    },
+    neutral: {
+      0: "#FFFFFF",
+      50: "#F8FAFC",
+      100: "#F1F5F9",
+      300: "#CBD5E1",
+      400: "#94A3B8",
+      500: "#64748B",
+      700: "#334155",
+      800: "#1E293B",
+      900: "#0F172A",
+      950: "#020617",
+    },
+    semantic: {
+      success: "#22C55E",
+      warning: "#F59E0B",
+      danger: "#EF4444",
+      info: "#2563EB",
+    },
+  },
+  radius: {
+    xs: 8,
+    sm: 12,
+    md: 16,
+    lg: 20,
+    xl: 24,
+    xxl: 32,
+    pill: 999,
+  },
+  space: {
+    1: 4,
+    2: 8,
+    3: 12,
+    4: 16,
+    6: 24,
+    8: 32,
+    12: 48,
+    16: 64,
+    24: 96,
+    30: 120,
+  },
+  motion: {
+    durationMs: {
+      instant: 120,
+      fast: 180,
+      normal: 260,
+      slow: 420,
+      success: 600,
+    },
+    easing: {
+      standard: "cubic-bezier(0.22, 1, 0.36, 1)",
+      entrance: "cubic-bezier(0.16, 1, 0.3, 1)",
+      exit: "cubic-bezier(0.4, 0, 1, 1)",
+    },
+  },
+  typography: {
+    bodyArabic: '"IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif',
+    bodyLatin: 'Inter, "Segoe UI", Arial, sans-serif',
+    mono: '"JetBrains Mono", "SFMono-Regular", Consolas, monospace',
+  },
+} as const
+
+export type AquaTechDesignTokens = typeof aquaTechDesignTokens

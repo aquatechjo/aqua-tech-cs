@@ -52,13 +52,17 @@ Status: **implemented**
 - Add the canonical AquaSystemDocument browser and print shell.
 - Add public-surface, email-safety, and document-contract unit checks.
 
-## DS-06 — Starter and Package
+## DS-06 — Starter, Package, Showcase, and Governance
 
-- Extract a reusable Bootstrap theme package.
-- Create an Aqua.Tech project starter.
-- Add Storybook or an equivalent component showcase.
-- Add visual regression testing.
-- Add release/versioning rules.
+Status: **implemented**
+
+- Extract `@aqua-tech/design-system` as a synchronized internal package containing components, contracts, and ordered CSS layers.
+- Add a guarded in-product component Showcase at `/dashboard/design-system`.
+- Add the Aqua.Tech Next.js product starter generator with constrained theme inputs.
+- Add deterministic visual-contract regression for contracts, CSS, and Showcase structure.
+- Add package synchronization checks so committed package files cannot drift from source.
+- Add semantic versioning, release channels, migration notes, and release-gate rules.
+- Keep browser screenshot review as a required human release gate before external stable publication.
 
 ## DS-07 — Viresto Adoption
 
