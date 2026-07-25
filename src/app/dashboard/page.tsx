@@ -1,13 +1,67 @@
-import { requireAuth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { ACCESS_ROLES, hasRole } from "@/lib/access-control";
+import {
+  Activity,
+  ArrowUpLeft,
+  BellRing,
+  BriefcaseBusiness,
+  CheckCircle2,
+  Clock3,
+  FolderKanban,
+  ListTodo,
+  ShieldCheck,
+  UsersRound,
+  type LucideIcon,
+} from "lucide-react"
+
+import {
+  AquaBadge,
+  AquaCard,
+  AquaDataPanel,
+  AquaEmptyState,
+  AquaLinkButton,
+  AquaMark,
+} from "@/components/aqua"
+import type { AquaBadgeVariant } from "@/design-system"
+import type { AccessRole } from "@/generated/prisma/enums"
+import { ACCESS_ROLES, hasRole } from "@/lib/access-control"
+import { requireAuth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+
+type DashboardMetric = {
+  label: string
+  value: number
+  hint: string
+  icon: LucideIcon
+  tone: "aqua" | "blue" | "success"
+}
+
+type DashboardQuickLink = {
+  title: string
+  description: string
+  href: string
+  icon: LucideIcon
+  enabled: boolean
+}
+
+const roleLabels: Record<AccessRole, string> = {
+  OWNER: "مالك النظام",
+  ADMIN: "مدير النظام",
+  OPERATIONS_MANAGER: "مدير العمليات",
+  SALES_MANAGER: "مدير المبيعات",
+  FINANCE_MANAGER: "مدير المالية",
+  MEMBER: "عضو الفريق",
+}
+
+function formatActivityTimestamp(value: Date, timeZone: string) {
+  return new Intl.DateTimeFormat("ar-JO-u-nu-latn", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone,
+  }).format(value)
+}
 
 export default async function DashboardPage() {
-  const user = await requireAuth();
-  const canViewCompanyActivity = hasRole(
-    user.role,
-    ACCESS_ROLES.activityLog,
-  );
+  const user = await requireAuth()
+  const canViewCompanyActivity = hasRole(user.role, ACCESS_ROLES.activityLog)
 
   const [teamCount, activeSessions, unreadNotifications, recentActivities] =
     await Promise.all([
@@ -39,116 +93,293 @@ export default async function DashboardPage() {
         orderBy: { createdAt: "desc" },
         take: 5,
       }),
-    ]);
+    ])
 
-  const stats = [
+  const metrics: DashboardMetric[] = [
     {
       label: "أعضاء الفريق",
       value: teamCount,
-      hint: "Core team users",
+      hint: "الحسابات المسجلة داخل الشركة",
+      icon: UsersRound,
+      tone: "aqua",
     },
     {
       label: "الجلسات النشطة",
       value: activeSessions,
-      hint: "Active secure sessions",
+      hint: "جلسات دخول آمنة وغير منتهية",
+      icon: ShieldCheck,
+      tone: "blue",
     },
     {
       label: "تنبيهات غير مقروءة",
       value: unreadNotifications,
-      hint: "Pending alerts",
+      hint:
+        unreadNotifications > 0
+          ? "توجد عناصر تحتاج مراجعتك"
+          : "لا توجد تنبيهات معلقة حاليًا",
+      icon: BellRing,
+      tone: "success",
     },
-  ];
+  ]
+
+  const quickLinks: DashboardQuickLink[] = [
+    {
+      title: "ابدأ من يومي",
+      description: "الأولوية والاستحقاق والمهام المسندة إليك.",
+      href: "/dashboard/my-day",
+      icon: Clock3,
+      enabled: true,
+    },
+    {
+      title: "راجع المهام",
+      description: "تابع التنفيذ والمسؤوليات والمهام المتأخرة.",
+      href: "/dashboard/tasks",
+      icon: ListTodo,
+      enabled: true,
+    },
+    {
+      title: "تابع المشاريع",
+      description: "المراحل والتقدم والفريق المسؤول عن التنفيذ.",
+      href: "/dashboard/projects",
+      icon: FolderKanban,
+      enabled: true,
+    },
+    {
+      title: "افتح المبيعات",
+      description: "الفرص والمتابعات والعروض والتحويل التجاري.",
+      href: "/dashboard/sales",
+      icon: BriefcaseBusiness,
+      enabled: hasRole(user.role, ACCESS_ROLES.salesRead),
+    },
+  ].filter((item) => item.enabled)
+
+  const notificationStatus: {
+    variant: AquaBadgeVariant
+    label: string
+  } =
+    unreadNotifications > 0
+      ? { variant: "warning", label: `${unreadNotifications} تحتاج مراجعة` }
+      : { variant: "success", label: "لا توجد عناصر معلقة" }
 
   return (
-    <div>
-      <div className="aqua-card aqua-hero p-4 p-lg-5 mb-4">
-        <div className="row align-items-center g-4 w-100">
-          <div className="col-12 col-lg-8">
-            <span className="aqua-badge">Core System Online</span>
-
-            <h2 className="display-6 fw-black mt-4 mb-3">
-              النظام الداخلي لشركة{" "}
-              <span className="aqua-text-gradient" dir="ltr">
-                Aqua.Tech
-              </span>
-            </h2>
-
-            <p className="aqua-muted lh-lg mb-0">
-              AquaFlow يجمع تشغيل Aqua Tech في مساحة واحدة: الموظفون والهيكل
-              التنظيمي والمبيعات والعملاء والمشاريع والمهام والوقت والطاقة والموارد البشرية والمالية وطلبات الخدمة، مع
-              صلاحيات واضحة وسجل نشاطات قابل للتدقيق.
-            </p>
+    <div className="aqua-dashboard-overview">
+      <AquaCard
+        variant="surface"
+        padding="lg"
+        glow
+        className="aqua-dashboard-hero"
+      >
+        <div className="aqua-dashboard-hero__copy">
+          <div className="aqua-dashboard-hero__badges">
+            <AquaBadge variant="aqua">Operations overview</AquaBadge>
+            <AquaBadge variant="success" dot>
+              النظام متصل
+            </AquaBadge>
           </div>
 
-          <div className="col-12 col-lg-4">
-            <div
-              className="aqua-card-soft p-4 text-lg-start text-center"
-              dir="ltr"
+          <span className="aqua-dashboard-hero__eyebrow" dir="ltr">
+            AQUA.TECH INTERNAL OS
+          </span>
+          <h1>نظرة تشغيلية على {user.company.name}</h1>
+          <p>
+            ملخص مباشر لحالة الفريق والجلسات والتنبيهات، مع وصول سريع إلى العمل
+            اليومي والمشاريع والعمليات التي تحتاج انتباهك.
+          </p>
+
+          <div className="aqua-dashboard-hero__actions">
+            <AquaLinkButton
+              href="/dashboard/my-day"
+              variant="primary"
+              trailingIcon={<ArrowUpLeft />}
             >
-              <div className="small aqua-soft mb-2">AQUA.TECH OS</div>
-              <div className="display-6 fw-black aqua-text-gradient">
-                AquaFlow
-              </div>
-              <div className="small aqua-muted mt-2">Build. Launch. Grow.</div>
-            </div>
+              افتح يومي
+            </AquaLinkButton>
+            <AquaLinkButton
+              href="/dashboard/notifications"
+              variant="secondary"
+              leadingIcon={<BellRing />}
+            >
+              مركز التنبيهات
+            </AquaLinkButton>
           </div>
         </div>
-      </div>
 
-      <div className="row g-4 mb-4">
-        {stats.map((stat) => (
-          <div className="col-12 col-md-4" key={stat.label}>
-            <div className="aqua-card aqua-stat-card p-4 h-100">
-              <div className="aqua-muted small">{stat.label}</div>
-              <div className="aqua-stat-number fw-black aqua-text-gradient mt-3">
-                {stat.value}
-              </div>
-              <div className="small aqua-soft mt-3" dir="ltr">
-                {stat.hint}
-              </div>
+        <div className="aqua-dashboard-hero__identity">
+          <AquaMark size="lg" />
+
+          <dl className="aqua-dashboard-context-list">
+            <div>
+              <dt>الدور الحالي</dt>
+              <dd>{roleLabels[user.role]}</dd>
             </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="aqua-card p-4">
-        <div className="d-flex align-items-start justify-content-between mb-4">
-          <div>
-            <h2 className="aqua-section-title mb-1">آخر النشاطات</h2>
-            <p className="small aqua-muted mb-0">
-              أحدث العمليات التي تمت داخل النظام
-            </p>
-          </div>
-
-          <span className="aqua-badge">Activity</span>
+            <div>
+              <dt>المنطقة الزمنية</dt>
+              <dd dir="ltr">{user.company.timezone}</dd>
+            </div>
+            <div>
+              <dt>حالة المتابعة</dt>
+              <dd>
+                <AquaBadge
+                  variant={notificationStatus.variant}
+                  size="sm"
+                  dot
+                >
+                  {notificationStatus.label}
+                </AquaBadge>
+              </dd>
+            </div>
+          </dl>
         </div>
+      </AquaCard>
 
-        {recentActivities.length === 0 ? (
-          <div className="aqua-card-soft p-5 text-center aqua-soft">
-            لا توجد نشاطات بعد
-          </div>
-        ) : (
-          <div className="d-flex flex-column gap-3">
-            {recentActivities.map((activity) => (
-              <div
-                key={activity.id}
-                className="aqua-card-soft aqua-activity-row p-3 d-flex align-items-center justify-content-between gap-3"
+      <section className="aqua-dashboard-metrics" aria-label="مؤشرات التشغيل">
+        {metrics.map((metric) => {
+          const MetricIcon = metric.icon
+
+          return (
+            <AquaCard
+              key={metric.label}
+              variant="soft"
+              padding="md"
+              className="aqua-dashboard-metric"
+              data-tone={metric.tone}
+            >
+              <div className="aqua-dashboard-metric__icon" aria-hidden="true">
+                <MetricIcon />
+              </div>
+              <div className="aqua-dashboard-metric__copy">
+                <span>{metric.label}</span>
+                <strong>{metric.value}</strong>
+                <small>{metric.hint}</small>
+              </div>
+            </AquaCard>
+          )
+        })}
+      </section>
+
+      <div className="aqua-dashboard-workspace">
+        <AquaDataPanel
+          eyebrow="Recent activity"
+          title="آخر النشاطات"
+          description={
+            canViewCompanyActivity
+              ? "أحدث العمليات المسجلة على مستوى الشركة."
+              : "أحدث العمليات المرتبطة بحسابك."
+          }
+          meta={
+            <AquaBadge variant="muted" size="sm">
+              آخر {recentActivities.length} عمليات
+            </AquaBadge>
+          }
+          footer={
+            canViewCompanyActivity ? (
+              <AquaLinkButton
+                href="/dashboard/activity"
+                variant="ghost"
+                size="sm"
+                trailingIcon={<ArrowUpLeft />}
               >
-                <div>
-                  <div className="fw-bold">
-                    {activity.message || activity.action}
-                  </div>
-                  <div className="small text-info mt-1">{activity.action}</div>
-                </div>
+                عرض سجل النشاط
+              </AquaLinkButton>
+            ) : (
+              <span className="aqua-dashboard-panel-note">
+                يظهر لك نشاط حسابك فقط وفق الصلاحيات الحالية.
+              </span>
+            )
+          }
+        >
+          {recentActivities.length === 0 ? (
+            <AquaEmptyState
+              compact
+              icon={<Activity />}
+              title="لا توجد نشاطات بعد"
+              description="ستظهر هنا أحدث العمليات بعد بدء استخدام النظام."
+            />
+          ) : (
+            <ol className="aqua-dashboard-activity-list">
+              {recentActivities.map((activity) => (
+                <li key={activity.id} className="aqua-dashboard-activity-item">
+                  <span
+                    className="aqua-dashboard-activity-item__icon"
+                    aria-hidden="true"
+                  >
+                    <Activity />
+                  </span>
 
-                <div className="small aqua-soft text-start" dir="ltr">
-                  {activity.createdAt.toLocaleString("en-GB")}
-                </div>
-              </div>
-            ))}
+                  <div className="aqua-dashboard-activity-item__copy">
+                    <strong>{activity.message || activity.action}</strong>
+                    <span dir="ltr">{activity.action}</span>
+                  </div>
+
+                  <time
+                    dateTime={activity.createdAt.toISOString()}
+                    className="aqua-dashboard-activity-item__time"
+                  >
+                    {formatActivityTimestamp(
+                      activity.createdAt,
+                      user.company.timezone
+                    )}
+                  </time>
+                </li>
+              ))}
+            </ol>
+          )}
+        </AquaDataPanel>
+
+        <AquaDataPanel
+          eyebrow="Quick start"
+          title="ابدأ من هنا"
+          description="اختصارات لأكثر مسارات التشغيل استخدامًا."
+          className="aqua-dashboard-quick-panel"
+        >
+          <div className="aqua-dashboard-quick-links">
+            {quickLinks.map((item) => {
+              const QuickLinkIcon = item.icon
+
+              return (
+                <AquaCard
+                  key={item.href}
+                  variant="outlined"
+                  padding="sm"
+                  className="aqua-dashboard-quick-link"
+                >
+                  <div className="aqua-dashboard-quick-link__heading">
+                    <span aria-hidden="true">
+                      <QuickLinkIcon />
+                    </span>
+                    <strong>{item.title}</strong>
+                  </div>
+                  <p>{item.description}</p>
+                  <AquaLinkButton
+                    href={item.href}
+                    variant="ghost"
+                    size="sm"
+                    trailingIcon={<ArrowUpLeft />}
+                    aria-label={`فتح ${item.title}`}
+                  >
+                    فتح
+                  </AquaLinkButton>
+                </AquaCard>
+              )
+            })}
           </div>
-        )}
+
+          <AquaCard
+            variant="soft"
+            padding="sm"
+            className="aqua-dashboard-operational-note"
+          >
+            <CheckCircle2 aria-hidden="true" />
+            <div>
+              <strong>المرجع التشغيلي الأول</strong>
+              <p>
+                هذه الصفحة هي أول تطبيق Adoption كامل بعد تثبيت نظام التصميم،
+                ومنها سنوحّد بقية صفحات AquaFlow تدريجيًا.
+              </p>
+            </div>
+          </AquaCard>
+        </AquaDataPanel>
       </div>
     </div>
-  );
+  )
 }

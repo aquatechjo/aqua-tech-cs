@@ -76,6 +76,16 @@ Status: **implemented**
 - Add a compact document preview and dedicated print flow.
 - Fix light-document detail-list contrast and release package patch `0.6.1`.
 
+## AD-01 — Dashboard Overview Adoption
+
+Status: **implemented**
+
+- Migrate the operational dashboard overview to canonical Aqua components.
+- Preserve existing metrics, activity visibility, and role permissions.
+- Add responsive metric, activity, and quick-action layouts.
+- Use the company timezone with Latin digits for operational timestamps.
+- Establish the dashboard as the first reference for AquaFlow-wide adoption.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.
