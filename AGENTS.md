@@ -26,3 +26,7 @@ Mandatory rules:
 9. Dashboard routes must use the canonical application shell; do not create page-specific fixed sidebars or topbars.
 10. Shell layout and navigation CSS must use logical RTL/LTR properties and the approved compact/comfortable density contract.
 
+11. Data-heavy pages must use the DS-04 data-panel, filter, table, pagination, and state patterns instead of page-specific table wrappers.
+12. Destructive or state-changing actions that need confirmation must use the canonical accessible confirmation dialog; do not use `window.confirm`.
+13. Mobile tables must explicitly choose `scroll` or `stack` strategy, and stacked cells must provide `data-label` values.
+14. Shared workflow patterns belong in `aqua-patterns.css`; do not add new cross-page table, modal, tabs, or filter rules to `aqua-bootstrap.css`.

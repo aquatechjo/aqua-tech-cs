@@ -9,6 +9,7 @@ type AquaSelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
   error?: string
   size?: AquaFieldSize
   wrapperClassName?: string
+  span?: 2 | 3 | 4 | 6 | 12
 }
 
 const AquaSelect = React.forwardRef<HTMLSelectElement, AquaSelectProps>(
@@ -22,6 +23,7 @@ const AquaSelect = React.forwardRef<HTMLSelectElement, AquaSelectProps>(
       required,
       className,
       wrapperClassName,
+      span,
       "aria-describedby": ariaDescribedBy,
       children,
       ...props
@@ -37,7 +39,10 @@ const AquaSelect = React.forwardRef<HTMLSelectElement, AquaSelectProps>(
       .join(" ")
 
     return (
-      <div className={clsx("aqua-field", wrapperClassName)}>
+      <div
+        className={clsx("aqua-field", wrapperClassName)}
+        data-aqua-span={span}
+      >
         {label ? (
           <label className="aqua-field__label" htmlFor={controlId}>
             {label}

@@ -9,6 +9,7 @@ type AquaInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   error?: string
   size?: AquaFieldSize
   wrapperClassName?: string
+  span?: 2 | 3 | 4 | 6 | 12
 }
 
 const AquaInput = React.forwardRef<HTMLInputElement, AquaInputProps>(
@@ -22,6 +23,7 @@ const AquaInput = React.forwardRef<HTMLInputElement, AquaInputProps>(
       required,
       className,
       wrapperClassName,
+      span,
       "aria-describedby": ariaDescribedBy,
       ...props
     },
@@ -36,7 +38,10 @@ const AquaInput = React.forwardRef<HTMLInputElement, AquaInputProps>(
       .join(" ")
 
     return (
-      <div className={clsx("aqua-field", wrapperClassName)}>
+      <div
+        className={clsx("aqua-field", wrapperClassName)}
+        data-aqua-span={span}
+      >
         {label ? (
           <label className="aqua-field__label" htmlFor={controlId}>
             {label}

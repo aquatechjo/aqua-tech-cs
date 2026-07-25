@@ -192,6 +192,9 @@ export default async function ClientsPage({
             type,
             source,
           }}
+          from={from}
+          to={to}
+          totalItems={totalClients}
         />
       }
     />

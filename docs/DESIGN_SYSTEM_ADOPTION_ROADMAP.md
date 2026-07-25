@@ -32,10 +32,14 @@ Status: **implemented**
 
 ## DS-04 — Data and Workflow Patterns
 
-- Standardize tables, filters, search, pagination, forms, modals, tabs, and detail pages.
-- Define mobile table strategy.
-- Add loading, empty, error, success, and permission-denied states.
-- Consolidate AquaFlow CSS patches into structured layers.
+Status: **implemented**
+
+- Standardize form sections, filters, data panels, responsive tables, pagination, modals, confirmation dialogs, tabs, and detail lists.
+- Define scroll and stacked mobile table strategies.
+- Add loading, empty, error, success, and permission-denied page states.
+- Add accessible modal focus management, Escape handling, body scroll locking, and reduced-motion behavior.
+- Introduce `aqua-patterns.css` as the structured workflow layer above primitives and the application shell.
+- Migrate the Clients CRM page as the first canonical implementation.
 
 ## DS-05 — Auth and Public Surfaces
 

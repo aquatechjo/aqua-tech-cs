@@ -9,6 +9,7 @@ type AquaTextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
   error?: string
   size?: AquaFieldSize
   wrapperClassName?: string
+  span?: 2 | 3 | 4 | 6 | 12
 }
 
 const AquaTextarea = React.forwardRef<HTMLTextAreaElement, AquaTextareaProps>(
@@ -22,6 +23,7 @@ const AquaTextarea = React.forwardRef<HTMLTextAreaElement, AquaTextareaProps>(
       required,
       className,
       wrapperClassName,
+      span,
       "aria-describedby": ariaDescribedBy,
       ...props
     },
@@ -36,7 +38,10 @@ const AquaTextarea = React.forwardRef<HTMLTextAreaElement, AquaTextareaProps>(
       .join(" ")
 
     return (
-      <div className={clsx("aqua-field", wrapperClassName)}>
+      <div
+        className={clsx("aqua-field", wrapperClassName)}
+        data-aqua-span={span}
+      >
         {label ? (
           <label className="aqua-field__label" htmlFor={controlId}>
             {label}

@@ -33,17 +33,27 @@ function getPages(currentPage: number, totalPages: number) {
   return pages
 }
 
+type AquaPaginationProps = {
+  basePath: string
+  currentPage: number
+  totalPages: number
+  queryParams?: Record<string, string | undefined | null>
+  from?: number
+  to?: number
+  totalItems?: number
+  label?: string
+}
+
 export default function AquaPagination({
   basePath,
   currentPage,
   totalPages,
   queryParams,
-}: {
-  basePath: string
-  currentPage: number
-  totalPages: number
-  queryParams?: Record<string, string | undefined | null>
-}) {
+  from,
+  to,
+  totalItems,
+  label = "التنقل بين الصفحات",
+}: AquaPaginationProps) {
   if (totalPages <= 1) return null
 
   const pages = getPages(currentPage, totalPages)
@@ -62,50 +72,80 @@ export default function AquaPagination({
     return `${basePath}?${params.toString()}`
   }
 
+  const hasSummary =
+    typeof from === "number" &&
+    typeof to === "number" &&
+    typeof totalItems === "number"
+
   return (
-    <nav aria-label="Pagination">
-      <ul className="pagination aqua-pagination justify-content-center justify-content-md-end">
-        <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
-          {currentPage <= 1 ? (
-            <span className="page-link">السابق</span>
-          ) : (
-            <Link className="page-link" href={pageHref(currentPage - 1)}>
-              السابق
-            </Link>
-          )}
-        </li>
+    <div className="aqua-pagination-shell">
+      {hasSummary ? (
+        <div className="aqua-pagination-summary" aria-live="polite">
+          عرض {from}–{to} من أصل {totalItems}
+        </div>
+      ) : (
+        <div className="aqua-pagination-summary" aria-live="polite">
+          الصفحة {currentPage} من {totalPages}
+        </div>
+      )}
 
-        {pages.map((page, index) =>
-          page === "..." ? (
-            <li key={`dots-${index}`} className="page-item disabled">
-              <span className="page-link">...</span>
-            </li>
-          ) : (
-            <li
-              key={page}
-              className={`page-item ${page === currentPage ? "active" : ""}`}
-            >
-              <Link className="page-link" href={pageHref(page)}>
-                {page}
+      <nav aria-label={label}>
+        <ul className="pagination aqua-pagination">
+          <li className={`page-item ${currentPage <= 1 ? "disabled" : ""}`}>
+            {currentPage <= 1 ? (
+              <span className="page-link" aria-disabled="true">
+                السابق
+              </span>
+            ) : (
+              <Link className="page-link" href={pageHref(currentPage - 1)}>
+                السابق
               </Link>
-            </li>
-          )
-        )}
+            )}
+          </li>
 
-        <li
-          className={`page-item ${
-            currentPage >= totalPages ? "disabled" : ""
-          }`}
-        >
-          {currentPage >= totalPages ? (
-            <span className="page-link">التالي</span>
-          ) : (
-            <Link className="page-link" href={pageHref(currentPage + 1)}>
-              التالي
-            </Link>
+          {pages.map((page, index) =>
+            page === "..." ? (
+              <li key={`dots-${index}`} className="page-item disabled">
+                <span className="page-link" aria-hidden="true">
+                  …
+                </span>
+              </li>
+            ) : (
+              <li
+                key={page}
+                className={`page-item ${page === currentPage ? "active" : ""}`}
+              >
+                <Link
+                  className="page-link"
+                  href={pageHref(page)}
+                  aria-current={page === currentPage ? "page" : undefined}
+                  aria-label={`الصفحة ${page}`}
+                >
+                  {page}
+                </Link>
+              </li>
+            )
           )}
-        </li>
-      </ul>
-    </nav>
+
+          <li
+            className={`page-item ${
+              currentPage >= totalPages ? "disabled" : ""
+            }`}
+          >
+            {currentPage >= totalPages ? (
+              <span className="page-link" aria-disabled="true">
+                التالي
+              </span>
+            ) : (
+              <Link className="page-link" href={pageHref(currentPage + 1)}>
+                التالي
+              </Link>
+            )}
+          </li>
+        </ul>
+      </nav>
+    </div>
   )
 }
+
+export type { AquaPaginationProps }
