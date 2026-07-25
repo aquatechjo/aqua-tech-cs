@@ -64,6 +64,18 @@ Status: **implemented**
 - Add semantic versioning, release channels, migration notes, and release-gate rules.
 - Keep browser screenshot review as a required human release gate before external stable publication.
 
+## DS-06.1 — Showcase UX and Visual Polish
+
+Status: **implemented**
+
+- Give the Design System Showcase a dedicated full-width focus mode.
+- Replace the long page with accessible section navigation and one focused panel at a time.
+- Explain Package, Package Sync, Product Starter, and Visual Contract in plain language.
+- Reorganize component examples, forms, workflows, and governance by intent.
+- Clarify baseline status versus live command execution.
+- Add a compact document preview and dedicated print flow.
+- Fix light-document detail-list contrast and release package patch `0.6.1`.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.

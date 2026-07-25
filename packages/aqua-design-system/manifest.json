@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "packageName": "@aqua-tech/design-system",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "source": "AquaFlow",
   "cssImportOrder": [
     "aqua-tokens.css",

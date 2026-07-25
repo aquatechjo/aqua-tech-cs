@@ -4,7 +4,7 @@ Internal Aqua.Tech Design System package generated from AquaFlow.
 
 ## Version
 
-0.6.0
+0.6.1
 
 ## Next.js usage
 

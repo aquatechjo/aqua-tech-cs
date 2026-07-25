@@ -476,3 +476,18 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* DS-06.1: shared dark-surface detail lists must remain legible inside light documents. */
+.aqua-system-document .aqua-detail-list__item {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+}
+
+.aqua-system-document .aqua-detail-list__label,
+.aqua-system-document .aqua-detail-list__hint {
+  color: #64748b;
+}
+
+.aqua-system-document .aqua-detail-list__value {
+  color: #0f172a;
+}

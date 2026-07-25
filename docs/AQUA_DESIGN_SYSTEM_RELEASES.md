@@ -3,9 +3,21 @@
 ## Package
 
 - Name: `@aqua-tech/design-system`
-- Current internal version: `0.6.0`
+- Current internal version: `0.6.1`
 - Canonical source: AquaFlow
 - Generated package: `packages/aqua-design-system`
+
+
+## 0.6.1 — internal
+
+Release level: **patch**
+
+- Reorganized the in-product Showcase into a focused, accessible section reference.
+- Added full-width Showcase shell behavior while retaining the navigation drawer.
+- Clarified approved-baseline status versus live quality-gate execution.
+- Added compact system-document screen preview and dedicated print flow.
+- Fixed `AquaDetailList` contrast inside light `AquaSystemDocument` output.
+- No consumer migration and no public prop changes.
 
 ## Semantic versioning
 

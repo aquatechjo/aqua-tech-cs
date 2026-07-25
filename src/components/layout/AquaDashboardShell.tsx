@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { usePathname } from "next/navigation"
 import type {
   AquaNavigationSection,
   AquaShellDensity,
@@ -35,7 +36,9 @@ export default function AquaDashboardShell({
   sections,
   density = "comfortable",
 }: AquaDashboardShellProps) {
+  const pathname = usePathname()
   const [navigationOpen, setNavigationOpen] = useState(false)
+  const showcaseMode = pathname === "/dashboard/design-system"
   const drawerRef = useRef<HTMLDivElement | null>(null)
   const menuButtonRef = useRef<HTMLButtonElement | null>(null)
   const closeButtonRef = useRef<HTMLButtonElement | null>(null)
@@ -102,7 +105,9 @@ export default function AquaDashboardShell({
 
   return (
     <div
-      className="aqua-page aqua-shell"
+      className={`aqua-page aqua-shell ${
+        showcaseMode ? "aqua-shell--showcase" : ""
+      }`}
       dir="rtl"
       data-aqua-density={density}
     >

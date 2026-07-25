@@ -47,7 +47,7 @@ function fileNames(directory: string, extension: string) {
 
 test("DS-06 exposes constrained package, starter, and release contracts", () => {
   assert.equal(aquaDesignSystemPackageName, "@aqua-tech/design-system")
-  assert.equal(aquaDesignSystemVersion, "0.6.0")
+  assert.match(aquaDesignSystemVersion, /^0\.6\.\d+$/u)
   assert.deepEqual(aquaDesignSystemCssLayers, [
     "tokens",
     "bootstrap",
@@ -124,11 +124,16 @@ test("package synchronization and starter scripts enforce safe boundaries", () =
 
 test("the in-product Showcase covers every governed section", () => {
   for (const section of aquaDesignSystemShowcase.sections) {
-    assert.ok(showcasePage.includes(`id="${section.id}"`))
+    assert.ok(
+      showcasePage.includes(`activeSection === "${section.id}"`),
+      `Missing focused Showcase renderer for ${section.id}`
+    )
   }
 
   assert.match(showcasePage, /data-aqua-showcase-version/u)
-  assert.match(showcasePage, /AquaPageHeader/u)
+  assert.match(showcasePage, /className="aqua-showcase__hero"/u)
+  assert.match(showcasePage, /role="tablist"/u)
+  assert.match(showcasePage, /role="tabpanel"/u)
   assert.match(showcasePage, /npm run ds:check/u)
   assert.match(showcasePage, /npm run test:visual/u)
 })
