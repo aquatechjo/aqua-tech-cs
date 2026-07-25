@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { LogOut } from "lucide-react"
 
 import { AquaButton } from "@/components/aqua"
 
@@ -32,6 +33,8 @@ export default function LogoutButton() {
       onClick={handleLogout}
       loading={loading}
       loadingLabel="جارٍ تسجيل الخروج"
+      leadingIcon={<LogOut />}
+      aria-label="تسجيل الخروج"
     >
       تسجيل الخروج
     </AquaButton>

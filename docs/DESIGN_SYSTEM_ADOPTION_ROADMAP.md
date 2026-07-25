@@ -23,6 +23,8 @@ Status: **implemented**
 
 ## DS-03 — Application Shell
 
+Status: **implemented**
+
 - Standardize sidebar, topbar, page shell, page header, breadcrumbs, and mobile navigation.
 - Define compact/comfortable density modes.
 - Fix logical RTL/LTR behavior.

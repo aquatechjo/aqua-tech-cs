@@ -23,4 +23,6 @@ Mandatory rules:
 6. Every component change must cover focus-visible, disabled, loading, responsive, RTL/LTR, and reduced-motion behavior where applicable.
 7. Do not convert a one-off page style into a shared rule without documenting and tokenizing it.
 8. Preserve the 70% shared DNA / 30% product personality model.
+9. Dashboard routes must use the canonical application shell; do not create page-specific fixed sidebars or topbars.
+10. Shell layout and navigation CSS must use logical RTL/LTR properties and the approved compact/comfortable density contract.
 

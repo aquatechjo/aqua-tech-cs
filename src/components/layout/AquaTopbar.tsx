@@ -1,33 +1,55 @@
-import LogoutButton from "@/components/auth/LogoutButton"
-import { AquaBadge } from "@/components/aqua"
+"use client"
 
-export default function AquaTopbar({
-  title,
-  subtitle,
-  userEmail,
-  userRole,
-}: {
-  title: string
-  subtitle: string
+import type { RefObject } from "react"
+import { Menu } from "lucide-react"
+
+import { AquaButton } from "@/components/aqua"
+import LogoutButton from "@/components/auth/LogoutButton"
+
+import AquaPageTitle from "./AquaPageTitle"
+
+type AquaTopbarProps = {
   userEmail: string
   userRole: string
-}) {
+  navigationOpen: boolean
+  onOpenNavigation: () => void
+  menuButtonRef?: RefObject<HTMLButtonElement | null>
+}
+
+export default function AquaTopbar({
+  userEmail,
+  userRole,
+  navigationOpen,
+  onOpenNavigation,
+  menuButtonRef,
+}: AquaTopbarProps) {
   return (
-    <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-950/75 px-6 py-4 backdrop-blur-xl">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <AquaBadge>Growth • Software • AI</AquaBadge>
-          <h1 className="mt-3 text-2xl font-black">{title}</h1>
-          <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+    <header className="aqua-topbar">
+      <div className="aqua-topbar__inner">
+        <div className="aqua-topbar__heading-group">
+          <AquaButton
+            ref={menuButtonRef}
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="aqua-shell-icon-button aqua-topbar__menu-button"
+            aria-label="فتح قائمة التنقل"
+            aria-haspopup="dialog"
+            aria-expanded={navigationOpen}
+            aria-controls="aqua-mobile-navigation"
+            onClick={onOpenNavigation}
+            leadingIcon={<Menu />}
+          >
+            <span className="visually-hidden">فتح قائمة التنقل</span>
+          </AquaButton>
+
+          <AquaPageTitle />
         </div>
 
-        <div className="flex items-center gap-3">
-          <div
-            className="hidden rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2 text-left text-sm sm:block"
-            dir="ltr"
-          >
-            <div className="font-semibold text-white">{userEmail}</div>
-            <div className="text-xs text-slate-500">{userRole}</div>
+        <div className="aqua-topbar__actions">
+          <div className="aqua-topbar__identity" dir="ltr">
+            <div className="aqua-topbar__email">{userEmail}</div>
+            <div className="aqua-topbar__role">{userRole}</div>
           </div>
 
           <LogoutButton />
