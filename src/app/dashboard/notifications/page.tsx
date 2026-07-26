@@ -95,7 +95,7 @@ export default async function NotificationsPage({
         <AquaPageHeader
           badge="Notifications Center"
           title="مركز التنبيهات"
-          description="كل التنبيهات الداخلية الخاصة بالنظام، الفريق، والإجراءات المهمة داخل AquaFlow."
+          description="كل التنبيهات الداخلية الخاصة بالنظام، الفريق، والإجراءات المهمة داخل Aqua tech CS."
           brandValue="Alerts"
         />
       </div>

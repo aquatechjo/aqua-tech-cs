@@ -97,7 +97,8 @@ export default async function DashboardLayout({
 
   return (
     <AquaDashboardShell
-      companyName={user.company.name}
+      projectName={aquaFlowTheme.productName}
+      language={user.company.language}
       userEmail={user.email}
       userRole={user.role}
       sections={navigationSections}

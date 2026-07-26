@@ -14,15 +14,16 @@ import "@/styles/aqua-my-day.css"
 import "flatpickr/dist/flatpickr.min.css"
 
 import AquaToastViewport from "@/components/aqua/AquaToast"
+import { aquaFlowTheme } from "@/design-system"
 
 export const metadata: Metadata = {
   title: {
-    default: "AquaFlow | Aqua.Tech OS",
-    template: "%s | AquaFlow",
+    default: `${aquaFlowTheme.productName} | Aqua.Tech`,
+    template: `%s | ${aquaFlowTheme.productName}`,
   },
   description:
-    "AquaFlow is the internal operations system for Aqua.Tech — Growth, Software, and AI.",
-  applicationName: "AquaFlow",
+    `${aquaFlowTheme.productName} is the core operating system for Aqua.Tech — Growth, Software, and AI.`,
+  applicationName: aquaFlowTheme.productName,
   authors: [{ name: "Aqua.Tech" }],
   creator: "Aqua.Tech",
   publisher: "Aqua.Tech",

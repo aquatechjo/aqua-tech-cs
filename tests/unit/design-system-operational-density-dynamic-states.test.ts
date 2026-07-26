@@ -6,6 +6,8 @@ const myDayPage = readFileSync("src/app/dashboard/my-day/page.tsx", "utf8")
 const myDayCss = readFileSync("src/styles/aqua-my-day.css", "utf8")
 const shellCss = readFileSync("src/styles/aqua-operational-shell.css", "utf8")
 const topbar = readFileSync("src/components/layout/AquaTopbar.tsx", "utf8")
+const pageTitle = readFileSync("src/components/layout/AquaPageTitle.tsx", "utf8")
+const dashboardLayout = readFileSync("src/app/dashboard/layout.tsx", "utf8")
 const sidebar = readFileSync("src/components/layout/AquaSidebar.tsx", "utf8")
 const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
   scripts: Record<string, string>
@@ -40,7 +42,9 @@ test("AD-02.2 balances the account chip and compacts the navigation shell", () =
   assert.match(topbar, /roleLabel/u)
   assert.match(topbar, /aqua-topbar__account-label/u)
   assert.ok(topbar.includes("title={`الحساب: ${userEmail}`}"))
-  assert.match(sidebar, /بيئة التشغيل الداخلية/u)
+  assert.match(sidebar, /showTagline=\{false\}/u)
+  assert.doesNotMatch(sidebar, /Internal OS/u)
+  assert.doesNotMatch(sidebar, /بيئة التشغيل الداخلية/u)
 
   for (const token of [
     "--aqua-shell-sidebar-width: 256px",
@@ -50,6 +54,29 @@ test("AD-02.2 balances the account chip and compacts the navigation shell", () =
     "min-height: 980px",
   ]) {
     assert.match(shellCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "u"))
+  }
+})
+
+test("topbar keeps only the project, current page, language, account, and logout controls", () => {
+  assert.match(dashboardLayout, /projectName=\{aquaFlowTheme\.productName\}/u)
+  assert.match(dashboardLayout, /language=\{user\.company\.language\}/u)
+  assert.match(topbar, /aqua-topbar__project-name/u)
+  assert.match(topbar, /aqua-topbar__language/u)
+  assert.match(topbar, /href="\/dashboard\/settings"/u)
+  assert.match(topbar, /<AquaPageTitle \/>/u)
+  assert.doesNotMatch(pageTitle, /aqua-breadcrumbs/u)
+  assert.doesNotMatch(pageTitle, /page\.subtitle/u)
+
+  for (const token of [
+    ".aqua-topbar__page-context",
+    ".aqua-topbar__project-name",
+    ".aqua-topbar__context-divider",
+    ".aqua-topbar__language",
+  ]) {
+    assert.match(
+      shellCss,
+      new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "u")
+    )
   }
 })
 

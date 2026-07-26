@@ -3,10 +3,21 @@
 ## Package
 
 - Name: `@aqua-tech/design-system`
-- Current internal version: `0.6.1`
+- Current internal version: `0.7.0`
 - Canonical source: AquaFlow
 - Generated package: `packages/aqua-design-system`
 
+## 0.7.0 — internal
+
+Release level: **minor**
+
+- Added optional product-logo support to `AquaProductTheme`.
+- Added the backwards-compatible `showTagline` control to `AquaMark`.
+- Updated the validating product identity to `Aqua tech CS`.
+- Preserved the initials fallback for consumers that do not provide `logoSrc`.
+- Consumer migration: none required; existing themes and `AquaMark` calls remain valid.
+- Visual review surfaces: desktop RTL shell, authentication, dashboard hero, system document, and browser icon.
+- Quality gate: package sync, lint, typecheck, unit tests, visual contract, and production build.
 
 ## 0.6.1 — internal
 

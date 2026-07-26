@@ -132,7 +132,7 @@ export default async function FinanceDashboardPage() {
       <AquaPageHeader
         badge="Operational Finance"
         title="المالية التشغيلية"
-        description="متابعة الفواتير والتحصيل والمصروفات وهامش المشاريع داخل AquaFlow. هذه لوحة تشغيلية وليست دفتر محاسبة قانونيًا."
+        description="متابعة الفواتير والتحصيل والمصروفات وهامش المشاريع داخل Aqua tech CS. هذه لوحة تشغيلية وليست دفتر محاسبة قانونيًا."
         brandValue="Finance"
       />
 

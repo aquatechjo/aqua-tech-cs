@@ -403,6 +403,19 @@ html[dir="ltr"] .aqua-select,
   box-shadow: 0 14px 34px rgba(var(--at-product-accent-rgb), 0.2);
 }
 
+.aqua-mark--image {
+  overflow: hidden;
+  border: 1px solid rgba(var(--at-product-accent-rgb), 0.24);
+  background: var(--at-product-bg);
+}
+
+.aqua-mark__image {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
 .aqua-mark--sm {
   inline-size: 40px;
   block-size: 40px;

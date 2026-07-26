@@ -69,7 +69,7 @@ const overviewCards = [
     title: "مزامنة تلقائية",
     term: "Package sync",
     description:
-      "فحص يمنع اختلاف النسخة القابلة لإعادة الاستخدام عن المصدر الأساسي داخل AquaFlow.",
+      "فحص يمنع اختلاف النسخة القابلة لإعادة الاستخدام عن المصدر الأساسي داخل Aqua tech CS.",
     icon: <RefreshCw />,
   },
   {
@@ -389,7 +389,7 @@ function OverviewSection() {
           <span className="aqua-showcase__eyebrow">طريقة العمل</span>
           <h3>المصدر يتغيّر مرة واحدة، ثم تمر التغييرات عبر بوابات واضحة</h3>
           <p>
-            نعدّل المكوّن في AquaFlow، نزامن الحزمة، نفحص العقود والبصمة البصرية،
+            نعدّل المكوّن في Aqua tech CS، نزامن الحزمة، نفحص العقود والبصمة البصرية،
             ثم نشغّل بوابة الجودة قبل الاعتماد.
           </p>
         </div>
@@ -406,7 +406,7 @@ function OverviewSection() {
       </AquaCard>
 
       <AquaAlert variant="info" title="ماذا لا يعني ذلك؟">
-        هذه الصفحة ليست واجهة نهائية للعملاء، ولا تعني أن جميع صفحات AquaFlow تحولت
+        هذه الصفحة ليست واجهة نهائية للعملاء، ولا تعني أن جميع صفحات Aqua tech CS تحولت
         تلقائيًا. هي المرجع الذي سنستخدمه عند مرحلة التبنّي التدريجي.
       </AquaAlert>
     </ShowcaseSection>
@@ -545,7 +545,7 @@ function FormsSection() {
         <div className="aqua-showcase__form-grid">
           <AquaInput
             label="اسم المنتج"
-            defaultValue="AquaFlow"
+            defaultValue="Aqua tech CS"
             hint="اسم واضح وقصير يظهر داخل النظام."
           />
           <AquaSelect label="شخصية المنتج" defaultValue="operational">
@@ -732,7 +732,7 @@ function PublicSection({ onPrint }: { onPrint: () => void }) {
                     value: aquaDesignSystemVersion,
                     dir: "ltr",
                   },
-                  { label: "المصدر", value: "AquaFlow" },
+                  { label: "المصدر", value: "Aqua tech CS" },
                 ]}
               />
               <div className="aqua-showcase__document-note">

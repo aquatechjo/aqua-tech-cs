@@ -1,168 +1,136 @@
-/* AquaFlow Design System Adoption — AD-01 Dashboard Overview */
+/* Aqua tech CS Design System Adoption — AD-02.6 Employee Dashboard Polish */
 
 .aqua-dashboard-overview {
   display: grid;
-  gap: var(--at-space-5);
+  gap: var(--at-space-4);
 }
 
-.aqua-dashboard-hero {
+.aqua-dashboard-summary {
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.55fr);
-  gap: var(--at-space-8);
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--at-space-4);
+  min-block-size: 148px;
   overflow: hidden;
   background:
     radial-gradient(
-      circle at 8% 12%,
-      rgba(var(--at-product-accent-rgb), 0.16),
-      transparent 34%
+      circle at 10% 0%,
+      rgba(var(--at-product-accent-rgb), 0.14),
+      transparent 38%
     ),
     linear-gradient(
       135deg,
-      color-mix(in srgb, var(--at-product-surface) 92%, transparent),
-      color-mix(in srgb, var(--at-product-bg) 84%, transparent)
+      color-mix(in srgb, var(--at-product-surface) 94%, transparent),
+      color-mix(in srgb, var(--at-product-bg) 88%, transparent)
     );
 }
 
-.aqua-dashboard-hero::after {
+.aqua-dashboard-summary::after {
   position: absolute;
   z-index: -1;
   inset: 0;
   background-image:
     linear-gradient(
-      rgba(var(--at-product-accent-rgb), 0.045) 1px,
+      rgba(var(--at-product-accent-rgb), 0.04) 1px,
       transparent 1px
     ),
     linear-gradient(
       90deg,
-      rgba(var(--at-product-accent-rgb), 0.045) 1px,
+      rgba(var(--at-product-accent-rgb), 0.04) 1px,
       transparent 1px
     );
-  background-size: 48px 48px;
+  background-size: var(--at-space-12) var(--at-space-12);
   content: "";
   mask-image: linear-gradient(90deg, transparent, #000 35%, #000);
   pointer-events: none;
 }
 
-.aqua-dashboard-hero__copy {
+.aqua-dashboard-summary__copy {
   display: grid;
-  align-content: center;
-  gap: var(--at-space-3);
+  gap: var(--at-space-2);
   min-inline-size: 0;
 }
 
-.aqua-dashboard-hero__badges,
-.aqua-dashboard-hero__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--at-space-2);
-}
-
-.aqua-dashboard-hero__eyebrow {
+.aqua-dashboard-summary__eyebrow {
   color: var(--at-product-accent-soft);
   font-family: var(--at-font-mono);
   font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.08em;
 }
 
-.aqua-dashboard-hero h1 {
-  max-inline-size: 17ch;
+.aqua-dashboard-summary h1 {
   margin: 0;
   color: var(--at-product-text);
-  font-size: clamp(2rem, 4vw, 3.75rem);
-  font-weight: 950;
-  line-height: 1.12;
-  text-wrap: balance;
+  font-size: clamp(1.4rem, 2.2vw, 1.85rem);
+  font-weight: 900;
+  line-height: 1.25;
 }
 
-.aqua-dashboard-hero__copy > p {
-  max-inline-size: 64rem;
+.aqua-dashboard-summary__copy > p {
+  max-inline-size: 58ch;
   margin: 0;
   color: var(--at-product-muted);
-  font-size: clamp(0.92rem, 1.2vw, 1.03rem);
-  line-height: 1.9;
+  font-size: 0.86rem;
+  line-height: 1.75;
 }
 
-.aqua-dashboard-hero__actions {
-  margin-block-start: var(--at-space-3);
-}
-
-.aqua-dashboard-hero__identity {
+.aqua-dashboard-summary__context {
   display: grid;
-  align-content: center;
-  gap: var(--at-space-5);
-  min-inline-size: 0;
-  padding: var(--at-space-5);
-  border: 1px solid var(--at-product-border);
-  border-radius: var(--at-radius-xl);
-  background: color-mix(in srgb, var(--at-product-surface-soft) 78%, transparent);
-  box-shadow: var(--at-shadow-sm);
-  backdrop-filter: blur(18px);
-}
-
-.aqua-dashboard-context-list {
-  display: grid;
+  justify-items: end;
   gap: var(--at-space-2);
-  margin: 0;
+  min-inline-size: 220px;
 }
 
-.aqua-dashboard-context-list > div {
+.aqua-dashboard-summary__date {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--at-space-3);
-  padding-block: var(--at-space-2);
-  border-block-start: 1px solid var(--at-product-border);
-}
-
-.aqua-dashboard-context-list dt,
-.aqua-dashboard-context-list dd {
-  margin: 0;
-}
-
-.aqua-dashboard-context-list dt {
-  color: var(--at-product-soft-text);
-  font-size: 0.76rem;
+  gap: var(--at-space-2);
+  color: var(--at-product-muted);
+  font-size: 0.78rem;
   font-weight: 700;
 }
 
-.aqua-dashboard-context-list dd {
-  min-inline-size: 0;
-  color: var(--at-product-text);
-  font-size: 0.82rem;
-  font-weight: 850;
-  text-align: end;
-  overflow-wrap: anywhere;
+.aqua-dashboard-summary__date svg {
+  inline-size: 17px;
+  block-size: 17px;
+  color: var(--at-product-accent-soft);
+}
+
+.aqua-dashboard-summary__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--at-space-2);
 }
 
 .aqua-dashboard-metrics {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--at-space-4);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--at-space-3);
 }
 
 .aqua-dashboard-metric {
   position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  gap: var(--at-space-4);
-  min-block-size: 154px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--at-space-3);
+  min-block-size: 108px;
   overflow: hidden;
 }
 
 .aqua-dashboard-metric::after {
   position: absolute;
-  inset-block: 0;
+  inset-block: var(--at-space-3);
   inset-inline-end: 0;
-  inline-size: 3px;
+  inline-size: var(--at-space-1);
   border-radius: var(--at-radius-pill);
   background: var(--at-product-accent);
   content: "";
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .aqua-dashboard-metric[data-tone="blue"]::after {
@@ -173,28 +141,36 @@
   background: var(--at-success);
 }
 
+.aqua-dashboard-metric[data-tone="warning"]::after {
+  background: var(--at-warning);
+}
+
+.aqua-dashboard-metric[data-tone="danger"]::after {
+  background: var(--at-danger);
+}
+
 .aqua-dashboard-metric__icon,
-.aqua-dashboard-activity-item__icon,
-.aqua-dashboard-quick-link__heading > span,
-.aqua-dashboard-operational-note > svg {
+.aqua-dashboard-focus-item__icon,
+.aqua-dashboard-attention-item__icon,
+.aqua-dashboard-activity-item__icon {
   display: inline-flex;
-  inline-size: 44px;
-  block-size: 44px;
+  inline-size: 40px;
+  block-size: 40px;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(var(--at-product-accent-rgb), 0.28);
-  border-radius: var(--at-radius-lg);
-  background: rgba(var(--at-product-accent-rgb), 0.09);
+  border: 1px solid rgba(var(--at-product-accent-rgb), 0.26);
+  border-radius: var(--at-radius-md);
+  background: rgba(var(--at-product-accent-rgb), 0.08);
   color: var(--at-product-accent-soft);
 }
 
 .aqua-dashboard-metric__icon svg,
-.aqua-dashboard-activity-item__icon svg,
-.aqua-dashboard-quick-link__heading svg,
-.aqua-dashboard-operational-note > svg {
-  inline-size: 20px;
-  block-size: 20px;
+.aqua-dashboard-focus-item__icon svg,
+.aqua-dashboard-attention-item__icon svg,
+.aqua-dashboard-activity-item__icon svg {
+  inline-size: 19px;
+  block-size: 19px;
 }
 
 .aqua-dashboard-metric__copy {
@@ -205,31 +181,44 @@
 
 .aqua-dashboard-metric__copy > span {
   color: var(--at-product-muted);
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   font-weight: 750;
 }
 
 .aqua-dashboard-metric__copy > strong {
   color: var(--at-product-text);
   font-family: var(--at-font-mono);
-  font-size: clamp(2rem, 4vw, 2.9rem);
+  font-size: 1.7rem;
   font-weight: 900;
-  line-height: 1.15;
+  line-height: 1;
 }
 
 .aqua-dashboard-metric__copy > small {
+  overflow: hidden;
   color: var(--at-product-soft-text);
-  font-size: 0.73rem;
-  line-height: 1.6;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .aqua-dashboard-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.55fr);
+  grid-template-columns: minmax(0, 1.4fr) minmax(340px, 0.6fr);
   align-items: start;
   gap: var(--at-space-4);
 }
 
+.aqua-dashboard-overview .aqua-data-panel__header,
+.aqua-dashboard-overview .aqua-data-panel__body {
+  padding: var(--at-space-4);
+}
+
+.aqua-dashboard-overview .aqua-data-panel__footer {
+  padding: var(--at-space-3) var(--at-space-4);
+}
+
+.aqua-dashboard-focus-list,
 .aqua-dashboard-activity-list {
   display: grid;
   gap: var(--at-space-2);
@@ -238,9 +227,9 @@
   list-style: none;
 }
 
+.aqua-dashboard-focus-item,
 .aqua-dashboard-activity-item {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--at-space-3);
   padding: var(--at-space-3);
@@ -253,189 +242,218 @@
     transform var(--at-motion-fast) var(--at-ease-standard);
 }
 
+.aqua-dashboard-focus-item {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.aqua-dashboard-activity-item {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.aqua-dashboard-focus-item:hover,
 .aqua-dashboard-activity-item:hover {
   border-color: rgba(var(--at-product-accent-rgb), 0.18);
   background: rgba(var(--at-product-accent-rgb), 0.04);
   transform: translateY(-1px);
 }
 
-.aqua-dashboard-activity-item__icon {
-  inline-size: 38px;
-  block-size: 38px;
-  border-radius: var(--at-radius-md);
+.aqua-dashboard-focus-item__icon[data-blocked="true"] {
+  border-color: color-mix(in srgb, var(--at-danger) 36%, transparent);
+  background: color-mix(in srgb, var(--at-danger) 10%, transparent);
+  color: color-mix(in srgb, var(--at-danger) 72%, white);
 }
 
-.aqua-dashboard-activity-item__copy {
+.aqua-dashboard-focus-item__copy,
+.aqua-dashboard-activity-item__copy,
+.aqua-dashboard-attention-item__copy {
   display: grid;
-  gap: 2px;
+  gap: var(--at-space-1);
   min-inline-size: 0;
 }
 
+.aqua-dashboard-focus-item__copy strong,
 .aqua-dashboard-activity-item__copy strong {
   overflow: hidden;
   color: var(--at-product-text);
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 800;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.aqua-dashboard-focus-item__copy span,
 .aqua-dashboard-activity-item__copy span,
 .aqua-dashboard-activity-item__time {
   color: var(--at-product-soft-text);
-  font-family: var(--at-font-mono);
-  font-size: 0.67rem;
+  font-size: 0.68rem;
 }
 
-.aqua-dashboard-activity-item__time {
-  white-space: nowrap;
+.aqua-dashboard-focus-item__badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--at-space-2);
 }
 
-.aqua-dashboard-quick-panel {
+.aqua-dashboard-attention-panel {
   position: sticky;
-  inset-block-start: 112px;
+  inset-block-start: 96px;
 }
 
-.aqua-dashboard-quick-links {
-  display: grid;
-  gap: var(--at-space-3);
+.aqua-dashboard-attention-panel .aqua-empty-state {
+  padding-block: var(--at-space-3);
 }
 
-.aqua-dashboard-quick-link {
+.aqua-dashboard-attention-panel .aqua-empty-state__icon {
+  inline-size: 40px;
+  block-size: 40px;
+  margin-block-end: var(--at-space-2);
+  border-radius: var(--at-radius-sm);
+}
+
+.aqua-dashboard-attention-panel .aqua-empty-state__icon > svg {
+  inline-size: 20px;
+  block-size: 20px;
+}
+
+.aqua-dashboard-attention-panel .aqua-empty-state__title {
+  font-size: 0.92rem;
+}
+
+.aqua-dashboard-attention-panel .aqua-empty-state__description {
+  margin-block-start: var(--at-space-1);
+  font-size: 0.74rem;
+  line-height: 1.6;
+}
+
+.aqua-dashboard-attention-list {
   display: grid;
   gap: var(--at-space-2);
 }
 
-.aqua-dashboard-quick-link__heading {
-  display: flex;
+.aqua-dashboard-attention-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--at-space-3);
 }
 
-.aqua-dashboard-quick-link__heading > span {
-  inline-size: 38px;
-  block-size: 38px;
-  border-radius: var(--at-radius-md);
+.aqua-dashboard-attention-item__icon {
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: var(--at-radius-sm);
 }
 
-.aqua-dashboard-quick-link__heading strong {
+.aqua-dashboard-attention-item__copy > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--at-space-2);
+}
+
+.aqua-dashboard-attention-item__copy strong {
   color: var(--at-product-text);
-  font-size: 0.88rem;
-  font-weight: 850;
+  font-size: 0.76rem;
+  font-weight: 800;
 }
 
-.aqua-dashboard-quick-link p,
-.aqua-dashboard-operational-note p {
-  margin: 0;
-  color: var(--at-product-muted);
-  font-size: 0.75rem;
-  line-height: 1.65;
+.aqua-dashboard-attention-item__copy > span {
+  overflow: hidden;
+  color: var(--at-product-soft-text);
+  font-size: 0.65rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.aqua-dashboard-quick-link .aqua-button {
-  justify-self: start;
+.aqua-dashboard-activity-item__icon {
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: var(--at-radius-sm);
 }
 
-.aqua-dashboard-operational-note {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--at-space-3);
-  margin-block-start: var(--at-space-4);
+.aqua-dashboard-activity-item {
+  padding-block: var(--at-space-2);
 }
 
-.aqua-dashboard-operational-note > svg {
-  padding: 10px;
+.aqua-dashboard-activity-item__copy span,
+.aqua-dashboard-activity-item__time {
+  font-family: var(--at-font-mono);
 }
 
-.aqua-dashboard-operational-note > div {
-  display: grid;
-  gap: var(--at-space-1);
-}
-
-.aqua-dashboard-operational-note strong {
-  color: var(--at-product-text);
-  font-size: 0.82rem;
-  font-weight: 850;
-}
-
-@media (max-width: 1199.98px) {
-  .aqua-dashboard-hero,
-  .aqua-dashboard-workspace {
-    grid-template-columns: 1fr;
-  }
-
-  .aqua-dashboard-hero h1 {
-    max-inline-size: 22ch;
-  }
-
-  .aqua-dashboard-quick-panel {
-    position: static;
-  }
-
-  .aqua-dashboard-quick-links {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 767.98px) {
-  .aqua-dashboard-overview {
-    gap: var(--at-space-4);
-  }
-
-  .aqua-dashboard-hero {
-    gap: var(--at-space-5);
-  }
-
-  .aqua-dashboard-hero__actions > * {
-    flex: 1 1 100%;
-  }
-
-  .aqua-dashboard-metrics,
-  .aqua-dashboard-quick-links {
-    grid-template-columns: 1fr;
-  }
-
-  .aqua-dashboard-metric {
-    min-block-size: auto;
-  }
-
-  .aqua-dashboard-activity-item {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .aqua-dashboard-activity-item__time {
-    grid-column: 2;
-    white-space: normal;
-  }
-}
-
-@media (max-width: 479.98px) {
-  .aqua-dashboard-hero__identity {
-    padding: var(--at-space-4);
-  }
-
-  .aqua-dashboard-context-list > div {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .aqua-dashboard-context-list dd {
-    text-align: start;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .aqua-dashboard-activity-item {
-    transition: none;
-  }
-
-  .aqua-dashboard-activity-item:hover {
-    transform: none;
-  }
+.aqua-dashboard-activity-item__time {
+  white-space: nowrap;
 }
 
 .aqua-dashboard-panel-note {
   color: var(--at-product-soft-text);
   font-size: 0.74rem;
   line-height: 1.6;
+}
+
+@media (max-width: 1399.98px) {
+  .aqua-dashboard-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .aqua-dashboard-summary,
+  .aqua-dashboard-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .aqua-dashboard-summary__context {
+    min-inline-size: 0;
+    justify-items: start;
+  }
+
+  .aqua-dashboard-summary__actions {
+    justify-content: flex-start;
+  }
+
+  .aqua-dashboard-attention-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .aqua-dashboard-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .aqua-dashboard-metric,
+  .aqua-dashboard-focus-item,
+  .aqua-dashboard-attention-item,
+  .aqua-dashboard-activity-item {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .aqua-dashboard-metric > .aqua-button,
+  .aqua-dashboard-focus-item__badges,
+  .aqua-dashboard-attention-item > .aqua-button,
+  .aqua-dashboard-activity-item__time {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .aqua-dashboard-focus-item__badges {
+    justify-content: flex-start;
+  }
+
+  .aqua-dashboard-summary__actions,
+  .aqua-dashboard-summary__actions > .aqua-button {
+    inline-size: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aqua-dashboard-focus-item,
+  .aqua-dashboard-activity-item {
+    transition: none;
+  }
+
+  .aqua-dashboard-focus-item:hover,
+  .aqua-dashboard-activity-item:hover {
+    transform: none;
+  }
 }

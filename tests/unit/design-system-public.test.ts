@@ -99,7 +99,7 @@ test("transactional email composition is provider-independent and escaped", () =
     ttlMinutes: 20,
   })
 
-  assert.match(email.subject, /AquaFlow/u)
+  assert.match(email.subject, /Aqua tech CS/u)
   assert.match(email.text, /20 دقيقة/u)
   assert.match(email.html, /dir="rtl"/u)
   assert.match(email.html, /role="presentation"/u)

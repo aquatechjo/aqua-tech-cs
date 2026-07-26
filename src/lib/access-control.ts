@@ -50,6 +50,7 @@ export type TaskAccessContext = {
     role: TaskParticipantRole
   }[]
   projectMemberRole?: ProjectMemberRole | null
+  managedUserIds?: readonly string[]
 }
 
 export function hasRole(role: AccessRole, allowedRoles: readonly AccessRole[]) {
@@ -91,6 +92,18 @@ function participantOwnsTask(
   ) === true
 }
 
+function managesTaskWork(task: TaskAccessContext) {
+  const managedUserIds = task.managedUserIds ?? []
+
+  return (
+    (task.assignedToId !== null &&
+      managedUserIds.includes(task.assignedToId)) ||
+    task.participants?.some((participant) =>
+      managedUserIds.includes(participant.userId)
+    ) === true
+  )
+}
+
 export function canEditTask(
   user: { id: string; role: AccessRole },
   task: TaskAccessContext
@@ -100,7 +113,8 @@ export function canEditTask(
     isProjectExecutionManager(task.projectMemberRole) ||
     task.assignedToId === user.id ||
     task.createdById === user.id ||
-    participantCanEdit(user.id, task.participants)
+    participantCanEdit(user.id, task.participants) ||
+    managesTaskWork(task)
   )
 }
 
@@ -126,7 +140,8 @@ export function canManageTaskParticipants(
     isProjectExecutionManager(task.projectMemberRole) ||
     task.assignedToId === user.id ||
     task.createdById === user.id ||
-    participantOwnsTask(user.id, task.participants)
+    participantOwnsTask(user.id, task.participants) ||
+    managesTaskWork(task)
   )
 }
 

@@ -12,7 +12,7 @@ export const aquaRouteDefinitions: readonly AquaRouteDefinition[] = [
   {
     path: "/dashboard",
     title: "لوحة التحكم",
-    subtitle: "Aqua.Tech internal operating system",
+    subtitle: "نظام Aqua tech CS للتشغيل الداخلي",
   },
   {
     path: "/dashboard/team",
@@ -82,7 +82,7 @@ export const aquaRouteDefinitions: readonly AquaRouteDefinition[] = [
   {
     path: "/dashboard/activity",
     title: "النشاطات",
-    subtitle: "سجل العمليات الداخلية داخل AquaFlow",
+    subtitle: "سجل العمليات الداخلية داخل Aqua tech CS",
   },
   {
     path: "/dashboard/design-system",
@@ -108,8 +108,8 @@ export const aquaRouteDefinitions: readonly AquaRouteDefinition[] = [
 
 const fallbackRoute: AquaRouteDefinition = {
   path: "/dashboard",
-  title: "AquaFlow",
-  subtitle: "Aqua.Tech internal operating system",
+  title: "Aqua tech CS",
+  subtitle: "نظام Aqua.Tech للتشغيل الداخلي",
 }
 
 export function resolveAquaRoute(pathname: string): AquaResolvedRoute {

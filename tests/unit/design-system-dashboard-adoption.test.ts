@@ -19,14 +19,13 @@ const roadmap = readFileSync(
   "utf8"
 )
 
-test("AD-01 dashboard uses canonical Aqua components", () => {
+test("AD-02.6 dashboard uses canonical Aqua components without alert duplication", () => {
   for (const component of [
     "AquaBadge",
     "AquaCard",
     "AquaDataPanel",
     "AquaEmptyState",
     "AquaLinkButton",
-    "AquaMark",
   ]) {
     assert.match(dashboardPage, new RegExp(component, "u"))
   }
@@ -34,27 +33,55 @@ test("AD-01 dashboard uses canonical Aqua components", () => {
   assert.doesNotMatch(dashboardPage, /aqua-card aqua-hero/u)
   assert.doesNotMatch(dashboardPage, /display-6 fw-black/u)
   assert.doesNotMatch(dashboardPage, /aqua-stat-card/u)
+  assert.doesNotMatch(dashboardPage, /AquaMark/u)
+  assert.doesNotMatch(dashboardPage, /النظام متصل/u)
+  assert.doesNotMatch(dashboardPage, /الجلسات النشطة/u)
+  assert.doesNotMatch(dashboardPage, /أعضاء الفريق/u)
+  assert.doesNotMatch(dashboardPage, /المرجع التشغيلي الأول/u)
+  assert.doesNotMatch(dashboardPage, /مسارات تحتاج مراجعة/u)
+  assert.doesNotMatch(dashboardPage, />\s*التنبيهات\s*</u)
+  assert.doesNotMatch(dashboardPage, /تنبيهات جديدة/u)
+  assert.doesNotMatch(dashboardPage, /Daily focus|Action queue|Recent activity/u)
 })
 
-test("AD-01 preserves role-aware and timezone-aware behavior", () => {
+test("AD-02.6 dashboard is employee-first, role-aware, and timezone-aware", () => {
   assert.match(dashboardPage, /ACCESS_ROLES\.activityLog/u)
   assert.match(dashboardPage, /ACCESS_ROLES\.salesRead/u)
-  assert.match(dashboardPage, /user\.company\.timezone/u)
+  assert.match(dashboardPage, /ACCESS_ROLES\.financeRead/u)
+  assert.match(dashboardPage, /ACCESS_ROLES\.financeManagement/u)
+  assert.match(dashboardPage, /ACCESS_ROLES\.taskManagement/u)
+  assert.match(dashboardPage, /ACCESS_ROLES\.projectManagement/u)
+  assert.match(dashboardPage, /ACCESS_ROLES\.serviceRequestManagement/u)
+  assert.match(dashboardPage, /ACCESS_ROLES\.timeApproval/u)
+  assert.match(dashboardPage, /ACCESS_ROLES\.leaveApproval/u)
+  assert.match(dashboardPage, /businessDate\(now, timeZone\)/u)
+  assert.match(dashboardPage, /classifyMyDayDueDate/u)
+  assert.match(dashboardPage, /followUpBucket/u)
+  assert.match(dashboardPage, /user\.role === "OWNER"/u)
   assert.match(dashboardPage, /ar-JO-u-nu-latn/u)
   assert.match(dashboardPage, /recentActivities\.length === 0/u)
+  assert.match(dashboardPage, /take: 5/u)
+  assert.match(dashboardPage, /user\?\.name \?\? "النظام"/u)
+  assert.match(dashboardPage, /مهامي قيد التنفيذ/u)
+  assert.match(dashboardPage, /مشاريعي الجارية/u)
+  assert.match(dashboardPage, /status: "IN_PROGRESS"/u)
+  assert.match(dashboardPage, /status: \{ in: \["ISSUED", "PARTIALLY_PAID"\] \}/u)
 })
 
 test("dashboard adoption CSS covers responsive, logical, and reduced-motion states", () => {
   for (const contract of [
-    ".aqua-dashboard-hero",
+    ".aqua-dashboard-summary",
     ".aqua-dashboard-metrics",
     ".aqua-dashboard-workspace",
+    ".aqua-dashboard-focus-item",
+    ".aqua-dashboard-attention-item",
     ".aqua-dashboard-activity-item",
-    ".aqua-dashboard-quick-links",
+    "@media (max-width: 1399.98px)",
     "@media (max-width: 1199.98px)",
     "@media (max-width: 767.98px)",
     "@media (prefers-reduced-motion: reduce)",
     "inset-inline-end",
+    "inset-block-start",
     "min-inline-size",
   ]) {
     assert.match(dashboardCss, new RegExp(contract.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"), "u"))
@@ -69,5 +96,7 @@ test("AD-01 is included in quality gates and the adoption roadmap", () => {
     /design-system-dashboard-adoption\.test\.ts/u
   )
   assert.match(roadmap, /AD-01 — Dashboard Overview Adoption/u)
+  assert.match(roadmap, /AD-02\.5 — Dashboard Operations/u)
+  assert.match(roadmap, /AD-02\.6 — Employee Dashboard Polish/u)
   assert.match(roadmap, /Status: \*\*implemented\*\*/u)
 })

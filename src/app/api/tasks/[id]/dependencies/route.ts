@@ -6,6 +6,8 @@ import { wouldCreateDependencyCycle } from "@/lib/project-execution"
 import { requireEditableTask } from "@/lib/project-execution-server"
 import { prisma } from "@/lib/prisma"
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
+import { buildTaskVisibilityWhere } from "@/lib/task-scope"
+import { resolveTaskAccessScope } from "@/lib/task-scope-server"
 
 const dependencySchema = z.object({
   dependsOnTaskId: z.string().min(1),
@@ -23,6 +25,7 @@ async function addTaskDependency(
   const user = await requireAuth()
   const { id: taskId } = await context.params
   const task = await requireEditableTask(user, taskId)
+  const scope = await resolveTaskAccessScope(user)
   const body = await readJsonBody(request)
   const parsed = dependencySchema.safeParse(body)
 
@@ -47,6 +50,7 @@ async function addTaskDependency(
       status: {
         not: "ARCHIVED",
       },
+      ...buildTaskVisibilityWhere(scope),
     },
     select: {
       id: true,

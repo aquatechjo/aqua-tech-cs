@@ -78,5 +78,7 @@ test("canonical shell components use semantic Aqua classes", () => {
   }
 
   assert.match(sidebar, /aqua-sidebar__navigation/)
+  assert.match(sidebar, /<AquaMark size="sm" showTagline=\{false\} \/>/u)
+  assert.doesNotMatch(sidebar, /aqua-sidebar__company/u)
   assert.match(topbar, /aqua-topbar__inner/)
 })

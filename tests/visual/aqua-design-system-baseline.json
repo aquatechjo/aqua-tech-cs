@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "designSystemVersion": "0.6.1",
+  "designSystemVersion": "0.7.0",
   "algorithm": "sha256",
-  "sourceHash": "afb81e3be93239931f1a44c960bcb719f8fd7aba7c0cf6e9676a0d9365463f95",
+  "sourceHash": "d65e557bdadb2781c76b0f6eef55a85c18ee6e249edc7749dd7e8f1a53812aa2",
   "sources": [
     "src/design-system/component-contracts.ts",
     "src/design-system/pattern-contracts.ts",

@@ -124,6 +124,47 @@ test("project managers can update tasks inside their project", () => {
   );
 });
 
+test("team managers can manage work assigned to their own members only", () => {
+  assert.equal(
+    canEditTask(
+      { id: "team-manager", role: "MEMBER" },
+      {
+        assignedToId: "team-member",
+        createdById: "creator",
+        managedUserIds: ["team-member"],
+      },
+    ),
+    true,
+  );
+
+  assert.equal(
+    canManageTaskParticipants(
+      { id: "team-manager", role: "MEMBER" },
+      {
+        assignedToId: "other",
+        createdById: "creator",
+        managedUserIds: ["team-member"],
+        participants: [
+          { userId: "team-member", role: "CONTRIBUTOR" },
+        ],
+      },
+    ),
+    true,
+  );
+
+  assert.equal(
+    canEditTask(
+      { id: "team-manager", role: "MEMBER" },
+      {
+        assignedToId: "outside-member",
+        createdById: "creator",
+        managedUserIds: ["team-member"],
+      },
+    ),
+    false,
+  );
+});
+
 test("only leadership can assign project leads and task owners", () => {
   assert.equal(canManageProjectLeadership({ role: "MEMBER" }, "PROJECT_LEAD"), true);
   assert.equal(canManageProjectLeadership({ role: "MEMBER" }, "MANAGER"), false);

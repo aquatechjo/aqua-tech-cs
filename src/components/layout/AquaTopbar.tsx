@@ -1,14 +1,16 @@
 "use client"
 
 import type { RefObject } from "react"
-import { Menu } from "lucide-react"
+import { Languages, Menu } from "lucide-react"
 
-import { AquaButton } from "@/components/aqua"
+import { AquaButton, AquaLinkButton } from "@/components/aqua"
 import LogoutButton from "@/components/auth/LogoutButton"
 
 import AquaPageTitle from "./AquaPageTitle"
 
 type AquaTopbarProps = {
+  projectName: string
+  language: string
   userEmail: string
   userRole: string
   navigationOpen: boolean
@@ -17,6 +19,8 @@ type AquaTopbarProps = {
 }
 
 export default function AquaTopbar({
+  projectName,
+  language,
   userEmail,
   userRole,
   navigationOpen,
@@ -31,6 +35,9 @@ export default function AquaTopbar({
       EMPLOYEE: "موظف",
     } as Record<string, string>)[userRole] ?? userRole
   const identityInitial = roleLabel.trim().charAt(0) || "م"
+  const nextLanguageLabel = language.toLowerCase().startsWith("en")
+    ? "AR"
+    : "EN"
 
   return (
     <header className="aqua-topbar">
@@ -52,10 +59,28 @@ export default function AquaTopbar({
             <span className="visually-hidden">فتح قائمة التنقل</span>
           </AquaButton>
 
-          <AquaPageTitle />
+          <div className="aqua-topbar__page-context">
+            <span className="aqua-topbar__project-name" dir="ltr">
+              {projectName}
+            </span>
+            <span className="aqua-topbar__context-divider" aria-hidden="true" />
+            <AquaPageTitle />
+          </div>
         </div>
 
         <div className="aqua-topbar__actions">
+          <AquaLinkButton
+            href="/dashboard/settings"
+            variant="ghost"
+            size="sm"
+            className="aqua-topbar__language"
+            leadingIcon={<Languages />}
+            aria-label={`إعداد لغة النظام — الانتقال إلى ${nextLanguageLabel}`}
+            title="إعداد لغة النظام"
+          >
+            {nextLanguageLabel}
+          </AquaLinkButton>
+
           <div
             className="aqua-topbar__identity"
             title={`الحساب: ${userEmail}`}

@@ -10,6 +10,7 @@ export type AquaProductTheme = {
   id: string
   productName: string
   companyName: "Aqua.Tech"
+  logoSrc?: string
   shortMark: string
   accent: {
     primary: string
@@ -38,9 +39,10 @@ export type AquaProductTheme = {
 
 export const aquaFlowTheme = {
   id: "aquaflow",
-  productName: "AquaFlow",
+  productName: "Aqua tech CS",
   companyName: "Aqua.Tech",
-  shortMark: "AF",
+  logoSrc: "/aqua-tech-logo.webp",
+  shortMark: "CS",
   accent: {
     primary: "#06B6D4",
     primaryRgb: "6, 182, 212",
@@ -70,6 +72,7 @@ export const allowedProductThemeKeys = [
   "id",
   "productName",
   "companyName",
+  "logoSrc",
   "shortMark",
   "accent",
   "surface",

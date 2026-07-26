@@ -12,7 +12,8 @@ import AquaTopbar from "./AquaTopbar"
 
 type AquaDashboardShellProps = {
   children: React.ReactNode
-  companyName: string
+  projectName: string
+  language: string
   userEmail: string
   userRole: string
   sections: AquaNavigationSection[]
@@ -30,7 +31,8 @@ const focusableSelector = [
 
 export default function AquaDashboardShell({
   children,
-  companyName,
+  projectName,
+  language,
   userEmail,
   userRole,
   sections,
@@ -118,10 +120,12 @@ export default function AquaDashboardShell({
       <div className="aqua-grid" aria-hidden="true" />
 
       <div className="aqua-layer aqua-shell__layer">
-        <AquaSidebar companyName={companyName} sections={sections} />
+        <AquaSidebar sections={sections} />
 
         <div className="aqua-main aqua-shell__main">
           <AquaTopbar
+            projectName={projectName}
+            language={language}
             userEmail={userEmail}
             userRole={userRole}
             navigationOpen={navigationOpen}
@@ -158,7 +162,6 @@ export default function AquaDashboardShell({
           aria-label="قائمة التنقل"
         >
           <AquaSidebar
-            companyName={companyName}
             sections={sections}
             mode="drawer"
             onNavigate={() => closeNavigation()}

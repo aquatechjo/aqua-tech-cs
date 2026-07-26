@@ -29,11 +29,11 @@ test("AD-02.1 compacts My Day hierarchy and action density", () => {
   assert.match(myDayCss, /min-block-size: 230px/u)
 })
 
-test("AquaFlow operational shell uses a compact topbar and sidebar", () => {
+test("Aqua tech CS operational shell uses a compact topbar and sidebar", () => {
   for (const token of [
     "--aqua-shell-sidebar-width: 272px",
     "min-block-size: 72px",
-    ".aqua-sidebar__company-heading",
+    ".aqua-sidebar .aqua-brand-lockup",
     ".aqua-topbar__avatar",
     ".aqua-page-heading__content",
     "max-height: 760px",
@@ -44,8 +44,8 @@ test("AquaFlow operational shell uses a compact topbar and sidebar", () => {
 
   assert.match(topbar, /aqua-topbar__identity-copy/u)
   assert.match(topbar, /identityInitial/u)
-  assert.match(sidebar, /<AquaMark size="sm"/u)
-  assert.match(sidebar, /aqua-sidebar__company-heading/u)
+  assert.match(sidebar, /<AquaMark size="sm" showTagline=\{false\} \/>/u)
+  assert.doesNotMatch(sidebar, /aqua-sidebar__company-heading/u)
   assert.match(pageTitle, /aqua-page-heading__content/u)
   assert.doesNotMatch(pageTitle, /aqua-page-heading__eyebrow/u)
 })

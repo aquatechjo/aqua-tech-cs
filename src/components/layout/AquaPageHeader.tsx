@@ -10,8 +10,8 @@ export default function AquaPageHeader({
   badge,
   title,
   description,
-  brandKicker = "AQUA.TECH OS",
-  brandValue = "AquaFlow",
+  brandKicker = "AQUA.TECH CORE SYSTEM",
+  brandValue = "Aqua tech CS",
 }: AquaPageHeaderProps) {
   return (
     <div className="aqua-card aqua-page-header">

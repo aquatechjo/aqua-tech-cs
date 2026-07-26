@@ -3,6 +3,7 @@ import "server-only"
 import { assertCanEditTask, assertCanManageProjectExecution } from "@/lib/access-control"
 import { ApiError } from "@/lib/api-response"
 import { prisma } from "@/lib/prisma"
+import { resolveTaskAccessScope } from "@/lib/task-scope-server"
 
 export async function requireProjectExecutionManager(
   user: { id: string; companyId: string; role: import("@/generated/prisma/enums").AccessRole },
@@ -42,7 +43,8 @@ export async function requireEditableTask(
   user: { id: string; companyId: string; role: import("@/generated/prisma/enums").AccessRole },
   taskId: string
 ) {
-  const task = await prisma.task.findFirst({
+  const [task, scope] = await Promise.all([
+    prisma.task.findFirst({
     where: {
       id: taskId,
       companyId: user.companyId,
@@ -81,7 +83,9 @@ export async function requireEditableTask(
         },
       },
     },
-  })
+    }),
+    resolveTaskAccessScope(user),
+  ])
 
   if (!task) {
     throw new ApiError("المهمة غير موجودة", 404, "TASK_NOT_FOUND")
@@ -95,6 +99,7 @@ export async function requireEditableTask(
       role: participant.role,
     })),
     projectMemberRole: task.project?.members[0]?.role,
+    managedUserIds: scope.managedUserIds,
   }
 
   assertCanEditTask(user, accessContext)

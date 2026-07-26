@@ -23,10 +23,11 @@ test("Aqua.Tech DNA exposes the approved fixed scales", () => {
   assert.equal(aquaTechDesignTokens.color.brand.cyan, "#00B4FF")
 })
 
-test("AquaFlow product theme stays within the approved theme boundary", () => {
+test("Aqua tech CS product theme stays within the approved theme boundary", () => {
   assert.deepEqual(Object.keys(aquaFlowTheme).sort(), [...allowedProductThemeKeys].sort())
   assert.equal(aquaFlowTheme.companyName, "Aqua.Tech")
-  assert.equal(aquaFlowTheme.productName, "AquaFlow")
+  assert.equal(aquaFlowTheme.productName, "Aqua tech CS")
+  assert.equal(aquaFlowTheme.logoSrc, "/aqua-tech-logo.webp")
   assert.equal(aquaFlowTheme.surface.mode, "dark")
   assert.equal(aquaFlowTheme.personality, "operational")
 })

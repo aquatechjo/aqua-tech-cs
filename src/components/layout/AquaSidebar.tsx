@@ -3,13 +3,12 @@
 import type { RefObject } from "react"
 import { X } from "lucide-react"
 
-import { AquaBadge, AquaButton, AquaMark } from "@/components/aqua"
+import { AquaButton, AquaMark } from "@/components/aqua"
 import type { AquaNavigationSection } from "@/design-system"
 
 import AquaSidebarNav from "./AquaSidebarNav"
 
 type AquaSidebarProps = {
-  companyName: string
   sections: AquaNavigationSection[]
   mode?: "desktop" | "drawer"
   onNavigate?: () => void
@@ -18,7 +17,6 @@ type AquaSidebarProps = {
 }
 
 export default function AquaSidebar({
-  companyName,
   sections,
   mode = "desktop",
   onNavigate,
@@ -31,7 +29,7 @@ export default function AquaSidebar({
       aria-label={mode === "drawer" ? "قائمة التنقل" : undefined}
     >
       <div className="aqua-sidebar__header">
-        <AquaMark size="sm" />
+        <AquaMark size="sm" showTagline={false} />
 
         {mode === "drawer" && onClose ? (
           <AquaButton
@@ -47,14 +45,6 @@ export default function AquaSidebar({
             <span className="visually-hidden">إغلاق قائمة التنقل</span>
           </AquaButton>
         ) : null}
-      </div>
-
-      <div className="aqua-sidebar__company">
-        <div className="aqua-sidebar__company-heading">
-          <div className="aqua-sidebar__company-name">{companyName}</div>
-          <AquaBadge size="sm">Internal OS</AquaBadge>
-        </div>
-        <div className="aqua-sidebar__company-meta">بيئة التشغيل الداخلية</div>
       </div>
 
       <div className="aqua-sidebar__navigation">

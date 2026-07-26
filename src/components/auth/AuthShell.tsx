@@ -37,7 +37,7 @@ export default function AuthShell({
   children,
   title,
   description,
-  eyebrow = "Aqua.Tech Internal OS",
+  eyebrow = "Aqua tech CS",
 }: AuthShellProps) {
   return (
     <main className="aqua-public-surface aqua-public-surface--auth">
@@ -61,7 +61,7 @@ export default function AuthShell({
             </h2>
 
             <p className="aqua-public-story__description">
-              AquaFlow يوحّد تشغيل Aqua.Tech من أول طلب خدمة إلى التنفيذ
+              Aqua tech CS يوحّد تشغيل Aqua.Tech من أول طلب خدمة إلى التنفيذ
               والتحصيل والمتابعة، ضمن تجربة واحدة متماسكة وآمنة.
             </p>
 
@@ -113,7 +113,7 @@ export default function AuthShell({
               <footer className="aqua-public-auth__footer">
                 <span>Aqua.Tech</span>
                 <span aria-hidden="true">•</span>
-                <span>Internal System</span>
+                <span>Aqua tech CS</span>
               </footer>
             </AquaCard>
           </section>

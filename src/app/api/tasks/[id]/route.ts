@@ -6,6 +6,12 @@ import { requireAuth } from "@/lib/auth"
 import { assertProgress } from "@/lib/project-execution"
 import { prisma } from "@/lib/prisma"
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
+import {
+  buildTaskVisibilityWhere,
+  canAssignTaskTo,
+  canUseTaskProject,
+} from "@/lib/task-scope"
+import { resolveTaskAccessScope } from "@/lib/task-scope-server"
 
 const optionalDateStringSchema = z.string().refine(
   (value) => value.trim() === "" || !Number.isNaN(Date.parse(value)),
@@ -57,9 +63,14 @@ async function getTask(
 ) {
   const user = await requireAuth()
   const { id } = await context.params
+  const scope = await resolveTaskAccessScope(user)
 
   const task = await prisma.task.findFirst({
-    where: { id, companyId: user.companyId },
+    where: {
+      id,
+      companyId: user.companyId,
+      ...buildTaskVisibilityWhere(scope),
+    },
     include: {
       project: { select: { id: true, name: true } },
       phase: { select: { id: true, name: true, status: true, progress: true } },
@@ -78,6 +89,9 @@ async function getTask(
         },
       },
       dependencies: {
+        where: {
+          dependsOnTask: buildTaskVisibilityWhere(scope),
+        },
         include: {
           dependsOnTask: {
             select: { id: true, title: true, status: true, progress: true },
@@ -110,6 +124,7 @@ async function updateTask(
   const user = await requireAuth()
   const { id } = await context.params
   const body = await readJsonBody(request)
+  const scope = await resolveTaskAccessScope(user)
   const parsed = updateTaskSchema.safeParse(body)
 
   if (!parsed.success) {
@@ -120,7 +135,11 @@ async function updateTask(
   }
 
   const existingTask = await prisma.task.findFirst({
-    where: { id, companyId: user.companyId },
+    where: {
+      id,
+      companyId: user.companyId,
+      ...buildTaskVisibilityWhere(scope),
+    },
     include: {
       participants: {
         select: {
@@ -171,11 +190,16 @@ async function updateTask(
       role: participant.role,
     })),
     projectMemberRole,
+    managedUserIds: scope.managedUserIds,
   })
 
-  if (!assignmentManager && data.assignedToId !== undefined && data.assignedToId !== user.id) {
+  if (
+    data.assignedToId !== undefined &&
+    !assignmentManager &&
+    !canAssignTaskTo(scope, data.assignedToId || null)
+  ) {
     throw new ApiError(
-      "لا يمكنك إعادة إسناد المهمة لموظف آخر",
+      "يمكنك إعادة إسناد المهمة لنفسك أو لأعضاء نطاق عملك فقط",
       403,
       "TASK_ASSIGNMENT_FORBIDDEN"
     )
@@ -197,10 +221,26 @@ async function updateTask(
     data.clientId !== undefined ? data.clientId || null : existingTask.clientId
   const safeAssignedToId =
     data.assignedToId !== undefined ? data.assignedToId || null : existingTask.assignedToId
+  const projectChanged =
+    data.projectId !== undefined &&
+    safeProjectId !== existingTask.projectId
+  const clientChanged =
+    data.clientId !== undefined &&
+    safeClientId !== existingTask.clientId
 
   if (
-    data.projectId !== undefined &&
-    safeProjectId !== existingTask.projectId &&
+    projectChanged &&
+    !canUseTaskProject(scope, safeProjectId)
+  ) {
+    throw new ApiError(
+      "لا يمكنك نقل المهمة إلى مشروع خارج نطاق عملك",
+      403,
+      "TASK_PROJECT_FORBIDDEN"
+    )
+  }
+
+  if (
+    projectChanged &&
     (existingTask._count.dependencies > 0 || existingTask._count.dependents > 0)
   ) {
     return err("أزل تبعيات المهمة قبل نقلها إلى مشروع آخر", 409, {
@@ -219,6 +259,29 @@ async function updateTask(
     })
     if (!project) return err("المشروع المحدد غير موجود", 404, { code: "PROJECT_NOT_FOUND" })
     if (data.clientId === undefined && project.clientId) safeClientId = project.clientId
+
+    if (
+      !scope.canViewCompanyTasks &&
+      safeClientId &&
+      (clientChanged || projectChanged) &&
+      project.clientId !== safeClientId
+    ) {
+      throw new ApiError(
+        "عميل المهمة يجب أن يطابق عميل المشروع",
+        403,
+        "TASK_CLIENT_FORBIDDEN"
+      )
+    }
+  } else if (
+    !scope.canViewCompanyTasks &&
+    safeClientId &&
+    (clientChanged || projectChanged)
+  ) {
+    throw new ApiError(
+      "ربط مهمة مستقلة بعميل متاح للإدارة فقط",
+      403,
+      "TASK_CLIENT_FORBIDDEN"
+    )
   }
 
   if (safePhaseId) {

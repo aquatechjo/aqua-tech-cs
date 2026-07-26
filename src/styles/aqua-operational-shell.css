@@ -335,13 +335,40 @@
   gap: 8px;
 }
 
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__page-context {
+  display: flex;
+  min-inline-size: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__project-name {
+  flex: 0 0 auto;
+  color: var(--at-product-muted);
+  font-family: var(--at-font-latin);
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__context-divider {
+  inline-size: 1px;
+  block-size: 22px;
+  flex: 0 0 auto;
+  background: var(--at-product-border);
+}
+
 .aqua-shell:not(.aqua-shell--showcase) .aqua-page-heading__title {
   font-size: 1rem;
 }
 
-.aqua-shell:not(.aqua-shell--showcase) .aqua-page-heading__subtitle {
-  max-inline-size: min(38vw, 520px);
-  font-size: 0.64rem;
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__language {
+  min-block-size: 34px;
+  padding-inline: 9px;
+  font-family: var(--at-font-latin);
+  font-size: 0.7rem;
+  font-weight: 800;
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__identity {
@@ -399,5 +426,10 @@
 @media (max-width: 767.98px) {
   .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__inner {
     min-block-size: 58px;
+  }
+
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__project-name,
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__context-divider {
+    display: none;
   }
 }

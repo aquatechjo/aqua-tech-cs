@@ -1,14 +1,46 @@
 "use client"
 
+import {
+  AlertTriangle,
+  Archive,
+  Ban,
+  CalendarClock,
+  CheckCircle2,
+  CirclePlay,
+  Clock3,
+  Edit3,
+  ListChecks,
+  Plus,
+  Search,
+} from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+
+import {
+  AquaAlert,
+  AquaBadge,
+  AquaButton,
+  AquaCard,
+  AquaConfirmDialog,
+  AquaDataPanel,
+  AquaDatePicker,
+  AquaFilterBar,
+  AquaInput,
+  AquaLinkButton,
+  AquaModal,
+  AquaSelect,
+  AquaTable,
+  AquaTableStateRow,
+  AquaTextarea,
+  aquaToast,
+} from "@/components/aqua"
+import type { AquaBadgeVariant } from "@/design-system"
 import {
   TaskPriority,
   TaskSource,
   TaskStatus,
 } from "@/generated/prisma/enums"
-import AquaDatePicker from "@/components/aqua/AquaDatePicker"
-import AquaPageHeader from "@/components/layout/AquaPageHeader"
+import styles from "./Tasks.module.css"
 
 type ProjectOption = {
   id: string
@@ -24,7 +56,6 @@ type ClientOption = {
 type UserOption = {
   id: string
   name: string
-  email: string
 }
 
 type TaskItem = {
@@ -42,30 +73,46 @@ type TaskItem = {
   source: TaskSource
   sourceRef: string | null
   estimatedHours: string | null
+  progress: number
   dueDate: string | null
+  dueLabel: string
+  dueDisplay: string
+  dueVariant: AquaBadgeVariant
+  openBlockerCount: number
   completedAt: string | null
   createdAt: string
   updatedAt: string
+  canEdit: boolean
 }
 
 type Filters = {
   q: string
   status: string
   priority: string
-  source: string
+  due: string
   projectId: string
   assignedToId: string
 }
 
 type Stats = {
   totalTasks: number
+  overdueTasks: number
+  todayTasks: number
   inProgressTasks: number
-  doneTasks: number
-  archivedTasks: number
+  blockedTasks: number
   from: number
   to: number
   currentPage: number
   totalPages: number
+}
+
+type Scope = {
+  label: string
+  description: string
+  dataScope: "personal" | "team" | "company"
+  canAssignOthers: boolean
+  canManageSources: boolean
+  showAssignee: boolean
 }
 
 const taskStatuses: TaskStatus[] = [
@@ -78,7 +125,12 @@ const taskStatuses: TaskStatus[] = [
   "ARCHIVED",
 ]
 
-const taskPriorities: TaskPriority[] = ["LOW", "MEDIUM", "HIGH", "URGENT"]
+const taskPriorities: TaskPriority[] = [
+  "LOW",
+  "MEDIUM",
+  "HIGH",
+  "URGENT",
+]
 
 const taskSources: TaskSource[] = [
   "MANUAL",
@@ -89,10 +141,10 @@ const taskSources: TaskSource[] = [
 
 function taskStatusLabel(status: TaskStatus) {
   const labels: Record<TaskStatus, string> = {
-    TODO: "مطلوبة",
+    TODO: "للعمل",
     IN_PROGRESS: "قيد التنفيذ",
-    BLOCKED: "متوقفة",
-    REVIEW: "مراجعة",
+    BLOCKED: "متعطلة",
+    REVIEW: "للمراجعة",
     DONE: "منجزة",
     CANCELLED: "ملغاة",
     ARCHIVED: "مؤرشفة",
@@ -114,29 +166,31 @@ function taskPriorityLabel(priority: TaskPriority) {
 
 function taskSourceLabel(source: TaskSource) {
   const labels: Record<TaskSource, string> = {
-    MANUAL: "يدوي",
-    WEBSITE_REQUEST: "طلب موقع",
-    WORKFLOW: "Workflow",
-    AI_GENERATED: "AI",
+    MANUAL: "يدوية",
+    WEBSITE_REQUEST: "طلب من الموقع",
+    WORKFLOW: "سير عمل",
+    AI_GENERATED: "مولدة بالذكاء الاصطناعي",
   }
 
   return labels[source]
 }
 
-function statusBadge(status: TaskStatus) {
-  if (status === "DONE") return "text-bg-success"
-  if (status === "IN_PROGRESS") return "text-bg-info"
-  if (status === "REVIEW") return "text-bg-primary"
-  if (status === "BLOCKED") return "text-bg-warning"
-  if (status === "CANCELLED" || status === "ARCHIVED") return "text-bg-danger"
-  return "text-bg-secondary"
+function statusVariant(status: TaskStatus): AquaBadgeVariant {
+  if (status === "DONE") return "success"
+  if (status === "IN_PROGRESS") return "aqua"
+  if (status === "REVIEW") return "warning"
+  if (status === "BLOCKED") return "danger"
+  if (status === "TODO") return "blue"
+  return "muted"
 }
 
-function priorityBadge(priority: TaskPriority) {
-  if (priority === "URGENT") return "text-bg-danger"
-  if (priority === "HIGH") return "text-bg-warning"
-  if (priority === "LOW") return "text-bg-secondary"
-  return "text-bg-info"
+function priorityVariant(
+  priority: TaskPriority
+): AquaBadgeVariant {
+  if (priority === "URGENT") return "danger"
+  if (priority === "HIGH") return "warning"
+  if (priority === "MEDIUM") return "blue"
+  return "muted"
 }
 
 function dateInputValue(value: string | null) {
@@ -144,52 +198,98 @@ function dateInputValue(value: string | null) {
   return value.slice(0, 10)
 }
 
+function nextTaskAction(task: TaskItem) {
+  if (task.status === "TODO") {
+    return {
+      label: "بدء",
+      status: "IN_PROGRESS" as TaskStatus,
+      icon: <CirclePlay />,
+    }
+  }
+
+  if (task.status === "IN_PROGRESS") {
+    return {
+      label: "إرسال للمراجعة",
+      status: "REVIEW" as TaskStatus,
+      icon: <ListChecks />,
+    }
+  }
+
+  if (task.status === "REVIEW") {
+    return {
+      label: "إنجاز",
+      status: "DONE" as TaskStatus,
+      icon: <CheckCircle2 />,
+    }
+  }
+
+  return null
+}
+
 export default function TasksClient({
+  currentUserId,
   tasks,
   projects,
   clients,
   users,
+  scope,
   filters,
   stats,
   pagination,
 }: {
+  currentUserId: string
   tasks: TaskItem[]
   projects: ProjectOption[]
   clients: ClientOption[]
   users: UserOption[]
+  scope: Scope
   filters: Filters
   stats: Stats
   pagination: React.ReactNode
 }) {
   const router = useRouter()
+  const personalAssigneeId = scope.canAssignOthers
+    ? ""
+    : currentUserId
 
+  const [modalOpen, setModalOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [pendingArchive, setPendingArchive] =
+    useState<TaskItem | null>(null)
+  const [archiveLoading, setArchiveLoading] = useState(false)
+  const [busyTaskId, setBusyTaskId] = useState<string | null>(null)
 
   const [projectId, setProjectId] = useState("")
   const [clientId, setClientId] = useState("")
-  const [assignedToId, setAssignedToId] = useState("")
-
+  const [assignedToId, setAssignedToId] =
+    useState(personalAssigneeId)
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
-
   const [status, setStatus] = useState<TaskStatus>("TODO")
-  const [priority, setPriority] = useState<TaskPriority>("MEDIUM")
+  const [priority, setPriority] =
+    useState<TaskPriority>("MEDIUM")
   const [source, setSource] = useState<TaskSource>("MANUAL")
-
   const [sourceRef, setSourceRef] = useState("")
   const [estimatedHours, setEstimatedHours] = useState("")
   const [dueDate, setDueDate] = useState("")
-
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
   const isEditing = Boolean(editingId)
+  const activeFilterCount = [
+    filters.q,
+    filters.status,
+    filters.priority,
+    filters.due,
+    filters.projectId,
+    filters.assignedToId,
+  ].filter(Boolean).length
 
-  function resetForm() {
+  function clearForm() {
     setEditingId(null)
     setProjectId("")
     setClientId("")
-    setAssignedToId("")
+    setAssignedToId(personalAssigneeId)
     setTitle("")
     setDescription("")
     setStatus("TODO")
@@ -201,10 +301,23 @@ export default function TasksClient({
     setError("")
   }
 
+  function openCreate() {
+    clearForm()
+    setModalOpen(true)
+  }
+
+  function closeForm() {
+    if (loading) return
+    setModalOpen(false)
+    clearForm()
+  }
+
   function changeProject(nextProjectId: string) {
     setProjectId(nextProjectId)
 
-    const selectedProject = projects.find((project) => project.id === nextProjectId)
+    const selectedProject = projects.find(
+      (project) => project.id === nextProjectId
+    )
 
     if (selectedProject?.clientId) {
       setClientId(selectedProject.clientId)
@@ -225,15 +338,20 @@ export default function TasksClient({
     setEstimatedHours(task.estimatedHours ?? "")
     setDueDate(dateInputValue(task.dueDate))
     setError("")
+    setModalOpen(true)
   }
 
-  async function submitTask(event: React.FormEvent<HTMLFormElement>) {
+  async function submitTask(
+    event: React.FormEvent<HTMLFormElement>
+  ) {
     event.preventDefault()
     setError("")
     setLoading(true)
 
     try {
-      const endpoint = isEditing ? `/api/tasks/${editingId}` : "/api/tasks"
+      const endpoint = isEditing
+        ? `/api/tasks/${editingId}`
+        : "/api/tasks"
       const method = isEditing ? "PATCH" : "POST"
 
       const response = await fetch(endpoint, {
@@ -243,14 +361,26 @@ export default function TasksClient({
         },
         body: JSON.stringify({
           projectId: projectId || null,
-          clientId: clientId || null,
-          assignedToId: assignedToId || null,
+          clientId: scope.canManageSources
+            ? clientId || null
+            : undefined,
+          assignedToId: scope.canAssignOthers
+            ? assignedToId || null
+            : isEditing
+              ? undefined
+              : currentUserId,
           title,
           description,
-          status,
+          status: isEditing ? status : "TODO",
           priority,
-          source,
-          sourceRef,
+          source: scope.canManageSources
+            ? source
+            : isEditing
+              ? undefined
+              : "MANUAL",
+          sourceRef: scope.canManageSources
+            ? sourceRef
+            : undefined,
           estimatedHours,
           dueDate: dueDate || null,
         }),
@@ -263,7 +393,11 @@ export default function TasksClient({
         return
       }
 
-      resetForm()
+      aquaToast.success(
+        isEditing ? "تم حفظ تعديلات المهمة" : "تمت إضافة المهمة"
+      )
+      setModalOpen(false)
+      clearForm()
       router.refresh()
     } catch {
       setError("حدث خطأ أثناء الاتصال بالخادم")
@@ -272,464 +406,742 @@ export default function TasksClient({
     }
   }
 
-  async function updateTaskStatus(task: TaskItem, nextStatus: TaskStatus) {
+  async function updateTaskStatus(
+    task: TaskItem,
+    nextStatus: TaskStatus
+  ) {
     setError("")
+    setBusyTaskId(task.id)
 
-    const response = await fetch(`/api/tasks/${task.id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        status: nextStatus,
-      }),
-    })
+    try {
+      const response = await fetch(`/api/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: nextStatus,
+        }),
+      })
 
-    const data = await response.json()
+      const data = await response.json()
 
-    if (!response.ok || !data.ok) {
-      setError(data.message || "فشل تعديل حالة المهمة")
-      return
+      if (!response.ok || !data.ok) {
+        const message =
+          data.message || "فشل تعديل حالة المهمة"
+        setError(message)
+        aquaToast.error(message)
+        return false
+      }
+
+      aquaToast.success("تم تحديث حالة المهمة")
+      router.refresh()
+      return true
+    } catch {
+      const message = "حدث خطأ أثناء الاتصال بالخادم"
+      setError(message)
+      aquaToast.error(message)
+      return false
+    } finally {
+      setBusyTaskId(null)
     }
-
-    router.refresh()
   }
 
+  async function archiveTask(task: TaskItem) {
+    setArchiveLoading(true)
+
+    const succeeded = await updateTaskStatus(
+      task,
+      task.status === "ARCHIVED" ? "TODO" : "ARCHIVED"
+    )
+
+    if (succeeded) setPendingArchive(null)
+    setArchiveLoading(false)
+  }
+
+  const metricItems = [
+    {
+      label: "متأخرة",
+      value: stats.overdueTasks,
+      hint:
+        stats.overdueTasks > 0
+          ? "ابدأ بها أولًا"
+          : "لا يوجد تأخير",
+      icon: AlertTriangle,
+      tone: "danger",
+    },
+    {
+      label: "مستحقة اليوم",
+      value: stats.todayTasks,
+      hint:
+        stats.todayTasks > 0
+          ? "ضمن تركيز اليوم"
+          : "لا استحقاقات اليوم",
+      icon: CalendarClock,
+      tone: "warning",
+    },
+    {
+      label: "قيد التنفيذ",
+      value: stats.inProgressTasks,
+      hint: "عمل جارٍ حاليًا",
+      icon: Clock3,
+      tone: "aqua",
+    },
+    {
+      label: "متعطلة",
+      value: stats.blockedTasks,
+      hint:
+        stats.blockedTasks > 0
+          ? "تحتاج إزالة عائق"
+          : "لا عوائق مفتوحة",
+      icon: Ban,
+      tone: "blue",
+    },
+  ] as const
+
+  const columnCount = scope.showAssignee ? 7 : 6
+
   return (
-    <div className="aqua-crm-page">
-      <AquaPageHeader
-        badge="Tasks"
-        title="إدارة المهام"
-        description="تقسيم العمل داخل Aqua.Tech حسب المشروع، العميل، الموظف، الحالة، والأولوية."
-        brandValue="Tasks"
-      />
-
-      <div className="row g-3 align-items-start">
-        <div className="col-12 col-xl-4">
-          <div className="aqua-card aqua-crm-form-card">
-            <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
-              <div>
-                <h3 className="h5 fw-black mb-1">
-                  {isEditing ? "تعديل مهمة" : "إضافة مهمة"}
-                </h3>
-                <p className="small aqua-muted mb-0">
-                  {isEditing
-                    ? "عدّل بيانات المهمة الحالية."
-                    : "أضف مهمة يدوية أو جهزها لاحقًا للـ Workflow."}
-                </p>
-              </div>
-
-              {isEditing ? (
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="btn aqua-btn-ghost btn-sm"
-                >
-                  إلغاء
-                </button>
-              ) : null}
-            </div>
-
-            <form onSubmit={submitTask}>
-              <div className="mb-3">
-                <label className="form-label aqua-muted">عنوان المهمة</label>
-                <input
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
-                  className="form-control aqua-control"
-                  placeholder="مثال: تصميم الصفحة الرئيسية"
-                />
-              </div>
-
-              <div className="row g-3">
-                <div className="col-12 col-md-6">
-                  <label className="form-label aqua-muted">المشروع</label>
-                  <select
-                    value={projectId}
-                    onChange={(event) => changeProject(event.target.value)}
-                    className="form-select aqua-control"
-                  >
-                    <option value="">بدون مشروع</option>
-                    {projects.map((project) => (
-                      <option key={project.id} value={project.id}>
-                        {project.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="col-12 col-md-6">
-                  <label className="form-label aqua-muted">العميل</label>
-                  <select
-                    value={clientId}
-                    onChange={(event) => setClientId(event.target.value)}
-                    className="form-select aqua-control"
-                  >
-                    <option value="">بدون عميل</option>
-                    {clients.map((client) => (
-                      <option key={client.id} value={client.id}>
-                        {client.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="mt-3">
-                <label className="form-label aqua-muted">الموظف المسؤول</label>
-                <select
-                  value={assignedToId}
-                  onChange={(event) => setAssignedToId(event.target.value)}
-                  className="form-select aqua-control"
-                >
-                  <option value="">غير محدد</option>
-                  {users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="row g-3 mt-1">
-                <div className="col-12 col-md-6">
-                  <label className="form-label aqua-muted">الحالة</label>
-                  <select
-                    value={status}
-                    onChange={(event) =>
-                      setStatus(event.target.value as TaskStatus)
-                    }
-                    className="form-select aqua-control"
-                  >
-                    {taskStatuses.map((item) => (
-                      <option key={item} value={item}>
-                        {taskStatusLabel(item)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="col-12 col-md-6">
-                  <label className="form-label aqua-muted">الأولوية</label>
-                  <select
-                    value={priority}
-                    onChange={(event) =>
-                      setPriority(event.target.value as TaskPriority)
-                    }
-                    className="form-select aqua-control"
-                  >
-                    {taskPriorities.map((item) => (
-                      <option key={item} value={item}>
-                        {taskPriorityLabel(item)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="row g-3 mt-1">
-                <div className="col-12 col-md-6">
-                  <label className="form-label aqua-muted">المصدر</label>
-                  <select
-                    value={source}
-                    onChange={(event) =>
-                      setSource(event.target.value as TaskSource)
-                    }
-                    className="form-select aqua-control"
-                  >
-                    {taskSources.map((item) => (
-                      <option key={item} value={item}>
-                        {taskSourceLabel(item)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="col-12 col-md-6">
-                  <label className="form-label aqua-muted">الساعات المتوقعة</label>
-                  <input
-                    dir="ltr"
-                    value={estimatedHours}
-                    onChange={(event) => setEstimatedHours(event.target.value)}
-                    className="form-control aqua-control text-start"
-                    placeholder="4"
-                  />
-                </div>
-              </div>
-
-              <div className="row g-3 mt-1">
-                <div className="col-12 col-md-6">
-                  <label className="form-label aqua-muted">مرجع المصدر</label>
-                  <input
-                    dir="ltr"
-                    value={sourceRef}
-                    onChange={(event) => setSourceRef(event.target.value)}
-                    className="form-control aqua-control text-start"
-                    placeholder="REQ-001 / workflow id"
-                  />
-                </div>
-
-                <div className="col-12 col-md-6">
-                  <label className="form-label aqua-muted">تاريخ التسليم</label>
-                  <AquaDatePicker
-                    value={dueDate}
-                    onChange={setDueDate}
-                    placeholder="اختر تاريخ التسليم"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-3">
-                <label className="form-label aqua-muted">الوصف</label>
-                <textarea
-                  value={description}
-                  onChange={(event) => setDescription(event.target.value)}
-                  className="form-control aqua-control"
-                  rows={3}
-                />
-              </div>
-
-              {error ? (
-                <div className="alert alert-danger rounded-4 border-0 mt-3">
-                  {error}
-                </div>
-              ) : null}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn aqua-btn-primary w-100 py-3 mt-3"
-              >
-                {loading
-                  ? "جاري الحفظ..."
-                  : isEditing
-                    ? "حفظ التعديلات"
-                    : "إضافة المهمة"}
-              </button>
-            </form>
+    <div className={styles.page}>
+      <section
+        className={styles.intro}
+        aria-labelledby="tasks-scope-title"
+      >
+        <div className={styles.introCopy}>
+          <AquaBadge size="sm" dot>
+            {scope.label}
+          </AquaBadge>
+          <div>
+            <h2 id="tasks-scope-title" className={styles.introTitle}>
+              العمل المطلوب منك في مكان واحد
+            </h2>
+            <p className={styles.introDescription}>
+              {scope.description}
+            </p>
           </div>
         </div>
 
-        <div className="col-12 col-xl-8">
-          <div className="aqua-card aqua-crm-table-card p-4">
-            <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
-              <div>
-                <h3 className="h5 fw-black mb-1">قائمة المهام</h3>
-                <p className="small aqua-muted mb-0">
-                  عرض {stats.from} - {stats.to} من أصل {stats.totalTasks} مهمة
-                </p>
-              </div>
+        <div className={styles.introActions}>
+          <AquaLinkButton
+            href="/dashboard/my-day"
+            variant="ghost"
+            size="sm"
+            leadingIcon={<CalendarClock />}
+          >
+            افتح يومي
+          </AquaLinkButton>
+          <AquaButton
+            size="sm"
+            leadingIcon={<Plus />}
+            onClick={openCreate}
+          >
+            مهمة جديدة
+          </AquaButton>
+        </div>
+      </section>
 
-              <div className="d-flex flex-wrap align-items-center gap-2">
-                <span className="aqua-badge">الكل {stats.totalTasks}</span>
-                <span className="aqua-badge">
-                  قيد التنفيذ {stats.inProgressTasks}
-                </span>
-                <span className="aqua-badge">المنجزة {stats.doneTasks}</span>
-                <span className="aqua-badge">
-                  المؤرشفة {stats.archivedTasks}
-                </span>
-                <span className="small aqua-soft ms-2" dir="ltr">
-                  Page {stats.currentPage} / {stats.totalPages}
-                </span>
-              </div>
-            </div>
+      <section
+        className={styles.metrics}
+        aria-label="ملخص المهام"
+      >
+        {metricItems.map((metric) => {
+          const Icon = metric.icon
 
-            <form
-              action="/dashboard/tasks"
-              method="get"
-              className="aqua-card-soft p-3 mb-3"
+          return (
+            <AquaCard
+              key={metric.label}
+              padding="sm"
+              className={`${styles.metric} ${styles[`metric_${metric.tone}`]}`}
             >
-              <div className="row g-3 align-items-end">
-                <div className="col-12 col-lg-3">
-                  <label className="form-label aqua-muted">بحث</label>
-                  <input
-                    name="q"
-                    defaultValue={filters.q}
-                    className="form-control aqua-control"
-                    placeholder="ابحث بعنوان المهمة..."
-                  />
-                </div>
-
-                <div className="col-12 col-md-4 col-lg-2">
-                  <label className="form-label aqua-muted">الحالة</label>
-                  <select
-                    name="status"
-                    defaultValue={filters.status}
-                    className="form-select aqua-control"
-                  >
-                    <option value="">الكل</option>
-                    {taskStatuses.map((item) => (
-                      <option key={item} value={item}>
-                        {taskStatusLabel(item)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="col-12 col-md-4 col-lg-2">
-                  <label className="form-label aqua-muted">الأولوية</label>
-                  <select
-                    name="priority"
-                    defaultValue={filters.priority}
-                    className="form-select aqua-control"
-                  >
-                    <option value="">الكل</option>
-                    {taskPriorities.map((item) => (
-                      <option key={item} value={item}>
-                        {taskPriorityLabel(item)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="col-12 col-md-4 col-lg-2">
-                  <label className="form-label aqua-muted">المشروع</label>
-                  <select
-                    name="projectId"
-                    defaultValue={filters.projectId}
-                    className="form-select aqua-control"
-                  >
-                    <option value="">الكل</option>
-                    {projects.map((project) => (
-                      <option key={project.id} value={project.id}>
-                        {project.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="col-12 col-lg-3">
-                  <div className="d-flex gap-2">
-                    <button type="submit" className="btn aqua-btn-primary flex-fill">
-                      تطبيق
-                    </button>
-
-                    <a href="/dashboard/tasks" className="btn aqua-btn-ghost">
-                      مسح
-                    </a>
-                  </div>
-                </div>
+              <div className={styles.metricIcon} aria-hidden="true">
+                <Icon />
               </div>
-            </form>
+              <div className={styles.metricCopy}>
+                <span className={styles.metricLabel}>
+                  {metric.label}
+                </span>
+                <strong className={styles.metricValue} dir="ltr">
+                  {metric.value}
+                </strong>
+                <span className={styles.metricHint}>
+                  {metric.hint}
+                </span>
+              </div>
+            </AquaCard>
+          )
+        })}
+      </section>
 
-            <div className="aqua-crm-table-scroll">
-              <table className="table table-hover align-middle aqua-log-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>المهمة</th>
-                    <th>المشروع</th>
-                    <th>المسؤول</th>
-                    <th>الحالة</th>
-                    <th>الأولوية</th>
-                    <th>التسليم</th>
-                    <th>إجراء</th>
-                  </tr>
-                </thead>
+      {error && !modalOpen ? (
+        <AquaAlert variant="danger" title="تعذر إكمال العملية">
+          {error}
+        </AquaAlert>
+      ) : null}
 
-                <tbody>
-                  {tasks.length === 0 ? (
-                    <tr className="aqua-crm-empty-row">
-                      <td colSpan={8} className="text-center aqua-soft py-5">
-                        <div className="fw-bold text-white mb-2">
-                          لا يوجد مهام حتى الآن
-                        </div>
-                        <div className="small aqua-muted">
-                          أضف أول مهمة من النموذج الموجود بجانب الجدول.
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    tasks.map((task, index) => (
-                      <tr key={task.id}>
-                        <td className="aqua-soft" dir="ltr">
-                          {(stats.currentPage - 1) * 20 + index + 1}
-                        </td>
+      <AquaDataPanel
+        title={scope.label}
+        description={`عرض ${stats.from}–${stats.to} من أصل ${stats.totalTasks} مهمة ضمن النطاق الحالي`}
+        meta={
+          <span dir="ltr">
+            Page {stats.currentPage} / {stats.totalPages}
+          </span>
+        }
+        footer={pagination}
+      >
+        <AquaFilterBar
+          action="/dashboard/tasks"
+          method="get"
+          activeCount={activeFilterCount}
+          description="ابحث وضيّق القائمة دون تغيير نطاق الصلاحيات."
+          className="mb-3"
+        >
+          <AquaInput
+            span={3}
+            name="q"
+            defaultValue={filters.q}
+            label="بحث"
+            placeholder="عنوان المهمة أو المشروع..."
+          />
 
-                        <td>
-                          <div className="fw-bold">{task.title}</div>
-                          <div className="small aqua-soft">
-                            {taskSourceLabel(task.source)}
+          <AquaSelect
+            span={2}
+            name="status"
+            defaultValue={filters.status}
+            label="الحالة"
+          >
+            <option value="">الكل</option>
+            {taskStatuses.map((item) => (
+              <option key={item} value={item}>
+                {taskStatusLabel(item)}
+              </option>
+            ))}
+          </AquaSelect>
+
+          <AquaSelect
+            span={2}
+            name="priority"
+            defaultValue={filters.priority}
+            label="الأولوية"
+          >
+            <option value="">الكل</option>
+            {taskPriorities.map((item) => (
+              <option key={item} value={item}>
+                {taskPriorityLabel(item)}
+              </option>
+            ))}
+          </AquaSelect>
+
+          <AquaSelect
+            span={2}
+            name="due"
+            defaultValue={filters.due}
+            label="الاستحقاق"
+          >
+            <option value="">كل المواعيد</option>
+            <option value="OVERDUE">متأخرة</option>
+            <option value="TODAY">اليوم</option>
+            <option value="UPCOMING">الأيام القادمة</option>
+            <option value="NO_DUE_DATE">دون موعد</option>
+          </AquaSelect>
+
+          <AquaSelect
+            span={3}
+            name="projectId"
+            defaultValue={filters.projectId}
+            label="المشروع"
+          >
+            <option value="">كل المشاريع</option>
+            {projects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </AquaSelect>
+
+          {scope.showAssignee ? (
+            <AquaSelect
+              span={3}
+              name="assignedToId"
+              defaultValue={filters.assignedToId}
+              label="المسؤول"
+            >
+              <option value="">كل المسؤولين</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.id === currentUserId ? "أنا" : user.name}
+                </option>
+              ))}
+            </AquaSelect>
+          ) : null}
+
+          <div
+            className="aqua-filter-bar__actions"
+            data-aqua-span="3"
+          >
+            <AquaButton
+              type="submit"
+              size="sm"
+              fullWidth
+              leadingIcon={<Search />}
+            >
+              تطبيق
+            </AquaButton>
+            <AquaLinkButton
+              href="/dashboard/tasks"
+              variant="ghost"
+              size="sm"
+              fullWidth
+            >
+              مسح
+            </AquaLinkButton>
+          </div>
+        </AquaFilterBar>
+
+        <AquaTable
+          mobileStrategy="stack"
+          density="compact"
+          minWidth={scope.showAssignee ? "960px" : "840px"}
+          caption={`قائمة ${scope.label}`}
+        >
+          <thead>
+            <tr>
+              <th scope="col">المهمة</th>
+              <th scope="col">الحالة</th>
+              <th scope="col">الاستحقاق</th>
+              <th scope="col">المشروع</th>
+              {scope.showAssignee ? (
+                <th scope="col">المسؤول</th>
+              ) : null}
+              <th scope="col">الأولوية</th>
+              <th scope="col">الإجراء التالي</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {tasks.length === 0 ? (
+              <AquaTableStateRow
+                colSpan={columnCount}
+                variant="empty"
+                icon={<ListChecks />}
+                title="لا توجد مهام ضمن هذا العرض"
+                description={
+                  activeFilterCount > 0
+                    ? "امسح الفلاتر أو غيّر معايير البحث."
+                    : "أضف مهمة جديدة، وستظهر هنا عند إسنادها إلى نطاقك."
+                }
+              />
+            ) : (
+              tasks.map((task) => {
+                const nextAction = nextTaskAction(task)
+
+                return (
+                  <tr key={task.id}>
+                    <td data-label="المهمة">
+                      <div className={styles.taskHeading}>
+                        <div>
+                          <div className="aqua-table__primary">
+                            {task.title}
+                          </div>
+                          <div className="aqua-table__secondary">
                             {task.estimatedHours
-                              ? ` • ${task.estimatedHours}h`
+                              ? `${task.estimatedHours} ساعة متوقعة`
+                              : "دون تقدير زمني"}
+                            {task.openBlockerCount > 0
+                              ? ` • ${task.openBlockerCount} عائق مفتوح`
                               : ""}
                           </div>
-                        </td>
-
-                        <td className="small aqua-muted">
-                          {task.project?.name || "بدون مشروع"}
-                        </td>
-
-                        <td className="small aqua-muted">
-                          {task.assignedTo?.name || "غير محدد"}
-                        </td>
-
-                        <td>
-                          <span className={`badge ${statusBadge(task.status)}`}>
-                            {taskStatusLabel(task.status)}
-                          </span>
-                        </td>
-
-                        <td>
-                          <span
-                            className={`badge ${priorityBadge(task.priority)}`}
+                        </div>
+                        {task.openBlockerCount > 0 ? (
+                          <AquaBadge
+                            variant="danger"
+                            size="sm"
+                            dot
                           >
-                            {taskPriorityLabel(task.priority)}
-                          </span>
-                        </td>
+                            عائق
+                          </AquaBadge>
+                        ) : null}
+                      </div>
+                      <div
+                        className={styles.progressTrack}
+                        role="progressbar"
+                        aria-label={`تقدم مهمة ${task.title}`}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={task.progress}
+                      >
+                        <span
+                          className={styles.progressValue}
+                          style={{
+                            inlineSize: `${task.progress}%`,
+                          }}
+                        />
+                      </div>
+                    </td>
 
-                        <td className="small aqua-muted" dir="ltr">
-                          {task.dueDate ? dateInputValue(task.dueDate) : "—"}
-                        </td>
+                    <td data-label="الحالة">
+                      <AquaBadge
+                        variant={statusVariant(task.status)}
+                        size="sm"
+                        dot
+                      >
+                        {taskStatusLabel(task.status)}
+                      </AquaBadge>
+                    </td>
 
-                        <td>
-                          <div className="d-flex flex-wrap gap-2">
-                            <button
-                              type="button"
-                              onClick={() => startEdit(task)}
-                              className="btn aqua-btn-ghost btn-sm"
-                            >
-                              تعديل
-                            </button>
+                    <td data-label="الاستحقاق">
+                      <AquaBadge
+                        variant={task.dueVariant}
+                        size="sm"
+                      >
+                        {task.dueLabel}
+                      </AquaBadge>
+                      <div className="aqua-table__secondary">
+                        {task.dueDisplay}
+                      </div>
+                    </td>
 
-                            {task.status !== "DONE" ? (
-                              <button
-                                type="button"
-                                onClick={() => updateTaskStatus(task, "DONE")}
-                                className="btn aqua-btn-ghost btn-sm"
-                              >
-                                إنجاز
-                              </button>
-                            ) : null}
+                    <td data-label="المشروع">
+                      <span className="aqua-table__primary">
+                        {task.project?.name ?? "مهمة مستقلة"}
+                      </span>
+                    </td>
 
-                            <button
-                              type="button"
+                    {scope.showAssignee ? (
+                      <td data-label="المسؤول">
+                        <span className="aqua-table__secondary">
+                          {task.assignedToId === currentUserId
+                            ? "أنا"
+                            : task.assignedTo?.name ?? "غير محدد"}
+                        </span>
+                      </td>
+                    ) : null}
+
+                    <td data-label="الأولوية">
+                      <AquaBadge
+                        variant={priorityVariant(task.priority)}
+                        size="sm"
+                      >
+                        {taskPriorityLabel(task.priority)}
+                      </AquaBadge>
+                    </td>
+
+                    <td data-label="الإجراء التالي">
+                      {task.canEdit ? (
+                        <div className="aqua-table__actions">
+                          {nextAction ? (
+                            <AquaButton
+                              size="sm"
+                              variant="secondary"
+                              leadingIcon={nextAction.icon}
+                              loading={busyTaskId === task.id}
+                              loadingLabel="جارٍ التحديث"
                               onClick={() =>
                                 updateTaskStatus(
                                   task,
-                                  task.status === "ARCHIVED"
-                                    ? "TODO"
-                                    : "ARCHIVED",
+                                  nextAction.status
                                 )
                               }
-                              className="btn aqua-btn-ghost btn-sm"
                             >
-                              {task.status === "ARCHIVED" ? "استرجاع" : "أرشفة"}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                              {nextAction.label}
+                            </AquaButton>
+                          ) : null}
+
+                          <AquaButton
+                            size="sm"
+                            variant="ghost"
+                            leadingIcon={<Edit3 />}
+                            onClick={() => startEdit(task)}
+                            disabled={busyTaskId === task.id}
+                          >
+                            تعديل
+                          </AquaButton>
+
+                          <AquaButton
+                            size="sm"
+                            variant="ghost"
+                            leadingIcon={<Archive />}
+                            onClick={() => setPendingArchive(task)}
+                            disabled={busyTaskId === task.id}
+                          >
+                            {task.status === "ARCHIVED"
+                              ? "استرجاع"
+                              : "أرشفة"}
+                          </AquaButton>
+                        </div>
+                      ) : (
+                        <span className="aqua-table__secondary">
+                          عرض فقط
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })
+            )}
+          </tbody>
+        </AquaTable>
+      </AquaDataPanel>
+
+      <AquaModal
+        open={modalOpen}
+        onClose={closeForm}
+        title={isEditing ? "تعديل المهمة" : "مهمة جديدة"}
+        description={
+          isEditing
+            ? "حدّث البيانات التشغيلية المسموح لك بتعديلها."
+            : scope.canAssignOthers
+              ? "أنشئ مهمة وحدد المسؤول من نطاق عملك."
+              : "أنشئ مهمة شخصية مرتبطة بعملك أو مشروعك."
+        }
+        size="lg"
+        closeOnBackdrop={!loading}
+        footer={
+          <div className="aqua-modal__action-row">
+            <AquaButton
+              variant="ghost"
+              onClick={closeForm}
+              disabled={loading}
+            >
+              إلغاء
+            </AquaButton>
+            <AquaButton
+              type="submit"
+              form="aqua-task-form"
+              loading={loading}
+              loadingLabel="جارٍ الحفظ"
+            >
+              {isEditing ? "حفظ التعديلات" : "إضافة المهمة"}
+            </AquaButton>
+          </div>
+        }
+      >
+        <form id="aqua-task-form" onSubmit={submitTask}>
+          <div className="aqua-form-grid">
+            <AquaInput
+              required
+              minLength={2}
+              label="عنوان المهمة"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="ما العمل المطلوب إنجازه؟"
+              data-aqua-autofocus
+            />
+
+            <AquaSelect
+              span={6}
+              label="المشروع"
+              value={projectId}
+              onChange={(event) =>
+                changeProject(event.target.value)
+              }
+            >
+              <option value="">مهمة مستقلة</option>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </AquaSelect>
+
+            {scope.canManageSources ? (
+              <AquaSelect
+                span={6}
+                label="العميل"
+                value={clientId}
+                onChange={(event) =>
+                  setClientId(event.target.value)
+                }
+              >
+                <option value="">دون عميل</option>
+                {clients.map((client) => (
+                  <option key={client.id} value={client.id}>
+                    {client.name}
+                  </option>
+                ))}
+              </AquaSelect>
+            ) : null}
+
+            {scope.canAssignOthers ? (
+              <AquaSelect
+                span={6}
+                label="المسؤول"
+                value={assignedToId}
+                onChange={(event) =>
+                  setAssignedToId(event.target.value)
+                }
+              >
+                <option value="">غير محدد</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.id === currentUserId ? "أنا" : user.name}
+                  </option>
+                ))}
+              </AquaSelect>
+            ) : (
+              <div
+                className={styles.personalAssignment}
+                data-aqua-span="6"
+              >
+                <span>المسؤول</span>
+                <strong>
+                  {assignedToId &&
+                  assignedToId !== currentUserId
+                    ? "المسؤول الحالي"
+                    : "أنت"}
+                </strong>
+              </div>
+            )}
+
+            <AquaSelect
+              span={6}
+              label="الأولوية"
+              value={priority}
+              onChange={(event) =>
+                setPriority(
+                  event.target.value as TaskPriority
+                )
+              }
+            >
+              {taskPriorities.map((item) => (
+                <option key={item} value={item}>
+                  {taskPriorityLabel(item)}
+                </option>
+              ))}
+            </AquaSelect>
+
+            {isEditing ? (
+              <AquaSelect
+                span={6}
+                label="الحالة"
+                value={status}
+                onChange={(event) =>
+                  setStatus(event.target.value as TaskStatus)
+                }
+              >
+                {taskStatuses.map((item) => (
+                  <option key={item} value={item}>
+                    {taskStatusLabel(item)}
+                  </option>
+                ))}
+              </AquaSelect>
+            ) : null}
+
+            <div className="aqua-field" data-aqua-span="6">
+              <span className="aqua-field__label">
+                تاريخ التسليم
+              </span>
+              <AquaDatePicker
+                value={dueDate}
+                onChange={setDueDate}
+                placeholder="اختر تاريخ التسليم"
+              />
             </div>
 
-            <div className="pt-3">{pagination}</div>
+            <AquaInput
+              span={6}
+              dir="ltr"
+              type="number"
+              min="0"
+              step="0.25"
+              inputMode="decimal"
+              label="الساعات المتوقعة"
+              value={estimatedHours}
+              onChange={(event) =>
+                setEstimatedHours(event.target.value)
+              }
+              className="text-start"
+              placeholder="4"
+            />
+
+            {scope.canManageSources ? (
+              <>
+                <AquaSelect
+                  span={6}
+                  label="المصدر"
+                  value={source}
+                  onChange={(event) =>
+                    setSource(
+                      event.target.value as TaskSource
+                    )
+                  }
+                >
+                  {taskSources.map((item) => (
+                    <option key={item} value={item}>
+                      {taskSourceLabel(item)}
+                    </option>
+                  ))}
+                </AquaSelect>
+
+                <AquaInput
+                  span={6}
+                  dir="ltr"
+                  label="مرجع المصدر"
+                  value={sourceRef}
+                  onChange={(event) =>
+                    setSourceRef(event.target.value)
+                  }
+                  className="text-start"
+                  placeholder="REQ-001"
+                />
+              </>
+            ) : null}
+
+            <AquaTextarea
+              label="وصف المهمة"
+              value={description}
+              onChange={(event) =>
+                setDescription(event.target.value)
+              }
+              rows={4}
+              placeholder="النتيجة المطلوبة وأي تفاصيل تساعد على التنفيذ."
+            />
           </div>
-        </div>
-      </div>
+
+          {error ? (
+            <AquaAlert
+              variant="danger"
+              title="تعذر حفظ المهمة"
+              className="mt-3 mb-0"
+            >
+              {error}
+            </AquaAlert>
+          ) : null}
+        </form>
+      </AquaModal>
+
+      <AquaConfirmDialog
+        open={Boolean(pendingArchive)}
+        onClose={() => {
+          if (!archiveLoading) setPendingArchive(null)
+        }}
+        onConfirm={async () => {
+          if (pendingArchive) {
+            await archiveTask(pendingArchive)
+          }
+        }}
+        title={
+          pendingArchive?.status === "ARCHIVED"
+            ? "استرجاع المهمة"
+            : "أرشفة المهمة"
+        }
+        description={
+          pendingArchive?.status === "ARCHIVED"
+            ? `ستعود مهمة ${pendingArchive?.title ?? ""} إلى قائمة العمل.`
+            : `ستنتقل مهمة ${pendingArchive?.title ?? ""} إلى الأرشيف مع الاحتفاظ بسجلها.`
+        }
+        confirmLabel={
+          pendingArchive?.status === "ARCHIVED"
+            ? "استرجاع"
+            : "أرشفة"
+        }
+        confirmVariant="primary"
+        tone={
+          pendingArchive?.status === "ARCHIVED"
+            ? "neutral"
+            : "warning"
+        }
+        loading={archiveLoading}
+      />
     </div>
   )
 }

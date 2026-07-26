@@ -119,6 +119,60 @@ Status: **implemented**
 - Compress the AquaFlow sidebar to a 256px product-level density and hide nonessential stack metadata on typical laptop heights.
 - Preserve task classification, assignment visibility, permissions, timezone behavior, mobile drawer accessibility, RTL, and reduced motion.
 
+## AD-02.3 — Desktop Topbar Simplification
+
+Status: **implemented**
+
+- Keep the desktop topbar limited to the project name, current page, global language entry, account identity, and logout.
+- Display the approved project label exactly as `Aqua tech CS`.
+- Remove breadcrumbs, descriptive subtitles, and the duplicated internal-system line from the topbar.
+- Route the language control to the existing company language setting until full bilingual page dictionaries are implemented.
+- Preserve the mobile navigation trigger, keyboard focus, RTL/LTR-safe layout, and compact operational density.
+
+## AD-02.4 — Product Identity and Sidebar Brand
+
+Status: **implemented**
+
+- Rename every user-facing product reference to `Aqua tech CS`.
+- Keep `aquaflow` only as the technical repository, package, cookie, and integration identifier.
+- Replace the generated initials mark with the official Aqua.Tech logo while preserving a theme fallback.
+- Reduce the sidebar identity to the official logo and project name only.
+- Remove the `Internal OS` badge and internal-environment description from the sidebar.
+- Apply the same identity to authentication, metadata, transactional email, reports, and the browser icon.
+
+## AD-02.5 — Dashboard Operations
+
+Status: **implemented**
+
+- Replace the presentation-scale dashboard hero with a compact daily operations summary.
+- Remove duplicated product identity, simulated connection state, team count, active sessions, and the oversized quick-start panel.
+- Prioritize overdue tasks, today's due work, active projects, and unread notifications.
+- Add a role-aware action queue for blockers, unscheduled work, service requests, sales follow-ups, overdue invoices, timesheets, leave requests, and expense approvals.
+- Add a focused task list ordered by urgency, due bucket, priority, and open blockers.
+- Preserve company timezone handling, Latin digits, activity permissions, RTL/LTR behavior, reduced motion, and safe responsive fallback.
+
+## AD-02.6 — Employee Dashboard Polish
+
+Status: **implemented**
+
+- Keep the dashboard employee-first: overdue work, today's due work, in-progress tasks, and active projects.
+- Scope project counts to the employee's memberships and assigned work unless the role can manage company projects.
+- Remove the duplicated attention-path badge, notifications shortcut, and notifications metric from the dashboard overview.
+- Keep operational approval queues role-aware and display only items with an active count.
+- Retain the activity summary as the latest five records only, showing the actor and readable message without raw action codes.
+- Remove English panel kickers and reduce summary, metric, empty-state, activity, and responsive mobile density.
+
+## AD-03 — Tasks Adoption
+
+Status: **implemented**
+
+- Rebuild Tasks as an employee-first operational surface using canonical data panels, filters, stacked tables, modals, badges, buttons, alerts, and confirmation dialogs.
+- Replace the permanently open task form with a focused create/edit modal and keep the main surface centered on overdue, due-today, in-progress, and blocked work.
+- Enforce task visibility on the server across the page, collection API, and detail API using personal, managed-team/project, and company scopes.
+- Keep employees isolated to assigned, created, or participated work; let team, department, and project managers see only the people and projects they manage; preserve company-wide visibility for authorized task-management roles.
+- Limit assignee, project, client, and automation-source controls to the user’s real scope instead of hiding only the final action.
+- Add urgency filters, Latin-digit timezone-aware due dates, progress, blockers, next-step actions, mobile stacked rows, RTL-safe layout, reduced motion, and canonical archive confirmation.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.

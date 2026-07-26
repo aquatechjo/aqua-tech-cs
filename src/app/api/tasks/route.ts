@@ -1,11 +1,16 @@
 import { z } from "zod"
 import { ActivityAction } from "@/generated/prisma/enums"
-import { ACCESS_ROLES, hasRole } from "@/lib/access-control"
 import { ApiError, err, ok, withApiHandler } from "@/lib/api-response"
 import { requireAuth } from "@/lib/auth"
 import { assertProgress } from "@/lib/project-execution"
 import { prisma } from "@/lib/prisma"
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
+import {
+  buildTaskVisibilityWhere,
+  canAssignTaskTo,
+  canUseTaskProject,
+} from "@/lib/task-scope"
+import { resolveTaskAccessScope } from "@/lib/task-scope-server"
 
 const optionalDateStringSchema = z.string().refine(
   (value) => value.trim() === "" || !Number.isNaN(Date.parse(value)),
@@ -53,10 +58,12 @@ function nullableDecimal(value: string | null | undefined) {
 
 async function getTasks() {
   const user = await requireAuth()
+  const scope = await resolveTaskAccessScope(user)
 
   const tasks = await prisma.task.findMany({
     where: {
       companyId: user.companyId,
+      ...buildTaskVisibilityWhere(scope),
     },
     orderBy: {
       createdAt: "desc",
@@ -101,25 +108,33 @@ async function createTask(request: Request) {
   }
 
   const data = parsed.data
-  const manager = hasRole(user.role, ACCESS_ROLES.taskManagement)
+  const scope = await resolveTaskAccessScope(user)
   const safeProjectId = data.projectId || null
   const safePhaseId = data.phaseId || null
   let safeClientId = data.clientId || null
   const safeAssignedToId = data.assignedToId || null
 
-  if (!manager && safeAssignedToId && safeAssignedToId !== user.id) {
+  if (!canAssignTaskTo(scope, safeAssignedToId)) {
     throw new ApiError(
-      "لا يمكنك إسناد مهمة لموظف آخر",
+      "يمكنك إسناد المهمة لنفسك أو لأعضاء نطاق عملك فقط",
       403,
       "TASK_ASSIGNMENT_FORBIDDEN"
     )
   }
 
-  if (!manager && data.source !== "MANUAL") {
+  if (!scope.canViewCompanyTasks && data.source !== "MANUAL") {
     throw new ApiError(
       "مصدر المهمة الآلي متاح للإدارة وعمليات النظام فقط",
       403,
       "TASK_SOURCE_FORBIDDEN"
+    )
+  }
+
+  if (!canUseTaskProject(scope, safeProjectId)) {
+    throw new ApiError(
+      "لا يمكنك ربط المهمة بمشروع خارج نطاق عملك",
+      403,
+      "TASK_PROJECT_FORBIDDEN"
     )
   }
 
@@ -134,6 +149,24 @@ async function createTask(request: Request) {
     }
 
     if (!safeClientId && project.clientId) safeClientId = project.clientId
+
+    if (
+      !scope.canViewCompanyTasks &&
+      safeClientId &&
+      project.clientId !== safeClientId
+    ) {
+      throw new ApiError(
+        "عميل المهمة يجب أن يطابق عميل المشروع",
+        403,
+        "TASK_CLIENT_FORBIDDEN"
+      )
+    }
+  } else if (!scope.canViewCompanyTasks && safeClientId) {
+    throw new ApiError(
+      "ربط مهمة مستقلة بعميل متاح للإدارة فقط",
+      403,
+      "TASK_CLIENT_FORBIDDEN"
+    )
   }
 
   if (safePhaseId) {
