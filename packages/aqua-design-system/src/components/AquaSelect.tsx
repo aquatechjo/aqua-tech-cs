@@ -3,7 +3,10 @@ import { clsx } from "clsx"
 
 import type { AquaFieldSize } from "../design-system"
 
-type AquaSelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
+type AquaSelectProps = Omit<
+  React.SelectHTMLAttributes<HTMLSelectElement>,
+  "size"
+> & {
   label?: string
   hint?: string
   error?: string

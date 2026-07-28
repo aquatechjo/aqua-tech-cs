@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
+import { defaultWorkflowTemplates } from "../src/lib/project-workflow";
 import { SYSTEM_OWNER_EMAIL } from "../src/lib/system-owner";
 
 const pool = new Pool({
@@ -62,6 +63,32 @@ async function main() {
       language: "ar",
     },
   });
+
+  for (const template of defaultWorkflowTemplates) {
+    await prisma.workflowTemplate.upsert({
+      where: {
+        companyId_code: {
+          companyId: company.id,
+          code: template.code,
+        },
+      },
+      update: {
+        name: template.name,
+        description: template.description,
+        isActive: true,
+        isDefault: template.isDefault,
+        definition: JSON.parse(JSON.stringify(template.definition)),
+      },
+      create: {
+        companyId: company.id,
+        name: template.name,
+        code: template.code,
+        description: template.description,
+        isDefault: template.isDefault,
+        definition: JSON.parse(JSON.stringify(template.definition)),
+      },
+    });
+  }
 
   const [existingOwner, ownerEmailUser] = await Promise.all([
     prisma.user.findFirst({

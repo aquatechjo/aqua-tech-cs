@@ -1,4 +1,6 @@
+import type { Prisma } from "@/generated/prisma/client"
 import { notFound } from "next/navigation"
+
 import {
   canAssignTaskOwner,
   canEditTask,
@@ -8,7 +10,15 @@ import {
 } from "@/lib/access-control"
 import { requireAuth } from "@/lib/auth"
 import { averageProgress } from "@/lib/project-execution"
+import {
+  buildProjectVisibilityWhere,
+  projectScopeFromTaskScope,
+  projectScopeLabel,
+} from "@/lib/project-scope"
 import { prisma } from "@/lib/prisma"
+import { buildTaskVisibilityWhere } from "@/lib/task-scope"
+import { resolveTaskAccessScope } from "@/lib/task-scope-server"
+
 import ProjectExecutionClient from "./ProjectExecutionClient"
 
 export default async function ProjectExecutionPage({
@@ -18,174 +28,221 @@ export default async function ProjectExecutionPage({
 }) {
   const user = await requireAuth()
   const { id } = await params
+  const taskScope = await resolveTaskAccessScope(user)
+  const projectScope = projectScopeFromTaskScope(
+    user.role,
+    taskScope
+  )
+  const taskVisibilityWhere =
+    buildTaskVisibilityWhere(taskScope)
 
-  const [project, employees] = await Promise.all([
-    prisma.project.findFirst({
-      where: {
-        id,
-        companyId: user.companyId,
+  const project = await prisma.project.findFirst({
+    where: {
+      id,
+      companyId: user.companyId,
+      ...buildProjectVisibilityWhere(projectScope),
+    },
+    include: {
+      client: {
+        select: {
+          id: true,
+          name: true,
+        },
       },
-      include: {
-        client: {
-          select: {
-            id: true,
-            name: true,
+      workflow: {
+        include: {
+          approvals: {
+            select: {
+              status: true,
+            },
+          },
+          rules: {
+            where: {
+              isActive: true,
+            },
+            select: {
+              channel: true,
+            },
           },
         },
-        members: {
-          orderBy: [{ role: "asc" }, { createdAt: "asc" }],
-          include: {
-            employeeProfile: {
-              select: {
-                id: true,
-                employeeNumber: true,
-                user: {
-                  select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    isActive: true,
-                  },
+      },
+      members: {
+        orderBy: [{ role: "asc" }, { createdAt: "asc" }],
+        include: {
+          employeeProfile: {
+            select: {
+              id: true,
+              employeeNumber: true,
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  isActive: true,
                 },
-                department: {
-                  select: {
-                    id: true,
-                    name: true,
-                  },
+              },
+              department: {
+                select: {
+                  id: true,
+                  name: true,
                 },
-                jobRole: {
-                  select: {
-                    id: true,
-                    name: true,
-                  },
+              },
+              jobRole: {
+                select: {
+                  id: true,
+                  name: true,
                 },
               },
             },
           },
         },
-        phases: {
-          orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      },
+      phases: {
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      },
+      tasks: {
+        where: {
+          status: {
+            not: "ARCHIVED",
+          },
+          ...taskVisibilityWhere,
         },
-        tasks: {
-          where: {
-            status: {
-              not: "ARCHIVED",
+        orderBy: [
+          { sortOrder: "asc" },
+          { dueDate: "asc" },
+          { createdAt: "asc" },
+        ],
+        include: {
+          phase: {
+            select: {
+              id: true,
+              name: true,
             },
           },
-          orderBy: [{ sortOrder: "asc" }, { dueDate: "asc" }, { createdAt: "asc" }],
-          include: {
-            phase: {
-              select: {
-                id: true,
-                name: true,
-              },
+          assignedTo: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
             },
-            assignedTo: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-            participants: {
-              orderBy: [{ role: "asc" }, { createdAt: "asc" }],
-              include: {
-                employeeProfile: {
-                  select: {
-                    id: true,
-                    user: {
-                      select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                      },
+          },
+          participants: {
+            orderBy: [{ role: "asc" }, { createdAt: "asc" }],
+            include: {
+              employeeProfile: {
+                select: {
+                  id: true,
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      email: true,
                     },
-                    jobRole: {
-                      select: {
-                        name: true,
-                      },
+                  },
+                  jobRole: {
+                    select: {
+                      name: true,
                     },
                   },
                 },
               },
             },
-            dependencies: {
-              include: {
-                dependsOnTask: {
-                  select: {
-                    id: true,
-                    title: true,
-                    status: true,
-                    progress: true,
-                  },
-                },
-              },
+          },
+          dependencies: {
+            where: {
+              dependsOnTask: taskVisibilityWhere,
             },
-            blockers: {
-              orderBy: [{ status: "asc" }, { severity: "desc" }, { createdAt: "desc" }],
-              include: {
-                reportedBy: {
-                  select: {
-                    id: true,
-                    name: true,
-                  },
-                },
-                resolvedBy: {
-                  select: {
-                    id: true,
-                    name: true,
-                  },
+            include: {
+              dependsOnTask: {
+                select: {
+                  id: true,
+                  title: true,
+                  status: true,
+                  progress: true,
                 },
               },
             },
           },
-        },
-      },
-    }),
-    prisma.employeeProfile.findMany({
-      where: {
-        companyId: user.companyId,
-        status: "ACTIVE",
-        user: {
-          isActive: true,
-        },
-      },
-      orderBy: {
-        user: {
-          name: "asc",
-        },
-      },
-      select: {
-        id: true,
-        employeeNumber: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        department: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        jobRole: {
-          select: {
-            id: true,
-            name: true,
+          blockers: {
+            orderBy: [
+              { status: "asc" },
+              { severity: "desc" },
+              { createdAt: "desc" },
+            ],
+            include: {
+              reportedBy: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+              resolvedBy: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
           },
         },
       },
-    }),
-  ])
+    },
+  })
 
   if (!project) notFound()
 
   const currentMembership = project.members.find(
     (member) => member.employeeProfile.user.id === user.id
   )
+  const canManage = canManageProjectExecution(
+    user,
+    currentMembership?.role
+  )
+  const employeeWhere: Prisma.EmployeeProfileWhereInput = {
+    companyId: user.companyId,
+    status: "ACTIVE",
+    user: {
+      isActive: true,
+      ...(taskScope.canViewCompanyTasks
+        ? {}
+        : {
+            id: {
+              in: [...taskScope.assignableUserIds],
+            },
+          }),
+    },
+  }
+  const employees = await prisma.employeeProfile.findMany({
+    where: employeeWhere,
+    orderBy: {
+      user: {
+        name: "asc",
+      },
+    },
+    select: {
+      id: true,
+      employeeNumber: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+      department: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      jobRole: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  })
 
   const tasks = project.tasks.map((task) => {
     const accessContext = {
@@ -196,6 +253,7 @@ export default async function ProjectExecutionPage({
         role: participant.role,
       })),
       projectMemberRole: currentMembership?.role,
+      managedUserIds: taskScope.managedUserIds,
     }
 
     return {
@@ -209,13 +267,23 @@ export default async function ProjectExecutionPage({
       status: task.status,
       priority: task.priority,
       progress: task.progress,
-      estimatedHours: task.estimatedHours?.toString() ?? null,
+      estimatedHours:
+        task.estimatedHours?.toString() ?? null,
+      workflowTaskCode: task.workflowTaskCode,
+      workflowOwnerRole: task.workflowOwnerRole,
       dueDate: task.dueDate?.toISOString() ?? null,
       startedAt: task.startedAt?.toISOString() ?? null,
-      completedAt: task.completedAt?.toISOString() ?? null,
+      completedAt:
+        task.completedAt?.toISOString() ?? null,
       canEdit: canEditTask(user, accessContext),
-      canManageParticipants: canManageTaskParticipants(user, accessContext),
-      canAssignOwner: canAssignTaskOwner(user, currentMembership?.role),
+      canManageParticipants: canManageTaskParticipants(
+        user,
+        accessContext
+      ),
+      canAssignOwner: canAssignTaskOwner(
+        user,
+        currentMembership?.role
+      ),
       participants: task.participants.map((participant) => ({
         id: participant.id,
         role: participant.role,
@@ -236,7 +304,8 @@ export default async function ProjectExecutionPage({
         resolution: blocker.resolution,
         reportedBy: blocker.reportedBy,
         resolvedBy: blocker.resolvedBy,
-        resolvedAt: blocker.resolvedAt?.toISOString() ?? null,
+        resolvedAt:
+          blocker.resolvedAt?.toISOString() ?? null,
         createdAt: blocker.createdAt.toISOString(),
       })),
     }
@@ -246,13 +315,15 @@ export default async function ProjectExecutionPage({
     id: phase.id,
     name: phase.name,
     code: phase.code,
+    workflowStageCode: phase.workflowStageCode,
     description: phase.description,
     status: phase.status,
     progress: phase.progress,
     sortOrder: phase.sortOrder,
     startDate: phase.startDate?.toISOString() ?? null,
     dueDate: phase.dueDate?.toISOString() ?? null,
-    completedAt: phase.completedAt?.toISOString() ?? null,
+    completedAt:
+      phase.completedAt?.toISOString() ?? null,
   }))
 
   return (
@@ -268,6 +339,40 @@ export default async function ProjectExecutionPage({
         startDate: project.startDate?.toISOString() ?? null,
         dueDate: project.dueDate?.toISOString() ?? null,
       }}
+      workflow={
+        project.workflow
+          ? {
+              templateName: project.workflow.templateName,
+              templateCode: project.workflow.templateCode,
+              templateVersion: project.workflow.templateVersion,
+              status: project.workflow.status,
+              approvalCount: project.workflow.approvals.length,
+              pendingApprovalCount:
+                project.workflow.approvals.filter(
+                  (approval) =>
+                    approval.status === "PENDING" ||
+                    approval.status === "NOT_REQUESTED"
+                ).length,
+              notificationRuleCount:
+                project.workflow.rules.filter(
+                  (rule) => rule.channel !== "N8N_EVENT"
+                ).length,
+              n8nRuleCount: project.workflow.rules.filter(
+                (rule) => rule.channel === "N8N_EVENT"
+              ).length,
+            }
+          : null
+      }
+      scope={{
+        label: projectScopeLabel(projectScope),
+        dataScope: projectScope.dataScope,
+        description:
+          projectScope.dataScope === "company"
+            ? "عرض تنفيذي كامل للمشروع."
+            : projectScope.dataScope === "team"
+              ? "تظهر مهام فريقك ومسؤولياتك داخل المشروع."
+              : "تظهر مهامك ومسؤولياتك داخل المشروع فقط.",
+      }}
       members={project.members.map((member) => ({
         id: member.id,
         role: member.role,
@@ -277,20 +382,32 @@ export default async function ProjectExecutionPage({
       phases={phases}
       tasks={tasks}
       employees={employees}
-      canManage={canManageProjectExecution(user, currentMembership?.role)}
-      canManageLeadership={canManageProjectLeadership(user, currentMembership?.role)}
+      canManage={canManage}
+      canManageLeadership={canManageProjectLeadership(
+        user,
+        currentMembership?.role
+      )}
       summary={{
-        progress: averageProgress(tasks.map((task) => task.progress)),
+        progress: averageProgress(
+          tasks.map((task) => task.progress)
+        ),
         totalTasks: tasks.length,
-        completedTasks: tasks.filter((task) => task.status === "DONE").length,
+        completedTasks: tasks.filter(
+          (task) => task.status === "DONE"
+        ).length,
         blockedTasks: tasks.filter(
           (task) =>
             task.status === "BLOCKED" ||
-            task.blockers.some((blocker) => blocker.status === "OPEN")
+            task.blockers.some(
+              (blocker) => blocker.status === "OPEN"
+            )
         ).length,
         openBlockers: tasks.reduce(
           (count, task) =>
-            count + task.blockers.filter((blocker) => blocker.status === "OPEN").length,
+            count +
+            task.blockers.filter(
+              (blocker) => blocker.status === "OPEN"
+            ).length,
           0
         ),
       }}

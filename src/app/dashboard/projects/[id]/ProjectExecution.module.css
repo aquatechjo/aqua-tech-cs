@@ -1,0 +1,559 @@
+.page {
+  display: grid;
+  gap: var(--at-space-4);
+}
+
+.intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--at-space-4);
+  padding: var(--at-space-4) var(--at-space-6);
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-xl);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--at-product-accent-rgb), 0.08),
+      transparent 56%
+    ),
+    color-mix(in srgb, var(--at-product-surface) 78%, transparent);
+}
+
+.introCopy {
+  display: flex;
+  align-items: center;
+  gap: var(--at-space-4);
+  min-inline-size: 0;
+}
+
+.introIcon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border: 1px solid
+    color-mix(in srgb, var(--at-product-accent) 34%, transparent);
+  border-radius: var(--at-radius-md);
+  background: color-mix(
+    in srgb,
+    var(--at-product-accent) 10%,
+    transparent
+  );
+  color: var(--at-product-accent);
+}
+
+.introIcon svg {
+  inline-size: 21px;
+  block-size: 21px;
+}
+
+.titleRow,
+.summaryBadges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--at-space-2);
+}
+
+.titleRow h1 {
+  margin: 0;
+  color: var(--at-product-text);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.introCopy p {
+  margin: var(--at-space-1) 0 0;
+  color: var(--at-product-muted);
+  font-size: 0.8rem;
+}
+
+.introActions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--at-space-2);
+}
+
+.workflowSummary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--at-space-3);
+  border-color: color-mix(
+    in srgb,
+    var(--at-product-accent) 28%,
+    var(--at-product-border)
+  );
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--at-product-accent) 9%, transparent),
+      transparent 66%
+    ),
+    color-mix(in srgb, var(--at-product-surface) 88%, transparent);
+}
+
+.workflowIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: var(--at-radius-md);
+  background: color-mix(
+    in srgb,
+    var(--at-product-accent) 12%,
+    transparent
+  );
+  color: var(--at-product-accent);
+}
+
+.workflowIcon svg {
+  inline-size: 20px;
+  block-size: 20px;
+}
+
+.workflowCopy {
+  display: grid;
+  gap: var(--at-space-1);
+  min-inline-size: 0;
+}
+
+.workflowTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--at-space-2);
+}
+
+.workflowTitle strong {
+  color: var(--at-product-text);
+  font-size: 0.82rem;
+}
+
+.workflowCopy p {
+  margin: 0;
+  color: var(--at-product-muted);
+  font-size: 0.72rem;
+}
+
+.workflowStats {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: var(--at-space-4);
+}
+
+.workflowStats span {
+  display: grid;
+  gap: var(--at-space-1);
+  color: var(--at-product-muted);
+  font-size: 0.66rem;
+  text-align: center;
+}
+
+.workflowStats strong {
+  color: var(--at-product-text);
+  font-family: var(--at-font-mono);
+  font-size: 0.9rem;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--at-space-3);
+}
+
+.metric {
+  --execution-tone: var(--at-product-accent);
+
+  display: flex;
+  align-items: center;
+  gap: var(--at-space-3);
+  border-color: color-mix(
+    in srgb,
+    var(--execution-tone) 28%,
+    var(--at-product-border)
+  );
+}
+
+.metric_aqua {
+  --execution-tone: var(--at-product-accent);
+}
+
+.metric_blue {
+  --execution-tone: var(--at-info);
+}
+
+.metric_success {
+  --execution-tone: var(--at-success);
+}
+
+.metric_danger {
+  --execution-tone: var(--at-danger);
+}
+
+.metric_warning {
+  --execution-tone: var(--at-warning);
+}
+
+.metricIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: var(--at-radius-md);
+  background: color-mix(
+    in srgb,
+    var(--execution-tone) 10%,
+    transparent
+  );
+  color: var(--execution-tone);
+}
+
+.metricIcon svg {
+  inline-size: 19px;
+  block-size: 19px;
+}
+
+.metric div {
+  display: grid;
+  gap: var(--at-space-1);
+}
+
+.metric div span {
+  color: var(--at-product-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.metric div strong {
+  color: var(--at-product-text);
+  font-family: var(--at-font-mono);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.projectSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--at-space-6);
+}
+
+.projectSummary h2 {
+  margin: var(--at-space-2) 0 var(--at-space-1);
+  color: var(--at-product-text);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.projectSummary p {
+  max-inline-size: 54rem;
+  margin: 0;
+  color: var(--at-product-muted);
+  font-size: 0.78rem;
+  line-height: 1.65;
+}
+
+.summaryProgress {
+  display: grid;
+  gap: var(--at-space-2);
+  min-inline-size: 17rem;
+}
+
+.summaryProgress > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--at-space-2);
+  color: var(--at-product-muted);
+  font-size: 0.72rem;
+}
+
+.summaryProgress svg {
+  inline-size: 16px;
+  block-size: 16px;
+  color: var(--at-product-accent);
+}
+
+.progressTrack {
+  block-size: var(--at-space-2);
+  overflow: hidden;
+  border-radius: var(--at-radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.progressValue {
+  display: block;
+  block-size: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--at-product-accent),
+    var(--at-product-accent-secondary)
+  );
+  transition: inline-size var(--at-motion-normal)
+    var(--at-ease-standard);
+}
+
+.workspaceGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: var(--at-space-4);
+}
+
+.stack,
+.controlList,
+.controlForm,
+.modalForm {
+  display: grid;
+  gap: var(--at-space-3);
+}
+
+.empty {
+  color: var(--at-product-muted);
+  font-size: 0.78rem;
+}
+
+.memberRow,
+.phaseCard {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--at-space-3);
+}
+
+.memberRow > div,
+.phaseHeading > div,
+.controlRow > div {
+  display: grid;
+  gap: var(--at-space-1);
+}
+
+.memberRow strong,
+.phaseHeading strong,
+.controlRow strong {
+  color: var(--at-product-text);
+  font-size: 0.82rem;
+}
+
+.memberRow span,
+.phaseHeading span,
+.controlRow span,
+.blocker > span {
+  color: var(--at-product-muted);
+  font-size: 0.7rem;
+}
+
+.memberRow p {
+  margin: var(--at-space-1) 0 0;
+  color: var(--at-product-muted);
+  font-size: 0.72rem;
+}
+
+.phaseCard {
+  display: grid;
+}
+
+.phaseHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--at-space-3);
+}
+
+.phaseControls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 7rem auto;
+  align-items: end;
+  gap: var(--at-space-2);
+}
+
+.phaseControls label {
+  display: grid;
+  gap: var(--at-space-1);
+}
+
+.phaseControls label > span {
+  color: var(--at-product-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.phaseActions,
+.resolveRow {
+  display: flex;
+  align-items: center;
+  gap: var(--at-space-2);
+}
+
+.taskHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--at-space-3);
+  min-inline-size: 14rem;
+}
+
+.taskPicker {
+  min-inline-size: 18rem;
+}
+
+.controlGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--at-space-3);
+}
+
+.controlTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--at-space-2);
+  margin-block-end: var(--at-space-3);
+  color: var(--at-product-accent);
+}
+
+.controlTitle svg {
+  inline-size: 18px;
+  block-size: 18px;
+}
+
+.controlTitle h3 {
+  margin: 0;
+  color: var(--at-product-text);
+  font-size: 0.85rem;
+  font-weight: 900;
+}
+
+.controlList {
+  margin-block-end: var(--at-space-4);
+}
+
+.controlRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--at-space-2);
+  padding-block-end: var(--at-space-2);
+  border-block-end: 1px solid var(--at-product-border);
+}
+
+.blocker {
+  display: grid;
+  gap: var(--at-space-2);
+  padding-block-end: var(--at-space-3);
+  border-block-end: 1px solid var(--at-product-border);
+}
+
+.blockerHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--at-space-2);
+}
+
+.blockerHeading strong {
+  color: var(--at-product-text);
+  font-size: 0.78rem;
+}
+
+.blocker p {
+  margin: 0;
+  color: var(--at-product-muted);
+  font-size: 0.7rem;
+  line-height: 1.6;
+}
+
+.resolveRow input {
+  min-inline-size: 0;
+}
+
+@media (max-width: 1199.98px) {
+  .workflowSummary {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .workflowStats {
+    grid-column: 1 / -1;
+    justify-content: start;
+  }
+
+  .metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .workspaceGrid,
+  .controlGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .intro,
+  .projectSummary {
+    align-items: stretch;
+    flex-direction: column;
+    padding: var(--at-space-4);
+  }
+
+  .workflowStats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    inline-size: 100%;
+  }
+
+  .introCopy {
+    align-items: flex-start;
+  }
+
+  .introActions {
+    inline-size: 100%;
+  }
+
+  .introActions > * {
+    flex: 1 1 0;
+  }
+
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .summaryProgress,
+  .taskPicker {
+    min-inline-size: 0;
+    inline-size: 100%;
+  }
+
+  .phaseControls {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .workflowSummary {
+    grid-template-columns: 1fr;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .introCopy,
+  .introActions,
+  .memberRow {
+    flex-direction: column;
+  }
+
+  .introActions > * {
+    inline-size: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressValue {
+    transition: none;
+  }
+}

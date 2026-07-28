@@ -3,7 +3,10 @@ import { clsx } from "clsx"
 
 import type { AquaFieldSize } from "@/design-system"
 
-type AquaInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
+type AquaInputProps = Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  "size"
+> & {
   label?: string
   hint?: string
   error?: string

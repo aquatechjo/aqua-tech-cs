@@ -6,6 +6,8 @@ import { requireAuth } from "@/lib/auth"
 import { requireProjectExecutionManager } from "@/lib/project-execution-server"
 import { prisma } from "@/lib/prisma"
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
+import { canAssignTaskTo } from "@/lib/task-scope"
+import { resolveTaskAccessScope } from "@/lib/task-scope-server"
 
 const memberSchema = z.object({
   employeeProfileId: z.string().min(1),
@@ -28,7 +30,10 @@ async function addProjectMember(
 
   const user = await requireAuth()
   const { id: projectId } = await context.params
-  const project = await requireProjectExecutionManager(user, projectId)
+  const [project, scope] = await Promise.all([
+    requireProjectExecutionManager(user, projectId),
+    resolveTaskAccessScope(user),
+  ])
   const body = await readJsonBody(request)
   const parsed = memberSchema.safeParse(body)
 
@@ -50,6 +55,7 @@ async function addProjectMember(
     },
     select: {
       id: true,
+      userId: true,
       user: {
         select: {
           name: true,
@@ -62,6 +68,16 @@ async function addProjectMember(
     return err("الموظف غير موجود أو غير فعال", 404, {
       code: "EMPLOYEE_NOT_FOUND",
     })
+  }
+
+  if (!canAssignTaskTo(scope, employee.userId)) {
+    return err(
+      "لا يمكنك إضافة موظف خارج نطاق عملك إلى المشروع",
+      403,
+      {
+        code: "PROJECT_MEMBER_SCOPE_FORBIDDEN",
+      }
+    )
   }
 
   const existing = await prisma.projectMember.findUnique({

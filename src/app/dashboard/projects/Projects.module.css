@@ -1,0 +1,456 @@
+.page {
+  display: grid;
+  gap: var(--at-space-4);
+}
+
+.intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--at-space-4);
+  padding: var(--at-space-4) var(--at-space-6);
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-xl);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--at-product-accent-rgb), 0.08),
+      transparent 56%
+    ),
+    color-mix(in srgb, var(--at-product-surface) 78%, transparent);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.introCopy {
+  display: flex;
+  align-items: center;
+  gap: var(--at-space-4);
+  min-inline-size: 0;
+}
+
+.introIcon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border: 1px solid
+    color-mix(in srgb, var(--at-product-accent) 34%, transparent);
+  border-radius: var(--at-radius-md);
+  background: color-mix(
+    in srgb,
+    var(--at-product-accent) 10%,
+    transparent
+  );
+  color: var(--at-product-accent);
+}
+
+.introIcon > svg {
+  inline-size: 21px;
+  block-size: 21px;
+}
+
+.introTitleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--at-space-2);
+}
+
+.introTitle {
+  margin: 0;
+  color: var(--at-product-text);
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1.45;
+}
+
+.introDescription {
+  max-inline-size: 54rem;
+  margin: var(--at-space-1) 0 0;
+  color: var(--at-product-muted);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.introActions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--at-space-2);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--at-space-3);
+}
+
+.metric {
+  --project-metric-tone: var(--at-product-accent);
+
+  display: flex;
+  align-items: center;
+  gap: var(--at-space-3);
+  min-inline-size: 0;
+  border-color: color-mix(
+    in srgb,
+    var(--project-metric-tone) 28%,
+    var(--at-product-border)
+  );
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(
+        in srgb,
+        var(--project-metric-tone) 10%,
+        transparent
+      ),
+      transparent 62%
+    ),
+    color-mix(in srgb, var(--at-product-surface) 82%, transparent);
+}
+
+.metric_danger {
+  --project-metric-tone: var(--at-danger);
+}
+
+.metric_success {
+  --project-metric-tone: var(--at-success);
+}
+
+.metric_aqua {
+  --project-metric-tone: var(--at-product-accent);
+}
+
+.metric_blue {
+  --project-metric-tone: var(--at-info);
+}
+
+.metricIcon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border: 1px solid
+    color-mix(in srgb, var(--project-metric-tone) 30%, transparent);
+  border-radius: var(--at-radius-md);
+  background: color-mix(
+    in srgb,
+    var(--project-metric-tone) 10%,
+    transparent
+  );
+  color: var(--project-metric-tone);
+}
+
+.metricIcon > svg {
+  inline-size: 20px;
+  block-size: 20px;
+}
+
+.metricCopy {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 var(--at-space-2);
+  min-inline-size: 0;
+  inline-size: 100%;
+}
+
+.metricLabel {
+  overflow: hidden;
+  color: var(--at-product-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metricValue {
+  grid-row: span 2;
+  color: var(--at-product-text);
+  font-family: var(--at-font-mono);
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.metricHint {
+  overflow: hidden;
+  margin-block-start: var(--at-space-1);
+  color: var(--at-product-soft-text);
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filterSubmit {
+  display: flex;
+  align-items: end;
+}
+
+.projectHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--at-space-3);
+  min-inline-size: 15rem;
+}
+
+.workflowLine {
+  display: flex;
+  align-items: center;
+  gap: var(--at-space-1);
+  margin-block-start: var(--at-space-1);
+  color: var(--at-product-soft-text);
+  font-size: 0.68rem;
+}
+
+.workflowLine svg {
+  inline-size: 13px;
+  block-size: 13px;
+  color: var(--at-product-accent);
+}
+
+.inlineAlert {
+  margin-block-start: var(--at-space-1);
+  color: var(--at-danger);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.progressLabel {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--at-space-2);
+  color: var(--at-product-muted);
+  font-size: 0.72rem;
+}
+
+.progressTrack {
+  block-size: var(--at-space-1);
+  margin-block-start: var(--at-space-2);
+  overflow: hidden;
+  border-radius: var(--at-radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.progressValue {
+  display: block;
+  block-size: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--at-product-accent),
+    var(--at-product-accent-secondary)
+  );
+  transition: inline-size var(--at-motion-normal)
+    var(--at-ease-standard);
+}
+
+.overdueDate {
+  margin-block-end: var(--at-space-1);
+  color: var(--at-danger);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.executionMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--at-space-3);
+  color: var(--at-product-muted);
+  font-size: 0.75rem;
+}
+
+.executionMeta span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--at-space-1);
+}
+
+.executionMeta svg {
+  inline-size: 15px;
+  block-size: 15px;
+  color: var(--at-product-accent);
+}
+
+.projectForm {
+  display: grid;
+  gap: var(--at-space-4);
+}
+
+.projectModal {
+  block-size: min(900px, 90vh);
+}
+
+@supports (block-size: 100dvh) {
+  .projectModal {
+    block-size: min(900px, 90dvh);
+  }
+}
+
+.workflowPreview,
+.workflowLocked {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--at-space-3);
+  padding: var(--at-space-3);
+  border: 1px solid
+    color-mix(in srgb, var(--at-product-accent) 28%, var(--at-product-border));
+  border-radius: var(--at-radius-md);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--at-product-accent) 9%, transparent),
+      transparent 68%
+    ),
+    color-mix(in srgb, var(--at-product-surface) 90%, transparent);
+}
+
+.workflowLocked {
+  border-color: var(--at-product-border);
+  background: color-mix(
+    in srgb,
+    var(--at-product-surface) 80%,
+    transparent
+  );
+}
+
+.workflowIcon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: var(--at-radius-md);
+  background: color-mix(
+    in srgb,
+    var(--at-product-accent) 12%,
+    transparent
+  );
+  color: var(--at-product-accent);
+}
+
+.workflowIcon svg {
+  inline-size: 18px;
+  block-size: 18px;
+}
+
+.workflowPreviewCopy {
+  display: grid;
+  gap: var(--at-space-1);
+  min-inline-size: 0;
+}
+
+.workflowPreviewTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--at-space-2);
+}
+
+.workflowPreviewTitle strong,
+.workflowLocked strong {
+  color: var(--at-product-text);
+  font-size: 0.8rem;
+}
+
+.workflowPreview p,
+.workflowLocked p {
+  margin: 0;
+  color: var(--at-product-muted);
+  font-size: 0.72rem;
+  line-height: 1.65;
+}
+
+.workflowCounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--at-space-1) var(--at-space-3);
+  color: var(--at-product-soft-text);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.workflowCounts span {
+  position: relative;
+}
+
+.workflowCounts span:not(:last-child)::after {
+  position: absolute;
+  inset-inline-end: calc(var(--at-space-2) * -1);
+  color: var(--at-product-border);
+  content: "•";
+}
+
+.dateField {
+  display: grid;
+  align-content: start;
+  gap: var(--at-space-2);
+}
+
+.dateField label {
+  color: var(--at-product-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+@media (max-width: 991.98px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767.98px) {
+  .intro {
+    align-items: stretch;
+    flex-direction: column;
+    padding: var(--at-space-4);
+  }
+
+  .introCopy {
+    align-items: flex-start;
+  }
+
+  .introActions {
+    inline-size: 100%;
+  }
+
+  .introActions > * {
+    flex: 1 1 0;
+  }
+
+}
+
+@media (max-width: 575.98px) {
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .introCopy {
+    flex-direction: column;
+  }
+
+  .introActions {
+    flex-direction: column;
+  }
+
+  .introActions > * {
+    inline-size: 100%;
+  }
+
+  .metric {
+    padding: var(--at-space-3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressValue {
+    transition: none;
+  }
+}

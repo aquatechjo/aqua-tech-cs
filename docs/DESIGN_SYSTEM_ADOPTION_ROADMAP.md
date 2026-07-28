@@ -173,6 +173,39 @@ Status: **implemented**
 - Limit assignee, project, client, and automation-source controls to the user’s real scope instead of hiding only the final action.
 - Add urgency filters, Latin-digit timezone-aware due dates, progress, blockers, next-step actions, mobile stacked rows, RTL-safe layout, reduced motion, and canonical archive confirmation.
 
+## AD-04 — Projects Adoption
+
+Status: **implemented**
+
+- Rebuild Projects as a compact operational surface using canonical filters, data panels, stacked tables, badges, modals, date fields, alerts, and confirmation dialogs.
+- Enforce company, managed-team/project, and personal project visibility in server pages and every project read API.
+- Scope task progress, completion, and blocker summaries to the tasks each user may actually see instead of leaking company-wide execution totals.
+- Keep project metadata creation and editing with company project-management roles while project leads and project managers retain execution controls for members, phases, and tasks.
+- Restrict project-member and task-participant employee selection on both the page and API to the user’s real assignment scope.
+- Hide project budgets from roles without finance-read permission and keep operational dates in the company timezone with Latin digits.
+- Add responsive project overview and execution pages with logical RTL/LTR layout, reduced motion, accessible empty states, and canonical confirmation flows.
+
+## AD-04.2 — Project Workflow Foundation
+
+Status: **implemented**
+
+- Require an active workflow template when a company project-management role creates a project.
+- Resolve the workflow automatically when converting service requests and won sales opportunities, with a safe default fallback.
+- Clone a versioned, independent workflow snapshot into operational phases, tasks, dependencies, approval definitions, role expectations, and automation rules.
+- Keep the existing phase and task models as the execution engine so workflow-generated and manually adjusted work share one permission model.
+- Backfill existing projects with a generic workflow link without replacing their established execution records.
+- Synchronize project and workflow status, and write durable creation, start, and completion events for later notification, email, and n8n dispatchers.
+- Show the selected workflow and generated counts in project creation, project lists, and the scoped execution view.
+
+## AD-04.4 — Project Modal Viewport Safety
+
+Status: **implemented**
+
+- Keep the project create/edit modal inside the available viewport.
+- Scroll only the modal body when the project form is taller than the screen.
+- Keep the title, close control, cancel action, and save action visible.
+- Preserve the shared modal focus trap, body scroll lock, RTL/LTR layout, mobile sheet behavior, and reduced-motion contract.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.

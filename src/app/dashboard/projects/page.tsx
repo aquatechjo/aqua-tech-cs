@@ -1,38 +1,53 @@
-import AquaPagination from "@/components/aqua/AquaPagination"
+import type { Prisma } from "@/generated/prisma/client"
 import {
   ProjectPriority,
   ProjectStatus,
 } from "@/generated/prisma/enums"
+
+import AquaPagination from "@/components/aqua/AquaPagination"
 import { requireAuth } from "@/lib/auth"
+import { averageProgress } from "@/lib/project-execution"
+import { summarizeWorkflowDefinition } from "@/lib/project-workflow"
+import {
+  buildProjectVisibilityWhere,
+  canManageProjectMetadata,
+  projectScopeFromTaskScope,
+  projectScopeLabel,
+} from "@/lib/project-scope"
 import { prisma } from "@/lib/prisma"
+import { buildTaskVisibilityWhere } from "@/lib/task-scope"
+import { resolveTaskAccessScope } from "@/lib/task-scope-server"
+
 import ProjectsClient from "./ProjectsClient"
 
 const PAGE_SIZE = 20
-
-const projectStatuses: ProjectStatus[] = [
+const activeProjectStatuses: ProjectStatus[] = [
   "PLANNING",
   "IN_PROGRESS",
   "ON_HOLD",
+]
+const projectStatuses: ProjectStatus[] = [
+  ...activeProjectStatuses,
   "COMPLETED",
   "CANCELLED",
   "ARCHIVED",
 ]
-
-const projectPriorities: ProjectPriority[] = ["LOW", "MEDIUM", "HIGH", "URGENT"]
+const projectPriorities: ProjectPriority[] = [
+  "LOW",
+  "MEDIUM",
+  "HIGH",
+  "URGENT",
+]
 
 function parsePage(value: string | undefined) {
   const page = Number(value)
-
-  if (!Number.isFinite(page) || page < 1) {
-    return 1
-  }
-
-  return Math.floor(page)
+  return Number.isFinite(page) && page >= 1
+    ? Math.floor(page)
+    : 1
 }
 
 function parseProjectStatus(value: string | undefined) {
   if (!value) return undefined
-
   return projectStatuses.includes(value as ProjectStatus)
     ? (value as ProjectStatus)
     : undefined
@@ -40,10 +55,31 @@ function parseProjectStatus(value: string | undefined) {
 
 function parseProjectPriority(value: string | undefined) {
   if (!value) return undefined
-
   return projectPriorities.includes(value as ProjectPriority)
     ? (value as ProjectPriority)
     : undefined
+}
+
+function formatDate(value: Date | null, timeZone: string) {
+  if (!value) return "دون موعد"
+
+  return new Intl.DateTimeFormat("ar-JO-u-nu-latn", {
+    timeZone,
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+  }).format(value)
+}
+
+function formatBudget(
+  value: Prisma.Decimal | null,
+  currency: string
+) {
+  if (!value) return null
+
+  return `${new Intl.NumberFormat("en-JO", {
+    maximumFractionDigits: 2,
+  }).format(Number(value))} ${currency}`
 }
 
 export default async function ProjectsPage({
@@ -58,88 +94,151 @@ export default async function ProjectsPage({
   }>
 }) {
   const user = await requireAuth()
+  const taskScope = await resolveTaskAccessScope(user)
+  const scope = projectScopeFromTaskScope(
+    user.role,
+    taskScope
+  )
   const resolvedSearchParams = await searchParams
+  const timeZone = user.company.timezone || "Asia/Amman"
+  const now = new Date()
 
   const requestedPage = parsePage(resolvedSearchParams.page)
   const q = resolvedSearchParams.q?.trim() ?? ""
   const status = parseProjectStatus(resolvedSearchParams.status)
   const priority = parseProjectPriority(resolvedSearchParams.priority)
   const clientId = resolvedSearchParams.clientId?.trim() ?? ""
+  const visibilityWhere = buildProjectVisibilityWhere(scope)
+  const taskVisibilityWhere =
+    buildTaskVisibilityWhere(taskScope)
 
-  const clients = await prisma.client.findMany({
-    where: {
-      companyId: user.companyId,
-      status: {
-        not: "ARCHIVED",
-      },
-    },
-    orderBy: {
-      name: "asc",
-    },
-    select: {
-      id: true,
-      name: true,
-    },
-  })
-
-  const where = {
+  const scopeWhere: Prisma.ProjectWhereInput = {
     companyId: user.companyId,
-
+    ...visibilityWhere,
+  }
+  const where: Prisma.ProjectWhereInput = {
+    ...scopeWhere,
     ...(status ? { status } : {}),
     ...(priority ? { priority } : {}),
     ...(clientId ? { clientId } : {}),
-
     ...(q
       ? {
           OR: [
-            { name: { contains: q, mode: "insensitive" as const } },
-            { code: { contains: q, mode: "insensitive" as const } },
-            { description: { contains: q, mode: "insensitive" as const } },
-            { currency: { contains: q, mode: "insensitive" as const } },
+            { name: { contains: q, mode: "insensitive" } },
+            { code: { contains: q, mode: "insensitive" } },
+            {
+              description: {
+                contains: q,
+                mode: "insensitive",
+              },
+            },
           ],
         }
       : {}),
   }
 
-  const [
-    totalProjects,
-    inProgressProjects,
-    completedProjects,
-    archivedProjects,
-  ] = await Promise.all([
-    prisma.project.count({ where }),
+  const clientWhere: Prisma.ClientWhereInput = {
+    companyId: user.companyId,
+    status: {
+      not: "ARCHIVED",
+    },
+    ...(scope.canViewCompanyProjects
+      ? {}
+      : {
+          projects: {
+            some: visibilityWhere,
+          },
+        }),
+  }
 
-    prisma.project.count({
-      where: {
-        ...where,
-        status: "IN_PROGRESS",
+  const [
+    clients,
+    totalProjects,
+    activeProjects,
+    completedProjects,
+    overdueProjects,
+    filteredProjects,
+    workflowTemplateRecords,
+  ] = await Promise.all([
+    prisma.client.findMany({
+      where: clientWhere,
+      orderBy: {
+        name: "asc",
+      },
+      select: {
+        id: true,
+        name: true,
       },
     }),
-
+    prisma.project.count({
+      where: scopeWhere,
+    }),
     prisma.project.count({
       where: {
-        ...where,
+        ...scopeWhere,
+        status: {
+          in: activeProjectStatuses,
+        },
+      },
+    }),
+    prisma.project.count({
+      where: {
+        ...scopeWhere,
         status: "COMPLETED",
       },
     }),
-
     prisma.project.count({
       where: {
-        ...where,
-        status: "ARCHIVED",
+        ...scopeWhere,
+        status: {
+          in: activeProjectStatuses,
+        },
+        dueDate: {
+          lt: now,
+        },
       },
     }),
+    prisma.project.count({ where }),
+    scope.canCreateProjects
+      ? prisma.workflowTemplate.findMany({
+          where: {
+            companyId: user.companyId,
+            isActive: true,
+          },
+          orderBy: [{ isDefault: "desc" }, { name: "asc" }],
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            description: true,
+            version: true,
+            isDefault: true,
+            definition: true,
+          },
+        })
+      : Promise.resolve([]),
   ])
 
-  const totalPages = Math.max(1, Math.ceil(totalProjects / PAGE_SIZE))
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProjects / PAGE_SIZE)
+  )
   const currentPage = Math.min(requestedPage, totalPages)
   const skip = (currentPage - 1) * PAGE_SIZE
 
   const rawProjects = await prisma.project.findMany({
     where,
-    orderBy: {
-      createdAt: "desc",
-    },
+    orderBy: [
+      {
+        status: "asc",
+      },
+      {
+        dueDate: "asc",
+      },
+      {
+        updatedAt: "desc",
+      },
+    ],
     skip,
     take: PAGE_SIZE,
     include: {
@@ -149,34 +248,123 @@ export default async function ProjectsPage({
           name: true,
         },
       },
+      members: {
+        select: {
+          id: true,
+        },
+      },
+      workflow: {
+        select: {
+          templateName: true,
+          templateCode: true,
+          templateVersion: true,
+          status: true,
+        },
+      },
+      tasks: {
+        where: {
+          status: {
+            not: "ARCHIVED",
+          },
+          ...taskVisibilityWhere,
+        },
+        select: {
+          status: true,
+          progress: true,
+          blockers: {
+            where: {
+              status: "OPEN",
+            },
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
     },
   })
 
-  const projects = rawProjects.map((project) => ({
-    id: project.id,
-    clientId: project.clientId,
-    client: project.client,
-    name: project.name,
-    code: project.code,
-    description: project.description,
-    status: project.status,
-    priority: project.priority,
-    budget: project.budget ? project.budget.toString() : null,
-    currency: project.currency,
-    startDate: project.startDate ? project.startDate.toISOString() : null,
-    dueDate: project.dueDate ? project.dueDate.toISOString() : null,
-    completedAt: project.completedAt ? project.completedAt.toISOString() : null,
-    createdAt: project.createdAt.toISOString(),
-    updatedAt: project.updatedAt.toISOString(),
-  }))
+  const projects = rawProjects.map((project) => {
+    const openBlockers = project.tasks.reduce(
+      (count, task) => count + task.blockers.length,
+      0
+    )
+    const completedTasks = project.tasks.filter(
+      (task) => task.status === "DONE"
+    ).length
+    const isOverdue =
+      project.dueDate !== null &&
+      project.dueDate < now &&
+      activeProjectStatuses.includes(project.status)
 
-  const from = totalProjects === 0 ? 0 : skip + 1
-  const to = Math.min(skip + projects.length, totalProjects)
+    return {
+      id: project.id,
+      clientId: project.clientId,
+      client: project.client,
+      name: project.name,
+      code: project.code,
+      description: project.description,
+      status: project.status,
+      priority: project.priority,
+      budget: scope.canViewProjectBudgets
+        ? project.budget?.toString() ?? null
+        : null,
+      budgetDisplay: scope.canViewProjectBudgets
+        ? formatBudget(project.budget, project.currency)
+        : null,
+      currency: project.currency,
+      startDate: project.startDate?.toISOString() ?? null,
+      dueDate: project.dueDate?.toISOString() ?? null,
+      dueDisplay: formatDate(project.dueDate, timeZone),
+      isOverdue,
+      completedAt: project.completedAt?.toISOString() ?? null,
+      createdAt: project.createdAt.toISOString(),
+      updatedAt: project.updatedAt.toISOString(),
+      progress: averageProgress(
+        project.tasks.map((task) => task.progress)
+      ),
+      totalTasks: project.tasks.length,
+      completedTasks,
+      memberCount: project.members.length,
+      openBlockers,
+      canEdit: canManageProjectMetadata(scope),
+      workflow: project.workflow,
+    }
+  })
+  const workflowTemplates = workflowTemplateRecords.map(
+    (template) => ({
+      id: template.id,
+      name: template.name,
+      code: template.code,
+      description: template.description,
+      version: template.version,
+      isDefault: template.isDefault,
+      ...summarizeWorkflowDefinition(template.definition),
+    })
+  )
+
+  const from = filteredProjects === 0 ? 0 : skip + 1
+  const to = Math.min(
+    skip + projects.length,
+    filteredProjects
+  )
 
   return (
     <ProjectsClient
       projects={projects}
       clients={clients}
+      workflowTemplates={workflowTemplates}
+      scope={{
+        label: projectScopeLabel(scope),
+        dataScope: scope.dataScope,
+        canCreate: scope.canCreateProjects,
+        description:
+          scope.dataScope === "company"
+            ? "عرض وإدارة جميع مشاريع الشركة."
+            : scope.dataScope === "team"
+              ? "المشاريع المرتبطة بفريقك ومسؤولياتك فقط."
+              : "المشاريع التي تشارك فيها أو تعمل على مهامها فقط.",
+      }}
       filters={{
         q,
         status: status ?? "",
@@ -185,9 +373,10 @@ export default async function ProjectsPage({
       }}
       stats={{
         totalProjects,
-        inProgressProjects,
+        activeProjects,
         completedProjects,
-        archivedProjects,
+        overdueProjects,
+        filteredProjects,
         from,
         to,
         currentPage,

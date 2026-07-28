@@ -3,22 +3,47 @@ import { ActivityAction } from "@/generated/prisma/enums";
 import { ACCESS_ROLES, assertRole } from "@/lib/access-control";
 import { err, handleApiError, ok } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
+import { buildProjectVisibilityWhere } from "@/lib/project-scope";
+import { resolveProjectAccessScope } from "@/lib/project-scope-server";
 import { prisma } from "@/lib/prisma";
+import { projectStatusToWorkflowStatus } from "@/lib/project-workflow-server";
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security";
+
+const optionalDateSchema = z
+  .string()
+  .refine(
+    (value) => value.trim() === "" || !Number.isNaN(Date.parse(value)),
+    "صيغة التاريخ غير صحيحة",
+  );
 
 const updateProjectSchema = z.object({
   clientId: z.string().optional().nullable(),
-  name: z.string().trim().min(2).optional(),
-  code: z.string().trim().optional().nullable(),
-  description: z.string().trim().optional().nullable(),
+  name: z.string().trim().min(2).max(180).optional(),
+  code: z.string().trim().max(80).optional().nullable(),
+  description: z.string().trim().max(2000).optional().nullable(),
   status: z
     .enum(["PLANNING", "IN_PROGRESS", "ON_HOLD", "COMPLETED", "CANCELLED", "ARCHIVED"])
     .optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
-  budget: z.string().trim().optional().nullable(),
-  currency: z.string().trim().optional(),
-  startDate: z.string().optional().nullable(),
-  dueDate: z.string().optional().nullable(),
+  budget: z
+    .string()
+    .trim()
+    .refine(
+      (value) =>
+        value === "" ||
+        (Number.isFinite(Number(value)) && Number(value) >= 0),
+      "الميزانية يجب أن تكون رقمًا موجبًا",
+    )
+    .optional()
+    .nullable(),
+  currency: z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z]{3}$/, "رمز العملة يجب أن يتكون من 3 أحرف")
+    .transform((value) => value.toUpperCase())
+    .optional(),
+  startDate: optionalDateSchema.optional().nullable(),
+  dueDate: optionalDateSchema.optional().nullable(),
 });
 
 function nullableText(value: string | null | undefined) {
@@ -61,17 +86,41 @@ export async function GET(
   try {
     const user = await requireAuth();
     const { id } = await context.params;
+    const scope = await resolveProjectAccessScope(user);
 
     const project = await prisma.project.findFirst({
       where: {
         id,
         companyId: user.companyId,
+        ...buildProjectVisibilityWhere(scope),
       },
-      include: {
+      select: {
+        id: true,
+        clientId: true,
+        name: true,
+        code: true,
+        description: true,
+        status: true,
+        priority: true,
+        budget: true,
+        currency: true,
+        startDate: true,
+        dueDate: true,
+        completedAt: true,
+        createdAt: true,
+        updatedAt: true,
         client: {
           select: {
             id: true,
             name: true,
+          },
+        },
+        workflow: {
+          select: {
+            templateName: true,
+            templateCode: true,
+            templateVersion: true,
+            status: true,
           },
         },
       },
@@ -83,7 +132,14 @@ export async function GET(
       });
     }
 
-    return ok({ project });
+    return ok({
+      project: {
+        ...project,
+        budget: scope.canViewProjectBudgets
+          ? project.budget
+          : null,
+      },
+    });
   } catch (error) {
     return handleApiError(error, "PROJECT_GET_ERROR");
   }
@@ -97,11 +153,10 @@ export async function PATCH(
     assertSameOrigin(request);
 
     const user = await requireAuth();
-
     assertRole(
       user.role,
       ACCESS_ROLES.projectManagement,
-      "لا تملك صلاحية تعديل المشاريع",
+      "لا تملك صلاحية تعديل بيانات المشروع",
     );
 
     const { id } = await context.params;
@@ -130,6 +185,20 @@ export async function PATCH(
     }
 
     const data = parsed.data;
+    const startDate =
+      data.startDate !== undefined
+        ? nullableDate(data.startDate)
+        : existingProject.startDate;
+    const dueDate =
+      data.dueDate !== undefined
+        ? nullableDate(data.dueDate)
+        : existingProject.dueDate;
+
+    if (startDate && dueDate && dueDate < startDate) {
+      return err("تاريخ التسليم يجب أن يكون بعد تاريخ البداية", 400, {
+        code: "INVALID_PROJECT_DATES",
+      });
+    }
 
     if (data.clientId) {
       const client = await prisma.client.findFirst({
@@ -190,10 +259,10 @@ export async function PATCH(
             ? { currency: data.currency || "JOD" }
             : {}),
           ...(data.startDate !== undefined
-            ? { startDate: nullableDate(data.startDate) }
+            ? { startDate }
             : {}),
           ...(data.dueDate !== undefined
-            ? { dueDate: nullableDate(data.dueDate) }
+            ? { dueDate }
             : {}),
           ...(data.status === "COMPLETED" && !existingProject.completedAt
             ? { completedAt: new Date() }
@@ -203,6 +272,59 @@ export async function PATCH(
             : {}),
         },
       });
+
+      if (data.status !== undefined) {
+        const nextWorkflowStatus =
+          projectStatusToWorkflowStatus(data.status);
+        const workflow = await tx.projectWorkflow.update({
+          where: {
+            projectId: updatedProject.id,
+          },
+          data: {
+            status: nextWorkflowStatus,
+            ...(nextWorkflowStatus === "ACTIVE"
+              ? { startedAt: updatedProject.startDate ?? new Date() }
+              : {}),
+            ...(nextWorkflowStatus === "COMPLETED"
+              ? { completedAt: updatedProject.completedAt ?? new Date() }
+              : { completedAt: null }),
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        const event =
+          data.status === "IN_PROGRESS" &&
+          existingProject.status !== "IN_PROGRESS"
+            ? {
+                event: "PROJECT_STARTED" as const,
+                eventKey: "workflow.project.started",
+              }
+            : data.status === "COMPLETED" &&
+                existingProject.status !== "COMPLETED"
+              ? {
+                  event: "PROJECT_COMPLETED" as const,
+                  eventKey: "workflow.project.completed",
+                }
+              : null;
+
+        if (event) {
+          await tx.workflowEvent.create({
+            data: {
+              companyId: user.companyId,
+              workflowId: workflow.id,
+              event: event.event,
+              eventKey: event.eventKey,
+              payload: {
+                projectId: updatedProject.id,
+                projectName: updatedProject.name,
+                status: updatedProject.status,
+              },
+            },
+          });
+        }
+      }
 
       await tx.activityLog.create({
         data: {

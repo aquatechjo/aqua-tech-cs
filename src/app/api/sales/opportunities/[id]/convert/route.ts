@@ -4,6 +4,7 @@ import { ApiError, handleApiError, ok } from "@/lib/api-response"
 import { getRequestMeta, requireAuth } from "@/lib/auth"
 import { logActivity } from "@/lib/activity"
 import { prisma } from "@/lib/prisma"
+import { createProjectWithWorkflow } from "@/lib/project-workflow-server"
 import { assertSameOrigin } from "@/lib/request-security"
 import { wonOpportunityState } from "@/lib/sales"
 
@@ -123,20 +124,22 @@ export async function POST(
           })
         }
       } else {
-        const project = await tx.project.create({
-          data: {
-            companyId: user.companyId,
+        const created = await createProjectWithWorkflow(tx, {
+          companyId: user.companyId,
+          createdById: user.id,
+          templateHint: opportunity.serviceType ?? opportunity.title,
+          project: {
             clientId,
             name: opportunity.title,
             description: opportunity.notes,
             status: "PLANNING",
             priority: opportunity.priority,
-            budget: opportunity.estimatedValue,
+            budget: opportunity.estimatedValue.toString(),
             currency: opportunity.currency,
             startDate: new Date(),
           },
         })
-        projectId = project.id
+        projectId = created.project.id
       }
 
       const convertedAt = new Date()

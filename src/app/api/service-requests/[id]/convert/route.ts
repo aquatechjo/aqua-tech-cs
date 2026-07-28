@@ -3,6 +3,7 @@ import { ACCESS_ROLES, assertRole } from "@/lib/access-control";
 import { err, ok, withApiHandler } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createProjectWithWorkflow } from "@/lib/project-workflow-server";
 import { assertSameOrigin } from "@/lib/request-security";
 import { wonOpportunityState } from "@/lib/sales";
 import { opportunitySeedFromServiceRequest } from "@/lib/sales-server";
@@ -93,9 +94,11 @@ async function convertServiceRequest(
     let projectId = serviceRequest.projectId;
 
     if (!projectId) {
-      const project = await tx.project.create({
-        data: {
-          companyId: user.companyId,
+      const created = await createProjectWithWorkflow(tx, {
+        companyId: user.companyId,
+        createdById: user.id,
+        templateHint: serviceRequest.serviceType,
+        project: {
           clientId,
           name: `${serviceRequest.serviceType} - ${
             serviceRequest.customerCompany?.trim() ||
@@ -108,7 +111,7 @@ async function convertServiceRequest(
         },
       });
 
-      projectId = project.id;
+      projectId = created.project.id;
     }
 
     const convertedAt = serviceRequest.convertedAt ?? new Date();

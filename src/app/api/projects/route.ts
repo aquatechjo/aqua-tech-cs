@@ -4,21 +4,50 @@ import { ACCESS_ROLES, assertRole } from "@/lib/access-control";
 import { err, handleApiError, ok } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createProjectWithWorkflow } from "@/lib/project-workflow-server";
+import { buildProjectVisibilityWhere } from "@/lib/project-scope";
+import { resolveProjectAccessScope } from "@/lib/project-scope-server";
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security";
 
+const optionalDateSchema = z
+  .string()
+  .refine(
+    (value) => value.trim() === "" || !Number.isNaN(Date.parse(value)),
+    "صيغة التاريخ غير صحيحة",
+  );
+
 const projectSchema = z.object({
+  workflowTemplateId: z
+    .string()
+    .trim()
+    .min(1, "قالب سير العمل مطلوب"),
   clientId: z.string().optional().nullable(),
-  name: z.string().trim().min(2, "اسم المشروع مطلوب"),
-  code: z.string().trim().optional().nullable(),
-  description: z.string().trim().optional().nullable(),
+  name: z.string().trim().min(2, "اسم المشروع مطلوب").max(180),
+  code: z.string().trim().max(80).optional().nullable(),
+  description: z.string().trim().max(2000).optional().nullable(),
   status: z
     .enum(["PLANNING", "IN_PROGRESS", "ON_HOLD", "COMPLETED", "CANCELLED", "ARCHIVED"])
     .default("PLANNING"),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
-  budget: z.string().trim().optional().nullable(),
-  currency: z.string().trim().default("JOD"),
-  startDate: z.string().optional().nullable(),
-  dueDate: z.string().optional().nullable(),
+  budget: z
+    .string()
+    .trim()
+    .refine(
+      (value) =>
+        value === "" ||
+        (Number.isFinite(Number(value)) && Number(value) >= 0),
+      "الميزانية يجب أن تكون رقمًا موجبًا",
+    )
+    .optional()
+    .nullable(),
+  currency: z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z]{3}$/, "رمز العملة يجب أن يتكون من 3 أحرف")
+    .transform((value) => value.toUpperCase())
+    .default("JOD"),
+  startDate: optionalDateSchema.optional().nullable(),
+  dueDate: optionalDateSchema.optional().nullable(),
 });
 
 function nullableText(value: string | null | undefined) {
@@ -57,25 +86,56 @@ function nullableBudget(value: string | null | undefined) {
 export async function GET() {
   try {
     const user = await requireAuth();
+    const scope = await resolveProjectAccessScope(user);
 
     const projects = await prisma.project.findMany({
       where: {
         companyId: user.companyId,
+        ...buildProjectVisibilityWhere(scope),
       },
       orderBy: {
         createdAt: "desc",
       },
-      include: {
+      select: {
+        id: true,
+        clientId: true,
+        name: true,
+        code: true,
+        description: true,
+        status: true,
+        priority: true,
+        budget: true,
+        currency: true,
+        startDate: true,
+        dueDate: true,
+        completedAt: true,
+        createdAt: true,
+        updatedAt: true,
         client: {
           select: {
             id: true,
             name: true,
           },
         },
+        workflow: {
+          select: {
+            templateName: true,
+            templateCode: true,
+            templateVersion: true,
+            status: true,
+          },
+        },
       },
     });
 
-    return ok({ projects });
+    return ok({
+      projects: projects.map((project) => ({
+        ...project,
+        budget: scope.canViewProjectBudgets
+          ? project.budget
+          : null,
+      })),
+    });
   } catch (error) {
     return handleApiError(error, "PROJECTS_GET_ERROR");
   }
@@ -106,6 +166,14 @@ export async function POST(request: Request) {
     }
 
     const data = parsed.data;
+    const startDate = nullableDate(data.startDate);
+    const dueDate = nullableDate(data.dueDate);
+
+    if (startDate && dueDate && dueDate < startDate) {
+      return err("تاريخ التسليم يجب أن يكون بعد تاريخ البداية", 400, {
+        code: "INVALID_PROJECT_DATES",
+      });
+    }
 
     if (data.clientId) {
       const client = await prisma.client.findFirst({
@@ -126,9 +194,11 @@ export async function POST(request: Request) {
     }
 
     const project = await prisma.$transaction(async (tx) => {
-      const createdProject = await tx.project.create({
-        data: {
-          companyId: user.companyId,
+      const created = await createProjectWithWorkflow(tx, {
+        companyId: user.companyId,
+        createdById: user.id,
+        workflowTemplateId: data.workflowTemplateId,
+        project: {
           clientId: data.clientId || null,
           name: data.name,
           code: nullableText(data.code),
@@ -137,11 +207,12 @@ export async function POST(request: Request) {
           priority: data.priority,
           budget: nullableBudget(data.budget),
           currency: data.currency || "JOD",
-          startDate: nullableDate(data.startDate),
-          dueDate: nullableDate(data.dueDate),
+          startDate,
+          dueDate,
           completedAt: data.status === "COMPLETED" ? new Date() : null,
         },
       });
+      const createdProject = created.project;
 
       await tx.activityLog.create({
         data: {
@@ -156,11 +227,22 @@ export async function POST(request: Request) {
             clientId: createdProject.clientId,
             status: createdProject.status,
             priority: createdProject.priority,
+            workflowTemplateId: created.template.id,
+            workflowTemplateCode: created.template.code,
           },
         },
       });
 
-      return createdProject;
+      return {
+        ...createdProject,
+        workflow: {
+          id: created.workflow.id,
+          templateName: created.workflow.templateName,
+          templateCode: created.workflow.templateCode,
+          templateVersion: created.workflow.templateVersion,
+          status: created.workflow.status,
+        },
+      };
     });
 
     return ok({ project }, 201);

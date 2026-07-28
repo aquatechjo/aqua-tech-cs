@@ -45,6 +45,53 @@ enum ProjectPhaseStatus {
   CANCELLED
 }
 
+enum WorkflowStatus {
+  NOT_STARTED
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum WorkflowApprovalGate {
+  PHASE_START
+  PHASE_COMPLETION
+  TASK_COMPLETION
+  PROJECT_COMPLETION
+}
+
+enum WorkflowApprovalStatus {
+  NOT_REQUESTED
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum WorkflowEventType {
+  PROJECT_CREATED
+  PROJECT_STARTED
+  PHASE_STARTED
+  PHASE_COMPLETED
+  TASK_STARTED
+  TASK_COMPLETED
+  APPROVAL_REQUESTED
+  APPROVAL_DECIDED
+  PROJECT_COMPLETED
+}
+
+enum WorkflowActionChannel {
+  IN_APP
+  EMAIL
+  N8N_EVENT
+}
+
+enum WorkflowEventDeliveryStatus {
+  PENDING
+  PUBLISHED
+  FAILED
+}
+
 enum TaskParticipantRole {
   OWNER
   CONTRIBUTOR
@@ -310,34 +357,39 @@ model Company {
   sessions            Session[]
   passwordResetTokens PasswordResetToken[]
   activities          ActivityLog[]
-  notifications    Notification[]
-  files            File[]
-  departments      Department[]
-  jobRoles         JobRole[]
-  employeeProfiles EmployeeProfile[]
-  teams            Team[]
-  teamMemberships  TeamMembership[]
-  projectMembers   ProjectMember[]
-  projectPhases    ProjectPhase[]
-  taskParticipants TaskParticipant[]
-  taskDependencies TaskDependency[]
-  taskBlockers     TaskBlocker[]
-  invoices         Invoice[]
-  invoiceItems     InvoiceItem[]
-  payments         Payment[]
-  expenses         Expense[]
-  documentSequences DocumentSequence[]
-  salesOpportunities SalesOpportunity[]
-  salesActivities    SalesActivity[]
-  salesProposals     SalesProposal[]
-  timeEntries        TimeEntry[]
-  timesheets         Timesheet[]
-  workSchedules      WorkSchedule[]
-  attendanceRecords  AttendanceRecord[]
-  leaveTypes         LeaveType[]
-  leaveBalances      LeaveBalance[]
-  leaveRequests      LeaveRequest[]
-  publicHolidays     PublicHoliday[]
+  notifications       Notification[]
+  files               File[]
+  departments         Department[]
+  jobRoles            JobRole[]
+  employeeProfiles    EmployeeProfile[]
+  teams               Team[]
+  teamMemberships     TeamMembership[]
+  projectMembers      ProjectMember[]
+  projectPhases       ProjectPhase[]
+  workflowTemplates   WorkflowTemplate[]
+  projectWorkflows    ProjectWorkflow[]
+  workflowApprovals   ProjectWorkflowApproval[]
+  workflowRules       ProjectWorkflowRule[]
+  workflowEvents      WorkflowEvent[]
+  taskParticipants    TaskParticipant[]
+  taskDependencies    TaskDependency[]
+  taskBlockers        TaskBlocker[]
+  invoices            Invoice[]
+  invoiceItems        InvoiceItem[]
+  payments            Payment[]
+  expenses            Expense[]
+  documentSequences   DocumentSequence[]
+  salesOpportunities  SalesOpportunity[]
+  salesActivities     SalesActivity[]
+  salesProposals      SalesProposal[]
+  timeEntries         TimeEntry[]
+  timesheets          Timesheet[]
+  workSchedules       WorkSchedule[]
+  attendanceRecords   AttendanceRecord[]
+  leaveTypes          LeaveType[]
+  leaveBalances       LeaveBalance[]
+  leaveRequests       LeaveRequest[]
+  publicHolidays      PublicHoliday[]
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -360,33 +412,33 @@ model User {
   sessions            Session[]
   passwordResetTokens PasswordResetToken[]
   activities          ActivityLog[]
-  notifications Notification[]
-  uploadedFiles File[]
+  notifications       Notification[]
+  uploadedFiles       File[]
 
-  createdAt               DateTime         @default(now())
-  updatedAt               DateTime         @updatedAt
-  assignedTasks           Task[]           @relation("TaskAssignee")
-  createdTasks            Task[]           @relation("TaskCreator")
-  assignedServiceRequests ServiceRequest[] @relation("ServiceRequestAssignee")
-  employeeProfile         EmployeeProfile?
-  reportedTaskBlockers    TaskBlocker[]    @relation("TaskBlockerReporter")
-  resolvedTaskBlockers    TaskBlocker[]    @relation("TaskBlockerResolver")
-  createdInvoices         Invoice[]        @relation("InvoiceCreator")
-  recordedPayments        Payment[]        @relation("PaymentRecorder")
-  reversedPayments        Payment[]        @relation("PaymentReverser")
-  createdExpenses         Expense[]        @relation("ExpenseCreator")
-  approvedExpenses        Expense[]        @relation("ExpenseApprover")
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
+  assignedTasks            Task[]             @relation("TaskAssignee")
+  createdTasks             Task[]             @relation("TaskCreator")
+  assignedServiceRequests  ServiceRequest[]   @relation("ServiceRequestAssignee")
+  employeeProfile          EmployeeProfile?
+  reportedTaskBlockers     TaskBlocker[]      @relation("TaskBlockerReporter")
+  resolvedTaskBlockers     TaskBlocker[]      @relation("TaskBlockerResolver")
+  createdInvoices          Invoice[]          @relation("InvoiceCreator")
+  recordedPayments         Payment[]          @relation("PaymentRecorder")
+  reversedPayments         Payment[]          @relation("PaymentReverser")
+  createdExpenses          Expense[]          @relation("ExpenseCreator")
+  approvedExpenses         Expense[]          @relation("ExpenseApprover")
   ownedSalesOpportunities  SalesOpportunity[] @relation("SalesOpportunityOwner")
-  createdSalesActivities   SalesActivity[]     @relation("SalesActivityCreator")
-  createdSalesProposals    SalesProposal[]     @relation("SalesProposalCreator")
-  timeEntries              TimeEntry[]          @relation("TimeEntryOwner")
-  timesheets               Timesheet[]          @relation("TimesheetOwner")
-  approvedTimesheets       Timesheet[]          @relation("TimesheetApprover")
-  attendanceRecords        AttendanceRecord[]   @relation("AttendanceOwner")
-  updatedAttendanceRecords AttendanceRecord[]   @relation("AttendanceUpdater")
-  leaveBalances            LeaveBalance[]       @relation("LeaveBalanceOwner")
-  leaveRequests            LeaveRequest[]       @relation("LeaveRequester")
-  reviewedLeaveRequests    LeaveRequest[]       @relation("LeaveReviewer")
+  createdSalesActivities   SalesActivity[]    @relation("SalesActivityCreator")
+  createdSalesProposals    SalesProposal[]    @relation("SalesProposalCreator")
+  timeEntries              TimeEntry[]        @relation("TimeEntryOwner")
+  timesheets               Timesheet[]        @relation("TimesheetOwner")
+  approvedTimesheets       Timesheet[]        @relation("TimesheetApprover")
+  attendanceRecords        AttendanceRecord[] @relation("AttendanceOwner")
+  updatedAttendanceRecords AttendanceRecord[] @relation("AttendanceUpdater")
+  leaveBalances            LeaveBalance[]     @relation("LeaveBalanceOwner")
+  leaveRequests            LeaveRequest[]     @relation("LeaveRequester")
+  reviewedLeaveRequests    LeaveRequest[]     @relation("LeaveReviewer")
 
   @@index([companyId])
   @@index([role])
@@ -425,7 +477,7 @@ model PasswordResetToken {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  tokenHash String @unique
+  tokenHash String    @unique
   expiresAt DateTime
   usedAt    DateTime?
 
@@ -537,11 +589,11 @@ model EmployeeProfile {
   workScheduleId String?
   workSchedule   WorkSchedule? @relation(fields: [workScheduleId], references: [id], onDelete: SetNull)
 
-  teamMemberships   TeamMembership[]
+  teamMemberships    TeamMembership[]
   projectMemberships ProjectMember[]
-  taskParticipations  TaskParticipant[]
-  ledDepartments      Department[]     @relation("DepartmentLead")
-  ledTeams            Team[]           @relation("TeamLead")
+  taskParticipations TaskParticipant[]
+  ledDepartments     Department[]      @relation("DepartmentLead")
+  ledTeams           Team[]            @relation("TeamLead")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -698,10 +750,10 @@ model Client {
   country  String?
   city     String?
 
-  notes    String?
-  projects Project[]
-  tasks    Task[]
-  invoices Invoice[]
+  notes              String?
+  projects           Project[]
+  tasks              Task[]
+  invoices           Invoice[]
   salesOpportunities SalesOpportunity[]
 
   createdAt       DateTime         @default(now())
@@ -735,16 +787,17 @@ model Project {
   currency        String           @default("JOD")
   serviceRequests ServiceRequest[]
 
-  startDate   DateTime?
-  dueDate     DateTime?
-  completedAt DateTime?
-  tasks       Task[]
-  members     ProjectMember[]
-  phases      ProjectPhase[]
-  invoices    Invoice[]
-  expenses    Expense[]
+  startDate        DateTime?
+  dueDate          DateTime?
+  completedAt      DateTime?
+  tasks            Task[]
+  members          ProjectMember[]
+  phases           ProjectPhase[]
+  workflow         ProjectWorkflow?
+  invoices         Invoice[]
+  expenses         Expense[]
   salesOpportunity SalesOpportunity?
-  timeEntries TimeEntry[]
+  timeEntries      TimeEntry[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -784,20 +837,23 @@ model Task {
   priority TaskPriority @default(MEDIUM)
   source   TaskSource   @default(MANUAL)
 
-  sourceRef      String?
-  estimatedHours Decimal? @db.Decimal(8, 2)
-  sortOrder      Int      @default(0)
-  progress       Int      @default(0)
+  sourceRef         String?
+  workflowTaskCode  String?
+  workflowOwnerRole ProjectMemberRole?
+  estimatedHours    Decimal?           @db.Decimal(8, 2)
+  sortOrder         Int                @default(0)
+  progress          Int                @default(0)
 
   dueDate     DateTime?
   startedAt   DateTime?
   completedAt DateTime?
 
-  participants TaskParticipant[]
-  dependencies TaskDependency[] @relation("TaskDependencies")
-  dependents   TaskDependency[] @relation("TaskDependents")
-  blockers     TaskBlocker[]
-  timeEntries   TimeEntry[]
+  participants      TaskParticipant[]
+  dependencies      TaskDependency[]          @relation("TaskDependencies")
+  dependents        TaskDependency[]          @relation("TaskDependents")
+  blockers          TaskBlocker[]
+  workflowApprovals ProjectWorkflowApproval[]
+  timeEntries       TimeEntry[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -811,6 +867,7 @@ model Task {
   @@index([status])
   @@index([priority])
   @@index([source])
+  @@index([workflowTaskCode])
   @@index([dueDate])
   @@index([createdAt])
 }
@@ -846,18 +903,20 @@ model ProjectPhase {
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  name        String
-  code        String?
-  description String?
-  status      ProjectPhaseStatus @default(PLANNED)
-  progress    Int                @default(0)
-  sortOrder   Int                @default(0)
+  name              String
+  code              String?
+  workflowStageCode String?
+  description       String?
+  status            ProjectPhaseStatus @default(PLANNED)
+  progress          Int                @default(0)
+  sortOrder         Int                @default(0)
 
   startDate   DateTime?
   dueDate     DateTime?
   completedAt DateTime?
 
-  tasks Task[]
+  tasks             Task[]
+  workflowApprovals ProjectWorkflowApproval[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -866,7 +925,148 @@ model ProjectPhase {
   @@index([companyId])
   @@index([projectId])
   @@index([status])
+  @@index([workflowStageCode])
   @@index([sortOrder])
+}
+
+model WorkflowTemplate {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  name        String
+  code        String
+  description String?
+  version     Int     @default(1)
+  isActive    Boolean @default(true)
+  isDefault   Boolean @default(false)
+  definition  Json
+
+  projectWorkflows ProjectWorkflow[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@index([isActive])
+  @@index([isDefault])
+}
+
+model ProjectWorkflow {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  projectId String  @unique
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  templateId String?
+  template   WorkflowTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  templateName       String
+  templateCode       String
+  templateVersion    Int
+  status             WorkflowStatus @default(NOT_STARTED)
+  definitionSnapshot Json
+
+  startedAt   DateTime?
+  completedAt DateTime?
+  approvals   ProjectWorkflowApproval[]
+  rules       ProjectWorkflowRule[]
+  events      WorkflowEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([templateId])
+  @@index([status])
+}
+
+model ProjectWorkflowApproval {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  workflowId String
+  workflow   ProjectWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  phaseId String?
+  phase   ProjectPhase? @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+
+  taskId String?
+  task   Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  code         String
+  name         String
+  gate         WorkflowApprovalGate
+  requiredRole ProjectMemberRole?
+  status       WorkflowApprovalStatus @default(NOT_REQUESTED)
+  requestedAt  DateTime?
+  decidedAt    DateTime?
+  notes        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workflowId, code])
+  @@index([companyId])
+  @@index([phaseId])
+  @@index([taskId])
+  @@index([status])
+}
+
+model ProjectWorkflowRule {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  workflowId String
+  workflow   ProjectWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  code          String
+  name          String
+  event         WorkflowEventType
+  channel       WorkflowActionChannel
+  eventKey      String
+  configuration Json
+  isActive      Boolean               @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workflowId, code])
+  @@index([companyId])
+  @@index([event])
+  @@index([channel])
+  @@index([isActive])
+}
+
+model WorkflowEvent {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  workflowId String
+  workflow   ProjectWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  event       WorkflowEventType
+  eventKey    String
+  payload     Json
+  status      WorkflowEventDeliveryStatus @default(PENDING)
+  attempts    Int                         @default(0)
+  occurredAt  DateTime                    @default(now())
+  publishedAt DateTime?
+  lastError   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([workflowId])
+  @@index([event])
+  @@index([status, occurredAt])
 }
 
 model TaskParticipant {
@@ -932,8 +1132,8 @@ model TaskBlocker {
   resolution  String?
 
   resolvedAt DateTime?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@index([companyId])
   @@index([taskId])
@@ -990,12 +1190,12 @@ model TimeEntry {
   project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   taskId String?
-  task   Task? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  task   Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
 
-  workDate       DateTime
-  description    String?
-  durationMinutes Int     @default(0)
-  billable       Boolean  @default(true)
+  workDate        DateTime
+  description     String?
+  durationMinutes Int      @default(0)
+  billable        Boolean  @default(true)
 
   hourlyCostSnapshot   Decimal @default(0) @db.Decimal(10, 2)
   billableRateSnapshot Decimal @default(0) @db.Decimal(10, 2)
@@ -1021,18 +1221,18 @@ model WorkSchedule {
   companyId String
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  name        String
-  code        String
-  description String?
-  workingDays Int[]
-  startMinute Int      @default(540)
-  endMinute   Int      @default(1020)
+  name         String
+  code         String
+  description  String?
+  workingDays  Int[]
+  startMinute  Int     @default(540)
+  endMinute    Int     @default(1020)
   breakMinutes Int     @default(60)
   graceMinutes Int     @default(15)
-  isDefault   Boolean  @default(false)
-  isActive    Boolean  @default(true)
+  isDefault    Boolean @default(false)
+  isActive     Boolean @default(true)
 
-  employeeProfiles EmployeeProfile[]
+  employeeProfiles  EmployeeProfile[]
   attendanceRecords AttendanceRecord[]
 
   createdAt DateTime @default(now())
@@ -1091,9 +1291,9 @@ model LeaveType {
   companyId String
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  name        String
-  code        String
-  description String?
+  name                String
+  code                String
+  description         String?
   annualAllowanceDays Decimal @default(0) @db.Decimal(6, 2)
   carryoverLimitDays  Decimal @default(0) @db.Decimal(6, 2)
   isPaid              Boolean @default(true)
@@ -1122,12 +1322,12 @@ model LeaveBalance {
   leaveTypeId String
   leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
 
-  year Int
-  openingDays Decimal @default(0) @db.Decimal(6, 2)
-  accruedDays Decimal @default(0) @db.Decimal(6, 2)
+  year         Int
+  openingDays  Decimal @default(0) @db.Decimal(6, 2)
+  accruedDays  Decimal @default(0) @db.Decimal(6, 2)
   adjustedDays Decimal @default(0) @db.Decimal(6, 2)
-  usedDays    Decimal @default(0) @db.Decimal(6, 2)
-  notes       String?
+  usedDays     Decimal @default(0) @db.Decimal(6, 2)
+  notes        String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1155,18 +1355,18 @@ model LeaveRequest {
 
   startDate    DateTime
   endDate      DateTime
-  startPortion LeaveDayPortion @default(FULL_DAY)
-  endPortion   LeaveDayPortion @default(FULL_DAY)
-  totalDays    Decimal @db.Decimal(6, 2)
+  startPortion LeaveDayPortion    @default(FULL_DAY)
+  endPortion   LeaveDayPortion    @default(FULL_DAY)
+  totalDays    Decimal            @db.Decimal(6, 2)
   status       LeaveRequestStatus @default(PENDING)
   reason       String?
   reviewNote   String?
 
-  submittedAt DateTime @default(now())
+  submittedAt DateTime  @default(now())
   reviewedAt  DateTime?
   cancelledAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([companyId])
   @@index([userId])
@@ -1200,7 +1400,7 @@ model DocumentSequence {
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   key          String
-  currentValue Int      @default(0)
+  currentValue Int    @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1224,7 +1424,7 @@ model Invoice {
   serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: SetNull)
 
   createdById String?
-  createdBy   User? @relation("InvoiceCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdBy   User?   @relation("InvoiceCreator", fields: [createdById], references: [id], onDelete: SetNull)
 
   invoiceNumber String
   status        InvoiceStatus @default(DRAFT)
@@ -1290,10 +1490,10 @@ model Payment {
   invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   recordedById String?
-  recordedBy   User? @relation("PaymentRecorder", fields: [recordedById], references: [id], onDelete: SetNull)
+  recordedBy   User?   @relation("PaymentRecorder", fields: [recordedById], references: [id], onDelete: SetNull)
 
   reversedById String?
-  reversedBy   User? @relation("PaymentReverser", fields: [reversedById], references: [id], onDelete: SetNull)
+  reversedBy   User?   @relation("PaymentReverser", fields: [reversedById], references: [id], onDelete: SetNull)
 
   amount   Decimal       @db.Decimal(14, 2)
   currency String        @default("JOD")
@@ -1304,7 +1504,7 @@ model Payment {
   notes     String?
   paidAt    DateTime
 
-  reversedAt    DateTime?
+  reversedAt     DateTime?
   reversalReason String?
 
   createdAt DateTime @default(now())
@@ -1327,17 +1527,17 @@ model Expense {
   project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   createdById String?
-  createdBy   User? @relation("ExpenseCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdBy   User?   @relation("ExpenseCreator", fields: [createdById], references: [id], onDelete: SetNull)
 
   approvedById String?
-  approvedBy   User? @relation("ExpenseApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedBy   User?   @relation("ExpenseApprover", fields: [approvedById], references: [id], onDelete: SetNull)
 
   expenseNumber String
   vendorName    String?
   category      String
   description   String
-  amount        Decimal @db.Decimal(14, 2)
-  currency      String  @default("JOD")
+  amount        Decimal       @db.Decimal(14, 2)
+  currency      String        @default("JOD")
   status        ExpenseStatus @default(DRAFT)
 
   incurredAt  DateTime
@@ -1396,11 +1596,11 @@ model ServiceRequest {
   idempotencyKey String?
   proposalUrl    String?
 
-  proposalSentAt DateTime?
-  approvedAt     DateTime?
-  rejectedAt     DateTime?
-  convertedAt    DateTime?
-  invoices       Invoice[]
+  proposalSentAt   DateTime?
+  approvedAt       DateTime?
+  rejectedAt       DateTime?
+  convertedAt      DateTime?
+  invoices         Invoice[]
   salesOpportunity SalesOpportunity?
 
   createdAt DateTime @default(now())
@@ -1422,17 +1622,17 @@ model SalesOpportunity {
   companyId String
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  serviceRequestId String? @unique
+  serviceRequestId String?         @unique
   serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: SetNull)
 
   clientId String?
   client   Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
 
-  projectId String? @unique
+  projectId String?  @unique
   project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   ownerId String?
-  owner   User? @relation("SalesOpportunityOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  owner   User?   @relation("SalesOpportunityOwner", fields: [ownerId], references: [id], onDelete: SetNull)
 
   title       String
   contactName String
@@ -1441,7 +1641,7 @@ model SalesOpportunity {
   phone       String?
   serviceType String
 
-  stage    SalesOpportunityStage @default(NEW)
+  stage    SalesOpportunityStage  @default(NEW)
   priority ServiceRequestPriority @default(MEDIUM)
   source   ServiceRequestSource   @default(MANUAL)
 
@@ -1450,8 +1650,8 @@ model SalesOpportunity {
   probability    Int     @default(10)
 
   expectedCloseDate DateTime?
-  nextFollowUpAt   DateTime?
-  lastContactAt    DateTime?
+  nextFollowUpAt    DateTime?
+  lastContactAt     DateTime?
 
   lostReason String?
   notes      String?
@@ -1485,7 +1685,7 @@ model SalesActivity {
   opportunity   SalesOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
 
   createdById String?
-  createdBy   User? @relation("SalesActivityCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdBy   User?   @relation("SalesActivityCreator", fields: [createdById], references: [id], onDelete: SetNull)
 
   type    SalesActivityType
   status  SalesActivityStatus @default(PLANNED)
@@ -1517,14 +1717,14 @@ model SalesProposal {
   opportunity   SalesOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
 
   createdById String?
-  createdBy   User? @relation("SalesProposalCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdBy   User?   @relation("SalesProposalCreator", fields: [createdById], references: [id], onDelete: SetNull)
 
   proposalNumber String
   version        Int
   status         SalesProposalStatus @default(DRAFT)
   title          String
-  amount         Decimal @db.Decimal(14, 2)
-  currency       String  @default("JOD")
+  amount         Decimal             @db.Decimal(14, 2)
+  currency       String              @default("JOD")
 
   validUntil DateTime?
   url        String?

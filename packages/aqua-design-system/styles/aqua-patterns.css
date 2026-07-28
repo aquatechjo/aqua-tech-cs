@@ -194,6 +194,7 @@
 .aqua-table-shell {
   max-inline-size: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   overscroll-behavior-inline: contain;
   scrollbar-color: rgba(var(--at-product-accent-rgb), 0.34) transparent;
   scrollbar-width: thin;
@@ -517,6 +518,7 @@ html[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
   position: relative;
   z-index: 1;
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   inline-size: min(100%, 640px);
   max-block-size: min(90vh, 900px);
   overflow: hidden;

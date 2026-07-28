@@ -69,12 +69,25 @@ test("canonical modal manages focus, Escape, scroll lock, and restoration", () =
       new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
     )
   }
+
+  assert.match(
+    patternsCss,
+    /\.aqua-modal\s*\{[\s\S]*grid-template-rows:\s*auto minmax\(0, 1fr\) auto;/u
+  )
+  assert.match(
+    patternsCss,
+    /\.aqua-modal__body\s*\{[\s\S]*overflow-y:\s*auto;/u
+  )
 })
 
 test("canonical table requires an explicit mobile strategy contract", () => {
   assert.match(table, /data-aqua-mobile-strategy/u)
   assert.match(table, /data-aqua-density/u)
   assert.match(table, /visually-hidden/u)
+  assert.match(
+    patternsCss,
+    /\.aqua-table-shell\s*\{[\s\S]*overflow-x:\s*auto;[\s\S]*overflow-y:\s*hidden;/u
+  )
 })
 
 test("Clients CRM is the first DS-04 reference implementation", () => {

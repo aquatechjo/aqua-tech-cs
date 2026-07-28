@@ -9,6 +9,8 @@ import { requireAuth } from "@/lib/auth"
 import { requireEditableTask } from "@/lib/project-execution-server"
 import { prisma } from "@/lib/prisma"
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
+import { canAssignTaskTo } from "@/lib/task-scope"
+import { resolveTaskAccessScope } from "@/lib/task-scope-server"
 
 const participantSchema = z.object({
   employeeProfileId: z.string().min(1),
@@ -23,7 +25,10 @@ async function addTaskParticipant(
 
   const user = await requireAuth()
   const { id: taskId } = await context.params
-  const task = await requireEditableTask(user, taskId)
+  const [task, scope] = await Promise.all([
+    requireEditableTask(user, taskId),
+    resolveTaskAccessScope(user),
+  ])
   assertCanManageTaskParticipants(user, task.accessContext)
 
   const body = await readJsonBody(request)
@@ -59,6 +64,12 @@ async function addTaskParticipant(
   if (!employee) {
     return err("الموظف غير موجود أو غير فعال", 404, {
       code: "EMPLOYEE_NOT_FOUND",
+    })
+  }
+
+  if (!canAssignTaskTo(scope, employee.userId)) {
+    return err("لا يمكنك إضافة موظف خارج نطاق عملك إلى المهمة", 403, {
+      code: "TASK_PARTICIPANT_SCOPE_FORBIDDEN",
     })
   }
 
