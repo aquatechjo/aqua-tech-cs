@@ -2,7 +2,7 @@ import { clsx } from "clsx"
 import Image from "next/image"
 
 import type { AquaProductTheme } from "../design-system"
-import { aquaFlowTheme } from "../design-system"
+import { aquaTechCsTheme } from "../design-system"
 
 type AquaMarkProps = {
   showText?: boolean
@@ -17,7 +17,7 @@ export default function AquaMark({
   showTagline = true,
   size = "md",
   className,
-  theme = aquaFlowTheme,
+  theme = aquaTechCsTheme,
 }: AquaMarkProps) {
   return (
     <div

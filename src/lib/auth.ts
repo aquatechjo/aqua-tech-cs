@@ -4,39 +4,37 @@ import { cookies, headers } from "next/headers"
 import type { AccessRole } from "@/generated/prisma/enums"
 import { ApiError } from "@/lib/api-response"
 import { prisma } from "@/lib/prisma"
-import { SESSION_COOKIE_NAME, hashSessionToken } from "@/lib/session"
+import { hashSessionToken, readSessionCookies } from "@/lib/session"
 
 export async function getCurrentUser() {
   const cookieStore = await cookies()
-  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value
+  const sessionCookies = readSessionCookies(cookieStore)
 
-  if (!token) return null
-
-  const tokenHash = hashSessionToken(token)
-
-  const session = await prisma.session.findFirst({
-    where: {
-      tokenHash,
-      isActive: true,
-      expiresAt: {
-        gt: new Date(),
-      },
-      user: {
+  for (const sessionCookie of sessionCookies) {
+    const session = await prisma.session.findFirst({
+      where: {
+        tokenHash: hashSessionToken(sessionCookie.value),
         isActive: true,
-      },
-    },
-    include: {
-      user: {
-        include: {
-          company: true,
+        expiresAt: {
+          gt: new Date(),
+        },
+        user: {
+          isActive: true,
         },
       },
-    },
-  })
+      include: {
+        user: {
+          include: {
+            company: true,
+          },
+        },
+      },
+    })
 
-  if (!session) return null
+    if (session) return session.user
+  }
 
-  return session.user
+  return null
 }
 
 export async function requireAuth() {

@@ -58,7 +58,7 @@ test("AD-02.2 balances the account chip and compacts the navigation shell", () =
 })
 
 test("topbar keeps only the project, current page, language, account, and logout controls", () => {
-  assert.match(dashboardLayout, /projectName=\{aquaFlowTheme\.productName\}/u)
+  assert.match(dashboardLayout, /projectName=\{aquaTechCsTheme\.productName\}/u)
   assert.match(dashboardLayout, /language=\{user\.company\.language\}/u)
   assert.match(topbar, /aqua-topbar__project-name/u)
   assert.match(topbar, /aqua-topbar__language/u)

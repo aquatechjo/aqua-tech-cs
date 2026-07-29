@@ -1,21 +1,21 @@
-import { aquaFlowTheme, aquaTechDesignTokens } from "@/design-system"
+import { aquaTechCsTheme, aquaTechDesignTokens } from "@/design-system"
 
 export const aquaBrand = {
-  name: aquaFlowTheme.companyName,
-  product: aquaFlowTheme.productName,
+  name: aquaTechCsTheme.companyName,
+  product: aquaTechCsTheme.productName,
 
   colors: {
-    background: aquaFlowTheme.surface.background,
-    surface: aquaFlowTheme.surface.card,
-    surfaceSoft: aquaFlowTheme.surface.cardSoft,
+    background: aquaTechCsTheme.surface.background,
+    surface: aquaTechCsTheme.surface.card,
+    surfaceSoft: aquaTechCsTheme.surface.cardSoft,
 
-    aqua: aquaFlowTheme.accent.primary,
+    aqua: aquaTechCsTheme.accent.primary,
     sky: aquaTechDesignTokens.color.brand.aqua,
-    blue: aquaFlowTheme.accent.secondary,
+    blue: aquaTechCsTheme.accent.secondary,
 
-    text: aquaFlowTheme.surface.text,
-    muted: aquaFlowTheme.surface.muted,
-    soft: aquaFlowTheme.surface.softText,
+    text: aquaTechCsTheme.surface.text,
+    muted: aquaTechCsTheme.surface.muted,
+    soft: aquaTechCsTheme.surface.softText,
 
     success: aquaTechDesignTokens.color.semantic.success,
     warning: aquaTechDesignTokens.color.semantic.warning,
@@ -35,8 +35,8 @@ export const aquaBrand = {
   },
 
   language: {
-    tagline: aquaFlowTheme.tagline,
-    systemLine: aquaFlowTheme.systemLine,
+    tagline: aquaTechCsTheme.tagline,
+    systemLine: aquaTechCsTheme.systemLine,
     arabicLine: "حلول رقمية ونمو فعلي — من الانطلاقة إلى التوسع",
   },
 

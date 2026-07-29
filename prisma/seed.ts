@@ -216,7 +216,9 @@ async function main() {
       companyId: company.id,
       userId: owner.id,
       entityType: "SystemSeed",
-      entityId: "aquaflow-initialized",
+      entityId: {
+        in: ["aqua-tech-cs-initialized", "aquaflow-initialized"],
+      },
     },
   });
 
@@ -225,11 +227,11 @@ async function main() {
       data: {
         companyId: company.id,
         userId: owner.id,
-        title: "مرحبًا بك في AquaFlow",
+        title: "مرحبًا بك في Aqua tech CS",
         message: "تم تجهيز النظام الداخلي الأولي لشركة Aqua Tech بنجاح.",
         type: "SUCCESS",
         entityType: "SystemSeed",
-        entityId: "aquaflow-initialized",
+        entityId: "aqua-tech-cs-initialized",
       },
     });
   }

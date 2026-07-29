@@ -11,6 +11,7 @@ import {
   readJsonBody,
 } from "@/lib/request-security";
 import {
+  LEGACY_SESSION_COOKIE_NAMES,
   SESSION_COOKIE_NAME,
   createRawSessionToken,
   getSessionExpiry,
@@ -136,6 +137,19 @@ export async function POST(request: Request) {
       expires: expiresAt,
       priority: "high",
     });
+
+    for (const legacyCookieName of LEGACY_SESSION_COOKIE_NAMES) {
+      response.cookies.set({
+        name: legacyCookieName,
+        value: "",
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 0,
+        priority: "high",
+      });
+    }
 
     return response;
   } catch (error) {

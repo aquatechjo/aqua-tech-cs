@@ -37,8 +37,8 @@ export type AquaProductTheme = {
   systemLine: string
 }
 
-export const aquaFlowTheme = {
-  id: "aquaflow",
+export const aquaTechCsTheme = {
+  id: "aqua-tech-cs",
   productName: "Aqua tech CS",
   companyName: "Aqua.Tech",
   logoSrc: "/aqua-tech-logo.webp",
@@ -66,6 +66,15 @@ export const aquaFlowTheme = {
   personality: "operational",
   tagline: "Growth • Software • AI",
   systemLine: "Build. Launch. Grow.",
+} as const satisfies AquaProductTheme
+
+/**
+ * @deprecated Use aquaTechCsTheme. Kept temporarily for package consumers
+ * that have not completed the technical-identity migration.
+ */
+export const aquaFlowTheme = {
+  ...aquaTechCsTheme,
+  id: "aquaflow",
 } as const satisfies AquaProductTheme
 
 export const allowedProductThemeKeys = [

@@ -8,7 +8,7 @@ Status: **implemented**
 - Add canonical tokens.
 - Add constrained product-theme configuration.
 - Add design-system instructions for coding agents.
-- Connect AquaFlow to the token layer.
+- Connect Aqua Tech CS to the token layer.
 - Preserve current functionality and visual behavior.
 - Add unit checks for theme boundaries.
 
@@ -84,7 +84,7 @@ Status: **implemented**
 - Preserve existing metrics, activity visibility, and role permissions.
 - Add responsive metric, activity, and quick-action layouts.
 - Use the company timezone with Latin digits for operational timestamps.
-- Establish the dashboard as the first reference for AquaFlow-wide adoption.
+- Establish the dashboard as the first reference for Aqua Tech CS-wide adoption.
 
 
 ## AD-02 — My Day Adoption
@@ -104,8 +104,8 @@ Status: **implemented**
 
 - Reduce presentation-scale headings and spacing on the daily operational surface.
 - Prevent action buttons from competing with or colliding with page content.
-- Compact the AquaFlow topbar, account identity, sidebar width, company card, and navigation rows.
-- Keep the reusable Design System package unchanged by treating this as AquaFlow Product Personality density.
+- Compact the Aqua Tech CS topbar, account identity, sidebar width, company card, and navigation rows.
+- Keep the reusable Design System package unchanged by treating this as Aqua Tech CS Product Personality density.
 - Preserve mobile drawer accessibility, RTL logical layout, reduced motion, and all My Day business behavior.
 
 
@@ -116,7 +116,7 @@ Status: **implemented**
 - Derive the My Day status badge from actual task volume and attention signals.
 - Reduce the hero, metric cards, empty state, focus rail, and action density for daily operations.
 - Localize and shorten account identity presentation in the topbar while preserving the full email as supporting context.
-- Compress the AquaFlow sidebar to a 256px product-level density and hide nonessential stack metadata on typical laptop heights.
+- Compress the Aqua Tech CS sidebar to a 256px product-level density and hide nonessential stack metadata on typical laptop heights.
 - Preserve task classification, assignment visibility, permissions, timezone behavior, mobile drawer accessibility, RTL, and reduced motion.
 
 ## AD-02.3 — Desktop Topbar Simplification
@@ -134,7 +134,7 @@ Status: **implemented**
 Status: **implemented**
 
 - Rename every user-facing product reference to `Aqua tech CS`.
-- Keep `aquaflow` only as the technical repository, package, cookie, and integration identifier.
+- Keep the visible product identity as `Aqua tech CS`; technical identifiers move to `aqua-tech-cs` through the separate ID-01 compatibility migration.
 - Replace the generated initials mark with the official Aqua.Tech logo while preserving a theme fallback.
 - Reduce the sidebar identity to the official logo and project name only.
 - Remove the `Internal OS` badge and internal-environment description from the sidebar.
@@ -205,6 +205,18 @@ Status: **implemented**
 - Scroll only the modal body when the project form is taller than the screen.
 - Keep the title, close control, cancel action, and save action visible.
 - Preserve the shared modal focus trap, body scroll lock, RTL/LTR layout, mobile sheet behavior, and reduced-motion contract.
+
+## ID-01 — Technical Identity Migration
+
+Status: **implemented**
+
+- Adopt `aqua-tech-cs` as the canonical application package, product-theme ID, DOM product selector, session-cookie prefix, and website-intake header prefix.
+- Rename the canonical product theme export to `aquaTechCsTheme`.
+- Keep the deprecated `aquaFlowTheme` export and legacy CSS selector temporarily so existing Design System consumers do not break.
+- Accept the legacy `aquaflow_session` cookie while issuing only `aqua-tech-cs_session` on new logins, and clear both names on logout.
+- Prefer `X-Aqua-Tech-CS-Intake-Secret` while accepting `X-AquaFlow-Intake-Secret` during the integration migration window.
+- Preserve the old seed marker when detecting an existing welcome notification so reseeding does not create duplicates.
+- Treat the local folder, future repository, deployment project, and integration names as `aqua-tech-cs`; database table names and historical batch records are unchanged.
 
 ## DS-07 — Viresto Adoption
 

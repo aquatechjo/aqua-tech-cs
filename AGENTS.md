@@ -17,7 +17,7 @@ Mandatory rules:
 
 1. Treat Aqua.Tech DNA and product personality as separate layers.
 2. Do not add arbitrary colors, radius values, spacing values, or motion durations when an approved token exists.
-3. Bootstrap is the shared layout and component foundation for AquaFlow.
+3. Bootstrap is the shared layout and component foundation for Aqua Tech CS.
 4. New shared primitives must use semantic CSS classes and design tokens rather than product-specific Tailwind utility strings.
 5. Product accents may not redefine success, warning, danger, or information meaning.
 6. Every component change must cover focus-visible, disabled, loading, responsive, RTL/LTR, and reduced-motion behavior where applicable.

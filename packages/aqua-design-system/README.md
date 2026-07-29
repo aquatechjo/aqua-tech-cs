@@ -1,10 +1,10 @@
 # @aqua-tech/design-system
 
-Internal Aqua.Tech Design System package generated from AquaFlow.
+Internal Aqua.Tech Design System package generated from Aqua Tech CS.
 
 ## Version
 
-0.7.0
+0.8.0
 
 ## Next.js usage
 
@@ -28,4 +28,4 @@ import { AquaButton, AquaCard } from "@aqua-tech/design-system"
 
 ## Governance
 
-Do not edit generated package source directly. Edit AquaFlow canonical sources and run `npm run ds:sync`.
+Do not edit generated package source directly. Edit Aqua Tech CS canonical sources and run `npm run ds:sync`.

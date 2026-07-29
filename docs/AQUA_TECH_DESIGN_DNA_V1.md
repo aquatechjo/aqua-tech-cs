@@ -2,7 +2,7 @@
 
 **Status:** Approved foundation  
 **Owner:** Aqua.Tech  
-**Applies to:** AquaFlow, Viresto, Aqua.Tech website, future SaaS products, client dashboards, internal systems, reports, presentations, and landing pages.
+**Applies to:** Aqua Tech CS, Viresto, Aqua.Tech website, future SaaS products, client dashboards, internal systems, reports, presentations, and landing pages.
 
 ## 1. Operating model
 
@@ -17,7 +17,7 @@ Products must feel related without looking like duplicated templates.
 
 1. **Aqua.Tech website:** mother-brand identity, tone, signature visuals, and marketing expression.
 2. **Viresto:** mature SaaS interaction patterns, data-heavy layouts, responsive behavior, motion, loading, empty, error, and success states.
-3. **AquaFlow:** first canonical implementation and proving ground for the shared system.
+3. **Aqua Tech CS:** first canonical implementation and proving ground for the shared system.
 
 When references conflict, use this priority:
 
@@ -231,7 +231,7 @@ A product may configure only approved theme dimensions:
 
 Examples:
 
-- **AquaFlow:** Aqua/cyan + blue, dark, operational, technical.
+- **Aqua Tech CS:** Aqua/cyan + blue, dark, operational, technical.
 - **Viresto:** deep teal + copper, adaptive, professional, legal.
 - **Future AI product:** Aqua + violet accent, dark/adaptive, intelligent.
 
@@ -263,7 +263,7 @@ A component may accept product-theme variables but may not redefine interaction 
 
 ## 6. Technical implementation
 
-For AquaFlow and future Bootstrap products:
+For Aqua Tech CS and future Bootstrap products:
 
 - Bootstrap is the layout and behavior foundation.
 - CSS custom properties are the design-token transport.

@@ -89,7 +89,7 @@ async function buildExpectedFiles() {
     schemaVersion: 1,
     packageName,
     version,
-    source: "AquaFlow",
+    source: "Aqua Tech CS",
     cssImportOrder: styleFiles,
     componentEntry: "./src/index.ts",
     generatedDirectories: ["src/components", "src/design-system", "styles"],
@@ -141,7 +141,7 @@ async function buildExpectedFiles() {
 
   expected.set(
     "README.md",
-    `# ${packageName}\n\nInternal Aqua.Tech Design System package generated from AquaFlow.\n\n## Version\n\n${version}\n\n## Next.js usage\n\nAdd the package to \`transpilePackages\`, import Bootstrap first, then import the ordered Design System CSS bundle:\n\n\`\`\`ts\n// next.config.ts\nconst nextConfig = {\n  transpilePackages: ["${packageName}"],\n}\n\nexport default nextConfig\n\`\`\`\n\n\`\`\`tsx\nimport "bootstrap/dist/css/bootstrap.min.css"\nimport "${packageName}/styles.css"\n\nimport { AquaButton, AquaCard } from "${packageName}"\n\`\`\`\n\n## Governance\n\nDo not edit generated package source directly. Edit AquaFlow canonical sources and run \`npm run ds:sync\`.\n`
+    `# ${packageName}\n\nInternal Aqua.Tech Design System package generated from Aqua Tech CS.\n\n## Version\n\n${version}\n\n## Next.js usage\n\nAdd the package to \`transpilePackages\`, import Bootstrap first, then import the ordered Design System CSS bundle:\n\n\`\`\`ts\n// next.config.ts\nconst nextConfig = {\n  transpilePackages: ["${packageName}"],\n}\n\nexport default nextConfig\n\`\`\`\n\n\`\`\`tsx\nimport "bootstrap/dist/css/bootstrap.min.css"\nimport "${packageName}/styles.css"\n\nimport { AquaButton, AquaCard } from "${packageName}"\n\`\`\`\n\n## Governance\n\nDo not edit generated package source directly. Edit Aqua Tech CS canonical sources and run \`npm run ds:sync\`.\n`
   )
 
   return expected

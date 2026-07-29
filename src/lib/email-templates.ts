@@ -1,4 +1,4 @@
-import { aquaFlowTheme } from "@/design-system"
+import { aquaTechCsTheme } from "@/design-system"
 import { PASSWORD_RESET_TTL_MINUTES } from "@/lib/password-reset"
 
 export type TransactionalEmail = {
@@ -38,20 +38,20 @@ export function buildPasswordResetEmail({
   const normalizedResetUrl = requireSafeWebUrl(resetUrl)
   const safeName = escapeHtml(recipientName)
   const safeResetUrl = escapeHtml(normalizedResetUrl)
-  const subject = `إعادة تعيين كلمة مرور ${aquaFlowTheme.productName}`
+  const subject = `إعادة تعيين كلمة مرور ${aquaTechCsTheme.productName}`
 
   return {
     subject,
     text: [
       `مرحبًا ${recipientName}،`,
       "",
-      `تلقينا طلبًا لإعادة تعيين كلمة مرور حسابك في ${aquaFlowTheme.productName}.`,
+      `تلقينا طلبًا لإعادة تعيين كلمة مرور حسابك في ${aquaTechCsTheme.productName}.`,
       `استخدم الرابط التالي خلال ${ttlMinutes} دقيقة:`,
       normalizedResetUrl,
       "",
       "الرابط يُستخدم مرة واحدة فقط. إذا لم تطلب هذا التغيير، تجاهل الرسالة ولن تتغير كلمة المرور.",
       "",
-      `Aqua.Tech — ${aquaFlowTheme.productName}`,
+      `Aqua.Tech — ${aquaTechCsTheme.productName}`,
     ].join("\n"),
     html: `<!doctype html>
 <html lang="ar" dir="rtl">
@@ -62,7 +62,7 @@ export function buildPasswordResetEmail({
   </head>
   <body style="margin:0;padding:0;background:#f1f5f9;color:#0f172a;font-family:Arial,'Segoe UI',Tahoma,sans-serif">
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">
-      رابط آمن لإعادة تعيين كلمة مرور ${aquaFlowTheme.productName}، صالح لمدة ${ttlMinutes} دقيقة.
+      رابط آمن لإعادة تعيين كلمة مرور ${aquaTechCsTheme.productName}، صالح لمدة ${ttlMinutes} دقيقة.
     </div>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#f1f5f9">
       <tr>
@@ -80,7 +80,7 @@ export function buildPasswordResetEmail({
                         <tr>
                           <td style="width:48px;height:48px;border-radius:15px;background:#0e7490;color:#ffffff;font-size:14px;font-weight:900;text-align:center;vertical-align:middle" dir="ltr">CS</td>
                           <td style="padding-right:12px;text-align:right">
-                            <div style="font-size:19px;font-weight:900;color:#0f172a">${aquaFlowTheme.productName}</div>
+                            <div style="font-size:19px;font-weight:900;color:#0f172a">${aquaTechCsTheme.productName}</div>
                             <div style="margin-top:3px;font-size:11px;font-weight:700;letter-spacing:.04em;color:#64748b" dir="ltr">Growth • Software • AI</div>
                           </td>
                         </tr>
@@ -97,7 +97,7 @@ export function buildPasswordResetEmail({
               <td style="padding:10px 34px 34px;text-align:right">
                 <h1 style="margin:0 0 16px;color:#0f172a;font-size:27px;line-height:1.35;font-weight:900">إعادة تعيين كلمة المرور</h1>
                 <p style="margin:0 0 12px;color:#334155;font-size:16px;line-height:1.9">مرحبًا ${safeName}،</p>
-                <p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.9">تلقينا طلبًا لإعادة تعيين كلمة مرور حسابك في ${aquaFlowTheme.productName}. استخدم الزر التالي لإكمال العملية بأمان.</p>
+                <p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.9">تلقينا طلبًا لإعادة تعيين كلمة مرور حسابك في ${aquaTechCsTheme.productName}. استخدم الزر التالي لإكمال العملية بأمان.</p>
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 24px">
                   <tr>
                     <td style="border-radius:14px;background:#0e7490">
@@ -120,7 +120,7 @@ export function buildPasswordResetEmail({
             <tr>
               <td style="border-top:1px solid #e2e8f0;background:#f8fafc;padding:20px 34px;text-align:right">
                 <p style="margin:0;color:#64748b;font-size:12px;line-height:1.8">إذا لم تطلب هذا التغيير، تجاهل الرسالة ولن تتغير كلمة المرور.</p>
-                <p style="margin:8px 0 0;color:#94a3b8;font-size:11px" dir="ltr">Aqua.Tech © ${aquaFlowTheme.productName}</p>
+                <p style="margin:8px 0 0;color:#94a3b8;font-size:11px" dir="ltr">Aqua.Tech © ${aquaTechCsTheme.productName}</p>
               </td>
             </tr>
           </table>

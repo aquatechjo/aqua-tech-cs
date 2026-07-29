@@ -47,7 +47,7 @@ function fileNames(directory: string, extension: string) {
 
 test("DS-06 exposes constrained package, starter, and release contracts", () => {
   assert.equal(aquaDesignSystemPackageName, "@aqua-tech/design-system")
-  assert.match(aquaDesignSystemVersion, /^0\.7\.\d+$/u)
+  assert.match(aquaDesignSystemVersion, /^0\.8\.\d+$/u)
   assert.deepEqual(aquaDesignSystemCssLayers, [
     "tokens",
     "bootstrap",
@@ -106,7 +106,7 @@ test("package synchronization and starter scripts enforce safe boundaries", () =
     "--check",
     "out of sync",
     "rewriteComponentSource",
-    "AquaFlow canonical sources",
+    "Aqua Tech CS canonical sources",
   ]) {
     assert.match(syncScript, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
   }

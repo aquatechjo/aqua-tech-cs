@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 
 import AquaDashboardShell from "@/components/layout/AquaDashboardShell"
 import type { AquaNavigationSection } from "@/design-system"
-import { aquaFlowTheme } from "@/design-system"
+import { aquaTechCsTheme } from "@/design-system"
 import { ACCESS_ROLES, hasRole } from "@/lib/access-control"
 import { requireAuth } from "@/lib/auth"
 
@@ -97,12 +97,12 @@ export default async function DashboardLayout({
 
   return (
     <AquaDashboardShell
-      projectName={aquaFlowTheme.productName}
+      projectName={aquaTechCsTheme.productName}
       language={user.company.language}
       userEmail={user.email}
       userRole={user.role}
       sections={navigationSections}
-      density={aquaFlowTheme.density}
+      density={aquaTechCsTheme.density}
     >
       {children}
     </AquaDashboardShell>

@@ -1,6 +1,6 @@
-# AquaFlow
+# Aqua Tech CS
 
-AquaFlow is Aqua Tech's private internal core system. It manages the company's
+Aqua Tech CS is Aqua Tech's private internal core system. It manages the company's
 people, attendance, leave, clients, projects, tasks, time, capacity, service
 requests, notifications, and audited operations while remaining ready to integrate with specialized external tools.
 
@@ -66,3 +66,4 @@ Implementation notes:
 - [Batch 4 — Sales CRM & Pipeline](docs/BATCH_4_SALES_CRM_PIPELINE.md)
 - [Batch 5 — Time & Capacity](docs/BATCH_5_TIME_CAPACITY.md)
 - [Batch 6 — People, Attendance & Leave](docs/BATCH_6_PEOPLE_ATTENDANCE_LEAVE.md)
+- [ID-01 — Technical Identity Migration](docs/BATCH_ID_01_TECHNICAL_IDENTITY_MIGRATION.md)

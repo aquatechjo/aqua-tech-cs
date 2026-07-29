@@ -3,9 +3,21 @@
 ## Package
 
 - Name: `@aqua-tech/design-system`
-- Current internal version: `0.7.0`
-- Canonical source: AquaFlow
+- Current internal version: `0.8.0`
+- Canonical source: Aqua Tech CS
 - Generated package: `packages/aqua-design-system`
+
+## 0.8.0 — internal
+
+Release level: **minor**
+
+- Added `aquaTechCsTheme` as the canonical internal-system product theme.
+- Changed the canonical theme ID and CSS selector to `aqua-tech-cs`.
+- Kept the deprecated `aquaFlowTheme` export and legacy selector as compatibility aliases.
+- Updated generated package source attribution from AquaFlow to Aqua Tech CS.
+- Consumer migration: replace `aquaFlowTheme` imports with `aquaTechCsTheme`; the old export remains functional during the compatibility window.
+- Visual review surfaces: root product selector, shell, authentication, dashboard, system documents, and generated package examples.
+- Quality gate: package sync, lint, typecheck, unit tests, visual contract, and production build.
 
 ## 0.7.0 — internal
 
@@ -67,7 +79,7 @@ Examples:
 
 ## Release channels
 
-- `internal`: AquaFlow is the validating consumer.
+- `internal`: Aqua Tech CS is the validating consumer.
 - `candidate`: at least one second Aqua.Tech product validates the package.
 - `stable`: approved for normal use across Aqua.Tech products.
 

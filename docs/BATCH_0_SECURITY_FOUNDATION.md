@@ -1,6 +1,6 @@
 # Batch 0 — Security and Stability Foundation
 
-Batch 0 hardens the existing AquaFlow project without redesigning it or
+Batch 0 hardens the existing Aqua Tech CS project without redesigning it or
 starting again. Bootstrap and the current product structure remain unchanged.
 
 ## Included
@@ -51,7 +51,7 @@ WEBSITE_INTAKE_SECRET
 AQUA_COMPANY_SLUG
 ```
 
-`APP_ORIGIN` must be the exact deployed AquaFlow origin, for example
+`APP_ORIGIN` must be the exact deployed Aqua Tech CS origin, for example
 `https://flow.example.com`. Use a long random value for
 `WEBSITE_INTAKE_SECRET`.
 
@@ -63,9 +63,12 @@ They are not application runtime credentials.
 Send the secret in one of:
 
 ```text
-X-AquaFlow-Intake-Secret: <secret>
+X-Aqua-Tech-CS-Intake-Secret: <secret>
 Authorization: Bearer <secret>
 ```
+
+`X-AquaFlow-Intake-Secret` remains a temporary ID-01 compatibility alias while
+the website and n8n integrations migrate to the canonical header.
 
 Every retryable request should also send a stable unique key:
 

@@ -18,6 +18,7 @@ import {
   readJsonBody,
   safeEqualSecrets,
 } from "@/lib/request-security";
+import { readWebsiteIntakeSecret } from "@/lib/technical-identity";
 
 const intakeSchema = z.object({
   customerName: z.string().trim().min(2, "اسم العميل مطلوب"),
@@ -41,16 +42,6 @@ const intakeSchema = z.object({
 function nullableText(value: string | null | undefined) {
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;
-}
-
-function getSecret(request: Request) {
-  const authorization = request.headers.get("authorization");
-
-  if (authorization?.startsWith("Bearer ")) {
-    return authorization.slice("Bearer ".length).trim();
-  }
-
-  return request.headers.get("x-aquaflow-intake-secret")?.trim() || "";
 }
 
 async function findReplay(companyId: string, idempotencyKey: string) {
@@ -85,7 +76,7 @@ async function createWebsiteServiceRequest(request: Request) {
     windowMs: 60 * 60 * 1000,
   });
 
-  const receivedSecret = getSecret(request);
+  const receivedSecret = readWebsiteIntakeSecret(request.headers);
 
   if (!receivedSecret || !safeEqualSecrets(receivedSecret, expectedSecret)) {
     return err("Unauthorized", 401, {

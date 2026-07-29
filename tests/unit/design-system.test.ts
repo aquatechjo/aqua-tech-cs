@@ -4,6 +4,7 @@ import test from "node:test"
 import {
   allowedProductThemeKeys,
   aquaFlowTheme,
+  aquaTechCsTheme,
   aquaTechDesignTokens,
 } from "../../src/design-system"
 
@@ -24,10 +25,14 @@ test("Aqua.Tech DNA exposes the approved fixed scales", () => {
 })
 
 test("Aqua tech CS product theme stays within the approved theme boundary", () => {
-  assert.deepEqual(Object.keys(aquaFlowTheme).sort(), [...allowedProductThemeKeys].sort())
-  assert.equal(aquaFlowTheme.companyName, "Aqua.Tech")
-  assert.equal(aquaFlowTheme.productName, "Aqua tech CS")
-  assert.equal(aquaFlowTheme.logoSrc, "/aqua-tech-logo.webp")
-  assert.equal(aquaFlowTheme.surface.mode, "dark")
-  assert.equal(aquaFlowTheme.personality, "operational")
+  assert.deepEqual(Object.keys(aquaTechCsTheme).sort(), [...allowedProductThemeKeys].sort())
+  assert.equal(aquaTechCsTheme.id, "aqua-tech-cs")
+  assert.equal(aquaTechCsTheme.companyName, "Aqua.Tech")
+  assert.equal(aquaTechCsTheme.productName, "Aqua tech CS")
+  assert.equal(aquaTechCsTheme.logoSrc, "/aqua-tech-logo.webp")
+  assert.equal(aquaTechCsTheme.surface.mode, "dark")
+  assert.equal(aquaTechCsTheme.personality, "operational")
+
+  assert.equal(aquaFlowTheme.id, "aquaflow")
+  assert.equal(aquaFlowTheme.productName, aquaTechCsTheme.productName)
 })

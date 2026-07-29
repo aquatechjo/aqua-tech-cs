@@ -13,6 +13,10 @@ Apply the approved user-facing project identity `Aqua tech CS` consistently and 
 - Update authentication, metadata, transactional email, system documents, dashboard copy, and the browser icon.
 - Preserve `aquaflow` as the technical identifier for the repository, package name, cookies, headers, and integrations.
 
+> Superseded by ID-01: `aqua-tech-cs` is now the canonical technical
+> identifier, with bounded compatibility for the legacy cookie, header,
+> product selector, and theme export.
+
 ## Design System impact
 
 - Add optional `logoSrc` support to `AquaProductTheme`.

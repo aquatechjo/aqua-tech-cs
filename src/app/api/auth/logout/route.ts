@@ -4,7 +4,11 @@ import { getCurrentUser, getRequestMeta } from "@/lib/auth"
 import { handleApiError, ok } from "@/lib/api-response"
 import { prisma } from "@/lib/prisma"
 import { assertSameOrigin } from "@/lib/request-security"
-import { SESSION_COOKIE_NAME, hashSessionToken } from "@/lib/session"
+import {
+  SESSION_COOKIE_NAMES,
+  hashSessionToken,
+  readSessionCookies,
+} from "@/lib/session"
 import { cookies } from "next/headers"
 
 export async function POST(request: Request) {
@@ -12,15 +16,19 @@ export async function POST(request: Request) {
     assertSameOrigin(request)
 
     const cookieStore = await cookies()
-    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value
+    const sessionCookies = readSessionCookies(cookieStore)
     const user = await getCurrentUser()
     const meta = await getRequestMeta()
 
     await prisma.$transaction(async (tx) => {
-      if (token) {
+      if (sessionCookies.length > 0) {
         await tx.session.updateMany({
           where: {
-            tokenHash: hashSessionToken(token),
+            tokenHash: {
+              in: sessionCookies.map((cookie) =>
+                hashSessionToken(cookie.value)
+              ),
+            },
           },
           data: {
             isActive: false,
@@ -43,16 +51,18 @@ export async function POST(request: Request) {
 
     const response = ok({ message: "تم تسجيل الخروج بنجاح" })
 
-    response.cookies.set({
-      name: SESSION_COOKIE_NAME,
-      value: "",
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 0,
-      priority: "high",
-    })
+    for (const cookieName of SESSION_COOKIE_NAMES) {
+      response.cookies.set({
+        name: cookieName,
+        value: "",
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 0,
+        priority: "high",
+      })
+    }
 
     return response
   } catch (error) {

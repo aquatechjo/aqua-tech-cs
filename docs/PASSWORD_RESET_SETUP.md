@@ -1,4 +1,4 @@
-# AquaFlow password reset setup
+# Aqua Tech CS password reset setup
 
 ## Owner account
 
@@ -11,9 +11,9 @@ Running the seed updates the existing Aqua Tech `OWNER` account to this email. T
 ## Required environment variables
 
 ```env
-APP_ORIGIN="https://your-aquaflow-domain.example"
+APP_ORIGIN="https://your-aqua-tech-cs-domain.example"
 RESEND_API_KEY="re_..."
-PASSWORD_RESET_FROM="AquaFlow <system@aquatechagency.com>"
+PASSWORD_RESET_FROM="Aqua Tech CS <system@aquatechagency.com>"
 SEED_OWNER_EMAIL="info.aquatech.jo@gmail.com"
 SEED_OWNER_PASSWORD="a-strong-password-at-least-12-characters"
 ```
