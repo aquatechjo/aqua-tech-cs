@@ -69,10 +69,16 @@ const clientStatuses: ClientStatus[] = [
 ]
 const leadSources: LeadSource[] = [
   "WEBSITE",
+  "CHATBOT",
   "FACEBOOK",
   "INSTAGRAM",
   "WHATSAPP",
+  "EMAIL",
+  "CALL",
+  "MEETING",
   "REFERRAL",
+  "CAMPAIGN",
+  "MANUAL",
   "DIRECT",
   "OTHER",
 ]
@@ -107,10 +113,16 @@ function clientStatusLabel(status: ClientStatus) {
 function leadSourceLabel(source: LeadSource) {
   const labels: Record<LeadSource, string> = {
     WEBSITE: "الموقع",
+    CHATBOT: "الشات بوت",
     FACEBOOK: "فيسبوك",
     INSTAGRAM: "إنستغرام",
     WHATSAPP: "واتساب",
+    EMAIL: "البريد الإلكتروني",
+    CALL: "اتصال",
+    MEETING: "اجتماع",
     REFERRAL: "ترشيح",
+    CAMPAIGN: "حملة",
+    MANUAL: "إدخال يدوي",
     DIRECT: "مباشر",
     OTHER: "أخرى",
   }

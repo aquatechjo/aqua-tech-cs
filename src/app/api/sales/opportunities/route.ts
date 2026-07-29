@@ -195,10 +195,18 @@ export async function POST(request: Request) {
         }
       }
 
+      const lead = links.serviceRequestId
+        ? await tx.lead.findUnique({
+            where: { serviceRequestId: links.serviceRequestId },
+            select: { id: true },
+          })
+        : null
+
       const created = await tx.salesOpportunity.create({
         data: {
           companyId: user.companyId,
           serviceRequestId: links.serviceRequestId,
+          leadId: lead?.id ?? null,
           clientId: links.clientId,
           ownerId: parsed.data.ownerId || null,
           title: parsed.data.title,

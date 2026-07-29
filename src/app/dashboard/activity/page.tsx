@@ -122,6 +122,11 @@ function actionLabel(action: ActivityAction) {
     SERVICE_REQUEST_ARCHIVED: "أرشفة طلب خدمة",
     SERVICE_REQUEST_RESTORED: "استرجاع طلب خدمة",
 
+    LEAD_CREATED: "تسجيل عميل محتمل",
+    LEAD_UPDATED: "تعديل عميل محتمل",
+    LEAD_STATUS_CHANGED: "تغيير حالة عميل محتمل",
+    LEAD_DUPLICATE_FLAGGED: "تمييز عميل محتمل مكرر",
+
     COMPANY_UPDATED: "تعديل بيانات الشركة",
 
     NOTIFICATION_READ: "قراءة تنبيه",

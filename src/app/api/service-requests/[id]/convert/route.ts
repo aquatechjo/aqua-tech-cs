@@ -2,6 +2,7 @@ import { ActivityAction, type LeadSource } from "@/generated/prisma/enums";
 import { ACCESS_ROLES, assertRole } from "@/lib/access-control";
 import { err, ok, withApiHandler } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
+import { syncLeadForServiceRequest } from "@/lib/crm-lead-server";
 import { prisma } from "@/lib/prisma";
 import { createProjectWithWorkflow } from "@/lib/project-workflow-server";
 import { assertSameOrigin } from "@/lib/request-security";
@@ -62,8 +63,14 @@ async function convertServiceRequest(
       serviceRequest.clientId &&
       serviceRequest.projectId
     ) {
+      const lead = await tx.lead.findUnique({
+        where: { serviceRequestId: serviceRequest.id },
+        select: { id: true },
+      });
+
       return {
         serviceRequest,
+        leadId: lead?.id ?? null,
         clientId: serviceRequest.clientId,
         projectId: serviceRequest.projectId,
         replayed: true,
@@ -127,6 +134,14 @@ async function convertServiceRequest(
       },
     });
 
+    const { lead } = await syncLeadForServiceRequest({
+      db: tx,
+      companyId: user.companyId,
+      serviceRequest: convertedRequest,
+      actorUserId: user.id,
+      now: convertedAt,
+    });
+
     const existingOpportunity = await tx.salesOpportunity.findUnique({
       where: {
         serviceRequestId: serviceRequest.id,
@@ -144,6 +159,7 @@ async function convertServiceRequest(
           id: existingOpportunity.id,
         },
         data: {
+          leadId: lead.id,
           clientId,
           projectId,
           ...wonOpportunityState(convertedAt),
@@ -156,6 +172,7 @@ async function convertServiceRequest(
         data: {
           companyId: user.companyId,
           serviceRequestId: serviceRequest.id,
+          leadId: lead.id,
           clientId,
           projectId,
           ownerId: seed.ownerId,
@@ -212,6 +229,7 @@ async function convertServiceRequest(
 
     return {
       serviceRequest: convertedRequest,
+      leadId: lead.id,
       salesOpportunityId,
       clientId,
       projectId,

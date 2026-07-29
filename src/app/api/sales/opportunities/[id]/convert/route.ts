@@ -2,6 +2,7 @@ import { ActivityAction } from "@/generated/prisma/enums"
 import { ACCESS_ROLES, assertRole } from "@/lib/access-control"
 import { ApiError, handleApiError, ok } from "@/lib/api-response"
 import { getRequestMeta, requireAuth } from "@/lib/auth"
+import { syncLeadForServiceRequest } from "@/lib/crm-lead-server"
 import { logActivity } from "@/lib/activity"
 import { prisma } from "@/lib/prisma"
 import { createProjectWithWorkflow } from "@/lib/project-workflow-server"
@@ -52,6 +53,7 @@ export async function POST(
       if (opportunity.stage === "WON" && opportunity.clientId && opportunity.projectId) {
         return {
           opportunityId: opportunity.id,
+          leadId: opportunity.leadId,
           clientId: opportunity.clientId,
           projectId: opportunity.projectId,
           replayed: true,
@@ -143,20 +145,12 @@ export async function POST(
       }
 
       const convertedAt = new Date()
-      const updated = await tx.salesOpportunity.update({
-        where: { id: opportunity.id },
-        data: {
-          clientId,
-          projectId,
-          ...wonOpportunityState(convertedAt),
-        },
-      })
+      let leadId = opportunity.leadId
 
       if (opportunity.serviceRequestId) {
-        await tx.serviceRequest.updateMany({
+        const convertedRequest = await tx.serviceRequest.update({
           where: {
             id: opportunity.serviceRequestId,
-            companyId: user.companyId,
           },
           data: {
             clientId,
@@ -165,7 +159,26 @@ export async function POST(
             convertedAt,
           },
         })
+
+        const { lead } = await syncLeadForServiceRequest({
+          db: tx,
+          companyId: user.companyId,
+          serviceRequest: convertedRequest,
+          actorUserId: user.id,
+          now: convertedAt,
+        })
+        leadId = lead.id
       }
+
+      const updated = await tx.salesOpportunity.update({
+        where: { id: opportunity.id },
+        data: {
+          leadId,
+          clientId,
+          projectId,
+          ...wonOpportunityState(convertedAt),
+        },
+      })
 
       await logActivity({
         db: tx,
@@ -198,6 +211,7 @@ export async function POST(
 
       return {
         opportunityId: updated.id,
+        leadId,
         clientId,
         projectId,
         replayed: false,

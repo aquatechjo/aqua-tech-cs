@@ -220,6 +220,20 @@ enum SalesProposalStatus {
   CANCELLED
 }
 
+enum LeadStatus {
+  NEW
+  CONTACTED
+  DISCOVERY
+  NEEDS_INFO
+  QUALIFIED
+  DISQUALIFIED
+  NURTURE
+  DUPLICATE
+  SPAM
+  CONVERTED
+  ARCHIVED
+}
+
 enum NotificationType {
   INFO
   SUCCESS
@@ -261,6 +275,10 @@ enum ActivityAction {
   SERVICE_REQUEST_CONVERTED
   SERVICE_REQUEST_ARCHIVED
   SERVICE_REQUEST_RESTORED
+  LEAD_CREATED
+  LEAD_UPDATED
+  LEAD_STATUS_CHANGED
+  LEAD_DUPLICATE_FLAGGED
   EMPLOYEE_PROFILE_UPDATED
   DEPARTMENT_CREATED
   DEPARTMENT_UPDATED
@@ -382,6 +400,7 @@ model Company {
   salesOpportunities  SalesOpportunity[]
   salesActivities     SalesActivity[]
   salesProposals      SalesProposal[]
+  leads               Lead[]
   timeEntries         TimeEntry[]
   timesheets          Timesheet[]
   workSchedules       WorkSchedule[]
@@ -429,6 +448,7 @@ model User {
   createdExpenses          Expense[]          @relation("ExpenseCreator")
   approvedExpenses         Expense[]          @relation("ExpenseApprover")
   ownedSalesOpportunities  SalesOpportunity[] @relation("SalesOpportunityOwner")
+  ownedLeads               Lead[]             @relation("LeadOwner")
   createdSalesActivities   SalesActivity[]    @relation("SalesActivityCreator")
   createdSalesProposals    SalesProposal[]    @relation("SalesProposalCreator")
   timeEntries              TimeEntry[]        @relation("TimeEntryOwner")
@@ -755,6 +775,7 @@ model Client {
   tasks              Task[]
   invoices           Invoice[]
   salesOpportunities SalesOpportunity[]
+  leads              Lead[]
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -1602,6 +1623,7 @@ model ServiceRequest {
   convertedAt      DateTime?
   invoices         Invoice[]
   salesOpportunity SalesOpportunity?
+  lead             Lead?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1617,6 +1639,69 @@ model ServiceRequest {
   @@index([createdAt])
 }
 
+model Lead {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  serviceRequestId String?         @unique
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: SetNull)
+
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  ownerId String?
+  owner   User?   @relation("LeadOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+
+  possibleDuplicateOfId String?
+  possibleDuplicateOf   Lead?   @relation("LeadDuplicateCandidates", fields: [possibleDuplicateOfId], references: [id], onDelete: SetNull)
+  possibleDuplicates    Lead[]  @relation("LeadDuplicateCandidates")
+
+  contactName       String
+  email             String?
+  emailNormalized   String?
+  phone             String?
+  phoneNormalized   String?
+  companyName       String?
+  companyNormalized String?
+  serviceType       String
+
+  status   LeadStatus             @default(NEW)
+  source   LeadSource             @default(OTHER)
+  priority ServiceRequestPriority @default(MEDIUM)
+
+  campaign         String?
+  completionScore  Int       @default(0)
+  contactConsent   Boolean?
+  contactConsentAt DateTime?
+  nextAction       String?
+  nextActionAt     DateTime?
+  notes            String?
+
+  qualifiedAt    DateTime?
+  disqualifiedAt DateTime?
+  convertedAt    DateTime?
+  archivedAt     DateTime?
+
+  opportunity SalesOpportunity?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([clientId])
+  @@index([ownerId])
+  @@index([possibleDuplicateOfId])
+  @@index([status])
+  @@index([source])
+  @@index([priority])
+  @@index([emailNormalized])
+  @@index([phoneNormalized])
+  @@index([companyNormalized])
+  @@index([nextActionAt])
+  @@index([createdAt])
+}
+
 model SalesOpportunity {
   id        String  @id @default(cuid())
   companyId String
@@ -1624,6 +1709,9 @@ model SalesOpportunity {
 
   serviceRequestId String?         @unique
   serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: SetNull)
+
+  leadId String? @unique
+  lead   Lead?   @relation(fields: [leadId], references: [id], onDelete: SetNull)
 
   clientId String?
   client   Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
@@ -1665,6 +1753,7 @@ model SalesOpportunity {
   updatedAt DateTime @updatedAt
 
   @@index([companyId])
+  @@index([leadId])
   @@index([clientId])
   @@index([projectId])
   @@index([ownerId])
@@ -1760,10 +1849,16 @@ enum ClientStatus {
 
 enum LeadSource {
   WEBSITE
+  CHATBOT
   FACEBOOK
   INSTAGRAM
   WHATSAPP
+  EMAIL
+  CALL
+  MEETING
   REFERRAL
+  CAMPAIGN
+  MANUAL
   DIRECT
   OTHER
 }

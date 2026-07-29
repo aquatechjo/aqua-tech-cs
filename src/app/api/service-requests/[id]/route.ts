@@ -6,6 +6,7 @@ import {
 import { ACCESS_ROLES, assertRole } from "@/lib/access-control";
 import { err, ok, withApiHandler } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
+import { syncLeadForServiceRequest } from "@/lib/crm-lead-server";
 import { prisma } from "@/lib/prisma";
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security";
 
@@ -261,7 +262,7 @@ async function updateServiceRequest(
   const action = getActionForStatusChange(existingRequest.status, data.status);
   const now = new Date();
 
-  const serviceRequest = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const updatedRequest = await tx.serviceRequest.update({
       where: {
         id: existingRequest.id,
@@ -348,10 +349,21 @@ async function updateServiceRequest(
       },
     });
 
-    return updatedRequest;
+    const { lead } = await syncLeadForServiceRequest({
+      db: tx,
+      companyId: user.companyId,
+      serviceRequest: updatedRequest,
+      actorUserId: user.id,
+      now,
+    });
+
+    return {
+      serviceRequest: updatedRequest,
+      lead,
+    };
   });
 
-  return ok({ serviceRequest });
+  return ok(result);
 }
 
 export const GET = withApiHandler(

@@ -3,6 +3,7 @@ import { ActivityAction } from "@/generated/prisma/enums";
 import { ACCESS_ROLES, assertRole } from "@/lib/access-control";
 import { err, ok, withApiHandler } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
+import { createLeadForServiceRequest } from "@/lib/crm-lead-server";
 import { prisma } from "@/lib/prisma";
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security";
 
@@ -42,6 +43,8 @@ const serviceRequestSchema = z.object({
 
   workflowRunId: z.string().trim().optional().nullable(),
   proposalUrl: z.string().trim().optional().nullable(),
+  campaign: z.string().trim().max(160).optional().nullable(),
+  contactConsent: z.boolean().optional().nullable(),
 });
 
 function nullableText(value: string | null | undefined) {
@@ -185,7 +188,7 @@ async function createServiceRequest(request: Request) {
 
   const now = new Date();
 
-  const serviceRequest = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const createdRequest = await tx.serviceRequest.create({
       data: {
         companyId: user.companyId,
@@ -235,10 +238,23 @@ async function createServiceRequest(request: Request) {
       },
     });
 
-    return createdRequest;
+    const { lead } = await createLeadForServiceRequest({
+      db: tx,
+      companyId: user.companyId,
+      serviceRequest: createdRequest,
+      campaign: data.campaign,
+      contactConsent: data.contactConsent,
+      actorUserId: user.id,
+      now,
+    });
+
+    return {
+      serviceRequest: createdRequest,
+      lead,
+    };
   });
 
-  return ok({ serviceRequest }, 201);
+  return ok(result, 201);
 }
 
 export const GET = withApiHandler(

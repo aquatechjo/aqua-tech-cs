@@ -21,10 +21,16 @@ const clientTypes: ClientType[] = ["COMPANY", "INDIVIDUAL"]
 
 const leadSources: LeadSource[] = [
   "WEBSITE",
+  "CHATBOT",
   "FACEBOOK",
   "INSTAGRAM",
   "WHATSAPP",
+  "EMAIL",
+  "CALL",
+  "MEETING",
   "REFERRAL",
+  "CAMPAIGN",
+  "MANUAL",
   "DIRECT",
   "OTHER",
 ]

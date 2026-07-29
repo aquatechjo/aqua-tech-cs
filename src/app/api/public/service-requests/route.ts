@@ -10,6 +10,7 @@ import {
   ok,
   withApiHandler,
 } from "@/lib/api-response";
+import { createLeadForServiceRequest } from "@/lib/crm-lead-server";
 import { prisma } from "@/lib/prisma";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import {
@@ -37,6 +38,8 @@ const intakeSchema = z.object({
   message: z.string().trim().optional().nullable(),
 
   workflowRunId: z.string().trim().max(160).optional().nullable(),
+  campaign: z.string().trim().max(160).optional().nullable(),
+  contactConsent: z.boolean().optional().nullable(),
 });
 
 function nullableText(value: string | null | undefined) {
@@ -54,6 +57,11 @@ async function findReplay(companyId: string, idempotencyKey: string) {
     },
     select: {
       id: true,
+      lead: {
+        select: {
+          id: true,
+        },
+      },
     },
   });
 }
@@ -127,6 +135,7 @@ async function createWebsiteServiceRequest(request: Request) {
     if (existingRequest) {
       return ok({
         serviceRequestId: existingRequest.id,
+        leadId: existingRequest.lead?.id ?? null,
         replayed: true,
       });
     }
@@ -204,12 +213,25 @@ async function createWebsiteServiceRequest(request: Request) {
         });
       }
 
-      return createdRequest;
+      const { lead } = await createLeadForServiceRequest({
+        db: tx,
+        companyId: company.id,
+        serviceRequest: createdRequest,
+        campaign: data.campaign,
+        contactConsent: data.contactConsent,
+        actorUserId: null,
+      });
+
+      return {
+        serviceRequest: createdRequest,
+        lead,
+      };
     });
 
     return ok(
       {
-        serviceRequestId: serviceRequest.id,
+        serviceRequestId: serviceRequest.serviceRequest.id,
+        leadId: serviceRequest.lead.id,
         replayed: false,
       },
       201,
@@ -225,6 +247,7 @@ async function createWebsiteServiceRequest(request: Request) {
       if (existingRequest) {
         return ok({
           serviceRequestId: existingRequest.id,
+          leadId: existingRequest.lead?.id ?? null,
           replayed: true,
         });
       }

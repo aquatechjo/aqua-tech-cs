@@ -68,11 +68,16 @@ export async function POST(request: Request) {
 
       await assertSalesOwner(tx, user.companyId, serviceRequest.assignedToId)
       const seed = opportunitySeedFromServiceRequest(serviceRequest)
+      const lead = await tx.lead.findUnique({
+        where: { serviceRequestId: serviceRequest.id },
+        select: { id: true },
+      })
 
       const opportunity = await tx.salesOpportunity.create({
         data: {
           companyId: user.companyId,
           serviceRequestId: serviceRequest.id,
+          leadId: lead?.id ?? null,
           clientId: serviceRequest.clientId,
           projectId: serviceRequest.projectId,
           ownerId: seed.ownerId,
