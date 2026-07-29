@@ -223,6 +223,26 @@ export async function PATCH(
       })
 
       if (
+        data.answers !== undefined ||
+        data.serviceTrack !== undefined
+      ) {
+        await tx.discoveryReport.updateMany({
+          where: {
+            intakeSessionId: session.id,
+            companyId: user.companyId,
+            status: "IN_REVIEW",
+          },
+          data: {
+            status: "CHANGES_REQUESTED",
+            reviewNotes:
+              "تغيرت أدلة جلسة الاكتشاف بعد إرسال التقرير للمراجعة. يلزم حفظ إصدار بشري جديد.",
+            reviewedById: user.id,
+            changesRequestedAt: now,
+          },
+        })
+      }
+
+      if (
         data.intent === "READY_FOR_REVIEW" &&
         session.lead.status !== "QUALIFIED" &&
         session.lead.status !== "CONVERTED"

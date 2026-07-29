@@ -141,6 +141,11 @@ function actionLabel(action: ActivityAction) {
     DISCOVERY_CONVERSATION_STARTED: "بدء محادثة اكتشاف",
     DISCOVERY_CONVERSATION_ESCALATED: "طلب مساعدة في الاكتشاف",
     DISCOVERY_CONVERSATION_SUBMITTED: "إرسال محادثة اكتشاف",
+    DISCOVERY_REPORT_AI_GENERATED: "توليد مسودة تقرير اكتشاف",
+    DISCOVERY_REPORT_VERSION_CREATED: "حفظ إصدار تقرير اكتشاف",
+    DISCOVERY_REPORT_SUBMITTED: "إرسال تقرير اكتشاف للمراجعة",
+    DISCOVERY_REPORT_CHANGES_REQUESTED: "طلب تعديلات على تقرير اكتشاف",
+    DISCOVERY_REPORT_APPROVED: "اعتماد تقرير اكتشاف",
 
     COMPANY_UPDATED: "تعديل بيانات الشركة",
 
@@ -181,6 +186,7 @@ function actionBadgeClass(action: ActivityAction) {
     action === "LEAVE_REQUEST_APPROVED"
     || action === "DISCOVERY_READY_FOR_REVIEW"
     || action === "DISCOVERY_CONVERSATION_SUBMITTED"
+    || action === "DISCOVERY_REPORT_APPROVED"
   ) {
     return "text-bg-success";
   }
@@ -232,6 +238,8 @@ function actionBadgeClass(action: ActivityAction) {
     || action === "DISCOVERY_SESSION_CREATED"
     || action === "DISCOVERY_PUBLIC_LINK_ISSUED"
     || action === "DISCOVERY_CONVERSATION_STARTED"
+    || action === "DISCOVERY_REPORT_AI_GENERATED"
+    || action === "DISCOVERY_REPORT_VERSION_CREATED"
   ) {
     return "text-bg-info";
   }
@@ -246,6 +254,8 @@ function actionBadgeClass(action: ActivityAction) {
     || action === "DISCOVERY_GAP_WAIVED"
     || action === "DISCOVERY_GAP_REOPENED"
     || action === "DISCOVERY_CONVERSATION_ESCALATED"
+    || action === "DISCOVERY_REPORT_SUBMITTED"
+    || action === "DISCOVERY_REPORT_CHANGES_REQUESTED"
   ) {
     return "text-bg-warning";
   }

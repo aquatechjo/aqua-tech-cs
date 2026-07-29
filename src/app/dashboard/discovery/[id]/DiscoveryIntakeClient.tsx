@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   Copy,
   ExternalLink,
+  FileText,
   Link2,
   RotateCcw,
   Save,
@@ -539,6 +540,18 @@ export default function DiscoveryIntakeClient({
       <div className="d-flex flex-wrap gap-2">
         <AquaLinkButton href="/dashboard/discovery" variant="ghost">
           رجوع إلى الجلسات
+        </AquaLinkButton>
+        <AquaLinkButton
+          href={`/dashboard/discovery/${session.id}/report`}
+          variant={
+            session.status === "READY_FOR_REVIEW" ||
+            session.status === "COMPLETED"
+              ? "primary"
+              : "secondary"
+          }
+          leadingIcon={<FileText />}
+        >
+          تقرير الاكتشاف
         </AquaLinkButton>
         <AquaLinkButton href="/dashboard/leads" variant="secondary">
           فتح العملاء المحتملين

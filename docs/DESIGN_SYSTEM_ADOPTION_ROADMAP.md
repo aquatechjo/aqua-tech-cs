@@ -272,6 +272,20 @@ Status: **implemented**
 - Protect public mutations with origin checks, body limits, per-token/IP rate limits, row locks, transactions, tenant ownership inherited from the session, and durable activity events.
 - Keep uploads, AI extraction, versioned discovery reports, human report review, pricing, proposals, and automatic channel delivery for subsequent batches.
 
+## DISC-03 — Versioned Discovery Reports and Human Review
+
+Status: **implemented**
+
+- Create one tenant-scoped discovery report per intake session with immutable, numbered AI and human versions.
+- Generate evidence-grounded Arabic drafts through the OpenAI Responses API and Structured Outputs without sending contact fields, raw conversation messages, or internal notes.
+- Disable provider-side response storage, cap evidence size and hourly generation attempts, validate model output again on the server, and discard stale responses when source evidence changes in flight.
+- Preserve manual report authoring when the external AI provider is not configured or available.
+- Store the exact evidence snapshot and hash used by each version, flag stale versions, and let authorized users inspect prior version content.
+- Require a human revision before review submission; never allow an AI draft to be submitted or approved directly.
+- Enforce `DRAFT`, `IN_REVIEW`, `CHANGES_REQUESTED`, and `APPROVED` transitions with tenant scoping, row locks, transactions, and durable activity events.
+- Complete Discovery only after explicit human approval, then qualify the Lead and eligible opportunity and set the next action to human scope review and pricing.
+- Keep uploads, pricing, the central Proposal Engine, delivery channels, acceptance, contracts, and project creation for later independent batches.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.
