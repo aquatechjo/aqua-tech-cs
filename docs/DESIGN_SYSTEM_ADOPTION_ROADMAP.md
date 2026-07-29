@@ -229,6 +229,19 @@ Status: **implemented**
 - Preserve Service Request synchronization without overwriting the original intake message.
 - Keep Latin-digit operational dates, logical RTL/LTR layout, responsive table behavior, accessible confirmations, and reduced-motion coverage through canonical components.
 
+## CRM-03 — Client Accounts and Contacts
+
+Status: **implemented**
+
+- Keep `Company` as the internal Aqua Tech tenant and use `Client` as the external customer account.
+- Add tenant-scoped contact master records with one active primary contact per client.
+- Preserve current client email and phone compatibility by synchronizing them from the primary contact only.
+- Backfill legacy client communication data without deleting or rewriting client, project, invoice, Lead, or opportunity records.
+- Create a primary contact for new clients and preserve additional opportunity contacts without replacing an established primary contact.
+- Add a scoped client-detail surface for contact creation, editing, primary selection, decision-maker flags, archive, and restore.
+- Apply server-side client-read and client-management permissions, audit events, transactions, and accessible confirmation workflows.
+- Use canonical DS-04 data panels, detail lists, stacked tables, modals, alerts, badges, and confirmation dialogs.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.

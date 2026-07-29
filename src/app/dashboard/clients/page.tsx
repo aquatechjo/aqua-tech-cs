@@ -1,10 +1,12 @@
 import AquaPagination from "@/components/aqua/AquaPagination"
+import { redirect } from "next/navigation"
 import {
   ClientStatus,
   ClientType,
   LeadSource,
 } from "@/generated/prisma/enums"
 import { requireAuth } from "@/lib/auth"
+import { ACCESS_ROLES, hasRole } from "@/lib/access-control"
 import { prisma } from "@/lib/prisma"
 import ClientsClient from "./ClientsClient"
 
@@ -81,6 +83,11 @@ export default async function ClientsPage({
   }>
 }) {
   const user = await requireAuth()
+
+  if (!hasRole(user.role, ACCESS_ROLES.clientRead)) {
+    redirect("/dashboard")
+  }
+
   const resolvedSearchParams = await searchParams
 
   const requestedPage = parsePage(resolvedSearchParams.page)
@@ -162,6 +169,37 @@ export default async function ClientsPage({
       notes: true,
       createdAt: true,
       updatedAt: true,
+      contacts: {
+        where: {
+          archivedAt: null,
+        },
+        orderBy: [
+          {
+            isPrimary: "desc",
+          },
+          {
+            createdAt: "asc",
+          },
+        ],
+        take: 1,
+        select: {
+          id: true,
+          name: true,
+          jobTitle: true,
+          email: true,
+          phone: true,
+          isPrimary: true,
+        },
+      },
+      _count: {
+        select: {
+          contacts: {
+            where: {
+              archivedAt: null,
+            },
+          },
+        },
+      },
     },
   })
 

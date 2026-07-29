@@ -43,6 +43,9 @@ test("access profiles grant business permissions without defining job titles", (
     hasRole("FINANCE_MANAGER", ACCESS_ROLES.teamManagement),
     false,
   );
+  assert.equal(hasRole("FINANCE_MANAGER", ACCESS_ROLES.clientRead), true);
+  assert.equal(hasRole("FINANCE_MANAGER", ACCESS_ROLES.clientManagement), false);
+  assert.equal(hasRole("MEMBER", ACCESS_ROLES.clientRead), false);
 });
 
 test("employees can edit only tasks assigned to or created by them", () => {

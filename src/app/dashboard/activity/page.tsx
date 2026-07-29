@@ -105,6 +105,11 @@ function actionLabel(action: ActivityAction) {
     CLIENT_UPDATED: "تعديل عميل",
     CLIENT_ARCHIVED: "أرشفة عميل",
     CLIENT_RESTORED: "استرجاع عميل",
+    CONTACT_CREATED: "إضافة جهة اتصال",
+    CONTACT_UPDATED: "تعديل جهة اتصال",
+    CONTACT_ARCHIVED: "أرشفة جهة اتصال",
+    CONTACT_RESTORED: "استرجاع جهة اتصال",
+    CONTACT_PRIMARY_CHANGED: "تغيير جهة الاتصال الرئيسية",
 
     PROJECT_CREATED: "إضافة مشروع",
     PROJECT_UPDATED: "تعديل مشروع",
@@ -143,6 +148,7 @@ function actionBadgeClass(action: ActivityAction) {
     action === "LOGIN" ||
     action === "USER_ACTIVATED" ||
     action === "CLIENT_RESTORED" ||
+    action === "CONTACT_RESTORED" ||
     action === "PROJECT_RESTORED" ||
     action === "PROJECT_COMPLETED" ||
     action === "TASK_RESTORED" ||
@@ -170,6 +176,7 @@ function actionBadgeClass(action: ActivityAction) {
   if (
     action === "USER_DEACTIVATED" ||
     action === "CLIENT_ARCHIVED" ||
+    action === "CONTACT_ARCHIVED" ||
     action === "PROJECT_ARCHIVED" ||
     action === "TASK_ARCHIVED" ||
     action === "SERVICE_REQUEST_ARCHIVED" ||
@@ -192,6 +199,7 @@ function actionBadgeClass(action: ActivityAction) {
   if (
     action === "USER_CREATED" ||
     action === "CLIENT_CREATED" ||
+    action === "CONTACT_CREATED" ||
     action === "PROJECT_CREATED" ||
     action === "TASK_CREATED" ||
     action === "SERVICE_REQUEST_CREATED" ||

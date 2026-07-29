@@ -10,6 +10,13 @@ export const ACCESS_ROLES = {
   teamManagement: ["OWNER", "ADMIN"],
   organizationManagement: ["OWNER", "ADMIN"],
   activityLog: ["OWNER", "ADMIN"],
+  clientRead: [
+    "OWNER",
+    "ADMIN",
+    "SALES_MANAGER",
+    "OPERATIONS_MANAGER",
+    "FINANCE_MANAGER",
+  ],
   clientManagement: [
     "OWNER",
     "ADMIN",

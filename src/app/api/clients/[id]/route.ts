@@ -9,6 +9,12 @@ import { ACCESS_ROLES, assertRole } from "@/lib/access-control";
 import { err, handleApiError, ok } from "@/lib/api-response";
 import { getRequestMeta, requireAuth } from "@/lib/auth";
 import { logActivity } from "@/lib/activity";
+import { clientContactIdentity } from "@/lib/client-contact";
+import {
+  ensureClientContactFromSnapshot,
+  nullableClientContactText,
+  syncClientPrimaryContact,
+} from "@/lib/client-contact-server";
 import { prisma } from "@/lib/prisma";
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security";
 
@@ -92,8 +98,10 @@ export async function PATCH(
         where: { id },
         data: {
           name: data.name?.trim(),
-          email: emptyToNull(data.email),
-          phone: emptyToNull(data.phone),
+          email:
+            data.email === undefined ? undefined : emptyToNull(data.email),
+          phone:
+            data.phone === undefined ? undefined : emptyToNull(data.phone),
           website: emptyToNull(data.website),
           type: data.type,
           status: data.status,
@@ -104,6 +112,75 @@ export async function PATCH(
           notes: emptyToNull(data.notes),
         },
       });
+
+      if (data.email !== undefined || data.phone !== undefined) {
+        const primaryContact = await tx.clientContact.findFirst({
+          where: {
+            companyId: user.companyId,
+            clientId: updatedClient.id,
+            isPrimary: true,
+            archivedAt: null,
+          },
+        });
+
+        if (primaryContact) {
+          const email =
+            data.email === undefined
+              ? primaryContact.email
+              : nullableClientContactText(data.email);
+          const phone =
+            data.phone === undefined
+              ? primaryContact.phone
+              : nullableClientContactText(data.phone);
+
+          await tx.clientContact.update({
+            where: {
+              id: primaryContact.id,
+            },
+            data: {
+              email,
+              phone,
+              ...clientContactIdentity({
+                email,
+                phone,
+                whatsapp: primaryContact.whatsapp,
+              }),
+            },
+          });
+          await syncClientPrimaryContact(
+            tx,
+            user.companyId,
+            updatedClient.id,
+          );
+        } else if (data.email?.trim() || data.phone?.trim()) {
+          const primaryContact = await ensureClientContactFromSnapshot({
+            db: tx,
+            companyId: user.companyId,
+            clientId: updatedClient.id,
+            name: updatedClient.name,
+            email: data.email,
+            phone: data.phone,
+          });
+
+          if (primaryContact.created) {
+            await logActivity({
+              companyId: user.companyId,
+              userId: user.id,
+              action: ActivityAction.CONTACT_CREATED,
+              entityType: "ClientContact",
+              entityId: primaryContact.contact.id,
+              message: `تمت إضافة جهة الاتصال الرئيسية للعميل ${updatedClient.name}: ${primaryContact.contact.name}`,
+              metadata: {
+                clientId: updatedClient.id,
+                isPrimary: primaryContact.contact.isPrimary,
+              },
+              ipAddress: meta.ipAddress,
+              userAgent: meta.userAgent,
+              db: tx,
+            });
+          }
+        }
+      }
 
       const message =
         action === ActivityAction.CLIENT_ARCHIVED

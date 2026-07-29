@@ -2,6 +2,7 @@ import { ActivityAction } from "@/generated/prisma/enums"
 import { ACCESS_ROLES, assertRole } from "@/lib/access-control"
 import { ApiError, handleApiError, ok } from "@/lib/api-response"
 import { getRequestMeta, requireAuth } from "@/lib/auth"
+import { ensureClientContactFromSnapshot } from "@/lib/client-contact-server"
 import { syncLeadForServiceRequest } from "@/lib/crm-lead-server"
 import { logActivity } from "@/lib/activity"
 import { prisma } from "@/lib/prisma"
@@ -97,6 +98,33 @@ export async function POST(
           },
         })
         clientId = client.id
+      }
+
+      const ensuredContact = await ensureClientContactFromSnapshot({
+        db: tx,
+        companyId: user.companyId,
+        clientId,
+        name: opportunity.contactName,
+        email: opportunity.email,
+        phone: opportunity.phone,
+      })
+
+      if (ensuredContact.created) {
+        await logActivity({
+          db: tx,
+          companyId: user.companyId,
+          userId: user.id,
+          action: ActivityAction.CONTACT_CREATED,
+          entityType: "ClientContact",
+          entityId: ensuredContact.contact.id,
+          message: `تمت إضافة جهة اتصال عند تحويل فرصة البيع: ${ensuredContact.contact.name}`,
+          metadata: {
+            clientId,
+            opportunityId: opportunity.id,
+            isPrimary: ensuredContact.contact.isPrimary,
+          },
+          ...meta,
+        })
       }
 
       let projectId = opportunity.projectId ?? opportunity.serviceRequest?.projectId ?? null
@@ -205,7 +233,11 @@ export async function POST(
         entityType: "SalesOpportunity",
         entityId: updated.id,
         message: `تم تحويل فرصة البيع إلى عميل ومشروع: ${updated.title}`,
-        metadata: { clientId, projectId },
+        metadata: {
+          clientId,
+          contactId: ensuredContact.contact.id,
+          projectId,
+        },
         ...meta,
       })
 
@@ -213,6 +245,7 @@ export async function POST(
         opportunityId: updated.id,
         leadId,
         clientId,
+        contactId: ensuredContact.contact.id,
         projectId,
         replayed: false,
       }

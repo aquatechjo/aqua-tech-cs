@@ -256,6 +256,11 @@ enum ActivityAction {
   CLIENT_UPDATED
   CLIENT_ARCHIVED
   CLIENT_RESTORED
+  CONTACT_CREATED
+  CONTACT_UPDATED
+  CONTACT_ARCHIVED
+  CONTACT_RESTORED
+  CONTACT_PRIMARY_CHANGED
   PROJECT_CREATED
   PROJECT_UPDATED
   PROJECT_ARCHIVED
@@ -355,21 +360,22 @@ enum ActivityAction {
 }
 
 model Company {
-  id       String    @id @default(cuid())
-  name     String
-  slug     String    @unique
-  email    String?
-  phone    String?
-  website  String?
-  logoUrl  String?
-  address  String?
-  country  String    @default("Jordan")
-  currency String    @default("JOD")
-  timezone String    @default("Asia/Amman")
-  language String    @default("ar")
-  clients  Client[]
-  projects Project[]
-  tasks    Task[]
+  id             String          @id @default(cuid())
+  name           String
+  slug           String          @unique
+  email          String?
+  phone          String?
+  website        String?
+  logoUrl        String?
+  address        String?
+  country        String          @default("Jordan")
+  currency       String          @default("JOD")
+  timezone       String          @default("Asia/Amman")
+  language       String          @default("ar")
+  clients        Client[]
+  clientContacts ClientContact[]
+  projects       Project[]
+  tasks          Task[]
 
   users               User[]
   sessions            Session[]
@@ -776,6 +782,7 @@ model Client {
   invoices           Invoice[]
   salesOpportunities SalesOpportunity[]
   leads              Lead[]
+  contacts           ClientContact[]
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -785,6 +792,44 @@ model Client {
   @@index([status])
   @@index([type])
   @@index([source])
+  @@index([createdAt])
+}
+
+model ClientContact {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  name       String
+  jobTitle   String?
+  department String?
+
+  email              String?
+  emailNormalized    String?
+  phone              String?
+  phoneNormalized    String?
+  whatsapp           String?
+  whatsappNormalized String?
+
+  isPrimary       Boolean   @default(false)
+  isDecisionMaker Boolean   @default(false)
+  notes           String?
+  archivedAt      DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([clientId])
+  @@index([emailNormalized])
+  @@index([phoneNormalized])
+  @@index([whatsappNormalized])
+  @@index([isPrimary])
+  @@index([isDecisionMaker])
+  @@index([archivedAt])
   @@index([createdAt])
 }
 

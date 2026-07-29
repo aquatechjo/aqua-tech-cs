@@ -38,6 +38,17 @@ type ClientItem = {
   notes: string | null
   createdAt: Date
   updatedAt: Date
+  contacts: {
+    id: string
+    name: string
+    jobTitle: string | null
+    email: string | null
+    phone: string | null
+    isPrimary: boolean
+  }[]
+  _count: {
+    contacts: number
+  }
 }
 
 type Stats = {
@@ -147,6 +158,7 @@ export default function ClientsClient({
   const [pendingArchive, setPendingArchive] = useState<ClientItem | null>(null)
 
   const [name, setName] = useState("")
+  const [primaryContactName, setPrimaryContactName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
   const [website, setWebsite] = useState("")
@@ -173,6 +185,7 @@ export default function ClientsClient({
   function resetForm() {
     setEditingId(null)
     setName("")
+    setPrimaryContactName("")
     setEmail("")
     setPhone("")
     setWebsite("")
@@ -189,6 +202,7 @@ export default function ClientsClient({
   function startEdit(client: ClientItem) {
     setEditingId(client.id)
     setName(client.name)
+    setPrimaryContactName(client.contacts[0]?.name ?? "")
     setEmail(client.email ?? "")
     setPhone(client.phone ?? "")
     setWebsite(client.website ?? "")
@@ -229,6 +243,7 @@ export default function ClientsClient({
           country,
           city,
           notes,
+          primaryContactName,
         }),
       })
 
@@ -324,6 +339,21 @@ export default function ClientsClient({
                   onChange={(event) => setName(event.target.value)}
                   placeholder="مثال: شركة المثال"
                 />
+
+                {!isEditing ? (
+                  <AquaInput
+                    label="اسم جهة الاتصال الرئيسية"
+                    value={primaryContactName}
+                    onChange={(event) =>
+                      setPrimaryContactName(event.target.value)
+                    }
+                    placeholder={
+                      type === "COMPANY"
+                        ? "اسم الشخص المسؤول لدى الشركة"
+                        : "اتركه فارغًا لاستخدام اسم العميل"
+                    }
+                  />
+                ) : null}
 
                 <AquaInput
                   span={6}
@@ -585,11 +615,11 @@ export default function ClientsClient({
                       </td>
 
                       <td data-label="التواصل">
-                        <div className="aqua-table__primary" dir="ltr">
-                          {client.email || "لا يوجد بريد"}
+                        <div className="aqua-table__primary">
+                          {client.contacts[0]?.name || "لا توجد جهة اتصال"}
                         </div>
-                        <div className="aqua-table__secondary" dir="ltr">
-                          {client.phone || "لا يوجد هاتف"}
+                        <div className="aqua-table__secondary">
+                          {client._count.contacts} جهة اتصال
                         </div>
                       </td>
 
@@ -623,6 +653,14 @@ export default function ClientsClient({
 
                       <td data-label="إجراء">
                         <div className="aqua-table__actions">
+                          <AquaLinkButton
+                            href={`/dashboard/clients/${client.id}`}
+                            variant="secondary"
+                            size="sm"
+                          >
+                            عرض
+                          </AquaLinkButton>
+
                           <AquaButton
                             variant="ghost"
                             size="sm"

@@ -2,6 +2,7 @@ import { ActivityAction, type LeadSource } from "@/generated/prisma/enums";
 import { ACCESS_ROLES, assertRole } from "@/lib/access-control";
 import { err, ok, withApiHandler } from "@/lib/api-response";
 import { requireAuth } from "@/lib/auth";
+import { ensureClientContactFromSnapshot } from "@/lib/client-contact-server";
 import { syncLeadForServiceRequest } from "@/lib/crm-lead-server";
 import { prisma } from "@/lib/prisma";
 import { createProjectWithWorkflow } from "@/lib/project-workflow-server";
@@ -96,6 +97,33 @@ async function convertServiceRequest(
       });
 
       clientId = client.id;
+    }
+
+    const ensuredContact = await ensureClientContactFromSnapshot({
+      db: tx,
+      companyId: user.companyId,
+      clientId,
+      name: serviceRequest.customerName,
+      email: serviceRequest.customerEmail,
+      phone: serviceRequest.customerPhone,
+    });
+
+    if (ensuredContact.created) {
+      await tx.activityLog.create({
+        data: {
+          companyId: user.companyId,
+          userId: user.id,
+          action: ActivityAction.CONTACT_CREATED,
+          entityType: "ClientContact",
+          entityId: ensuredContact.contact.id,
+          message: `تمت إضافة جهة اتصال عند تحويل طلب الخدمة: ${ensuredContact.contact.name}`,
+          metadata: {
+            clientId,
+            serviceRequestId: serviceRequest.id,
+            isPrimary: ensuredContact.contact.isPrimary,
+          },
+        },
+      });
     }
 
     let projectId = serviceRequest.projectId;
@@ -232,6 +260,7 @@ async function convertServiceRequest(
       leadId: lead.id,
       salesOpportunityId,
       clientId,
+      contactId: ensuredContact.contact.id,
       projectId,
       replayed: false,
     };

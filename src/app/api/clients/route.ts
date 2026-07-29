@@ -9,6 +9,7 @@ import { ACCESS_ROLES, assertRole } from "@/lib/access-control"
 import { err, handleApiError, ok } from "@/lib/api-response"
 import { getRequestMeta, requireAuth } from "@/lib/auth"
 import { logActivity } from "@/lib/activity"
+import { ensureClientContactFromSnapshot } from "@/lib/client-contact-server"
 import { prisma } from "@/lib/prisma"
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
 
@@ -24,6 +25,7 @@ const createClientSchema = z.object({
   country: z.string().optional().or(z.literal("")),
   city: z.string().optional().or(z.literal("")),
   notes: z.string().optional().or(z.literal("")),
+  primaryContactName: z.string().trim().max(160).optional().or(z.literal("")),
 })
 
 function emptyToNull(value?: string) {
@@ -70,6 +72,21 @@ export async function POST(request: Request) {
           notes: emptyToNull(data.notes),
         },
       })
+      const shouldCreatePrimaryContact =
+        Boolean(data.primaryContactName?.trim()) ||
+        Boolean(data.email?.trim()) ||
+        Boolean(data.phone?.trim()) ||
+        data.type === "INDIVIDUAL"
+      const primaryContact = shouldCreatePrimaryContact
+        ? await ensureClientContactFromSnapshot({
+            db: tx,
+            companyId: user.companyId,
+            clientId: createdClient.id,
+            name: data.primaryContactName?.trim() || createdClient.name,
+            email: data.email,
+            phone: data.phone,
+          })
+        : null
 
       await logActivity({
         companyId: user.companyId,
@@ -82,11 +99,30 @@ export async function POST(request: Request) {
           type: createdClient.type,
           status: createdClient.status,
           source: createdClient.source,
+          primaryContactId: primaryContact?.contact.id ?? null,
         },
         ipAddress: meta.ipAddress,
         userAgent: meta.userAgent,
         db: tx,
       })
+
+      if (primaryContact?.created) {
+        await logActivity({
+          companyId: user.companyId,
+          userId: user.id,
+          action: ActivityAction.CONTACT_CREATED,
+          entityType: "ClientContact",
+          entityId: primaryContact.contact.id,
+          message: `تمت إضافة جهة الاتصال الرئيسية للعميل ${createdClient.name}: ${primaryContact.contact.name}`,
+          metadata: {
+            clientId: createdClient.id,
+            isPrimary: primaryContact.contact.isPrimary,
+          },
+          ipAddress: meta.ipAddress,
+          userAgent: meta.userAgent,
+          db: tx,
+        })
+      }
 
       return createdClient
     })

@@ -48,7 +48,11 @@ export default async function DashboardLayout({
             ACCESS_ROLES.serviceRequestManagement
           ),
         },
-        { label: "العملاء", href: "/dashboard/clients", enabled: true },
+        {
+          label: "العملاء",
+          href: "/dashboard/clients",
+          enabled: hasRole(user.role, ACCESS_ROLES.clientRead),
+        },
         { label: "المشاريع", href: "/dashboard/projects", enabled: true },
         {
           label: "المالية",
