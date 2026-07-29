@@ -131,6 +131,11 @@ function actionLabel(action: ActivityAction) {
     LEAD_UPDATED: "تعديل عميل محتمل",
     LEAD_STATUS_CHANGED: "تغيير حالة عميل محتمل",
     LEAD_DUPLICATE_FLAGGED: "تمييز عميل محتمل مكرر",
+    DISCOVERY_SESSION_CREATED: "بدء جلسة اكتشاف",
+    DISCOVERY_SESSION_UPDATED: "تحديث جلسة اكتشاف",
+    DISCOVERY_READY_FOR_REVIEW: "إرسال اكتشاف للمراجعة",
+    DISCOVERY_GAP_WAIVED: "تجاوز فجوة متطلبات",
+    DISCOVERY_GAP_REOPENED: "إعادة فتح فجوة متطلبات",
 
     COMPANY_UPDATED: "تعديل بيانات الشركة",
 
@@ -169,6 +174,7 @@ function actionBadgeClass(action: ActivityAction) {
     action === "ATTENDANCE_CHECKED_IN" ||
     action === "ATTENDANCE_CHECKED_OUT" ||
     action === "LEAVE_REQUEST_APPROVED"
+    || action === "DISCOVERY_READY_FOR_REVIEW"
   ) {
     return "text-bg-success";
   }
@@ -216,6 +222,7 @@ function actionBadgeClass(action: ActivityAction) {
     action === "WORK_SCHEDULE_CREATED" ||
     action === "LEAVE_TYPE_CREATED" ||
     action === "HOLIDAY_CREATED"
+    || action === "DISCOVERY_SESSION_CREATED"
   ) {
     return "text-bg-info";
   }
@@ -227,6 +234,8 @@ function actionBadgeClass(action: ActivityAction) {
     action === "SALES_PROPOSAL_SENT" ||
     action === "TIMESHEET_SUBMITTED" ||
     action === "LEAVE_REQUEST_SUBMITTED"
+    || action === "DISCOVERY_GAP_WAIVED"
+    || action === "DISCOVERY_GAP_REOPENED"
   ) {
     return "text-bg-warning";
   }

@@ -36,6 +36,11 @@ export default async function DashboardLayout({
           enabled: hasRole(user.role, ACCESS_ROLES.salesRead),
         },
         {
+          label: "جمع المتطلبات",
+          href: "/dashboard/discovery",
+          enabled: hasRole(user.role, ACCESS_ROLES.discoveryRead),
+        },
+        {
           label: "المبيعات",
           href: "/dashboard/sales",
           enabled: hasRole(user.role, ACCESS_ROLES.salesRead),

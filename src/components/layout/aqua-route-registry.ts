@@ -35,6 +35,11 @@ export const aquaRouteDefinitions: readonly AquaRouteDefinition[] = [
     subtitle: "تأهيل Leads وتحديد المسؤول والإجراء التالي",
   },
   {
+    path: "/dashboard/discovery",
+    title: "جمع المتطلبات",
+    subtitle: "جلسات Discovery وقياس الاكتمال وفجوات المعلومات",
+  },
+  {
     path: "/dashboard/sales/opportunities",
     title: "فرص المبيعات",
     subtitle: "متابعة تفاصيل الفرص والأنشطة والعروض",

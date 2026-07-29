@@ -234,6 +234,42 @@ enum LeadStatus {
   ARCHIVED
 }
 
+enum DiscoveryServiceTrack {
+  WEBSITE_COMMERCE
+  SOFTWARE_SAAS
+  AUTOMATION_AI
+  MARKETING_GROWTH
+  GENERAL
+}
+
+enum IntakeSessionStatus {
+  COLLECTING
+  NEEDS_INFO
+  READY_FOR_REVIEW
+  COMPLETED
+  ARCHIVED
+}
+
+enum IntakeAnswerSource {
+  CUSTOMER_FACT
+  UPLOADED_EVIDENCE
+  AI_INFERENCE
+  INTERNAL_NOTE
+  APPROVED_DECISION
+}
+
+enum RequirementGapSeverity {
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RequirementGapStatus {
+  OPEN
+  RESOLVED
+  WAIVED
+}
+
 enum NotificationType {
   INFO
   SUCCESS
@@ -284,6 +320,11 @@ enum ActivityAction {
   LEAD_UPDATED
   LEAD_STATUS_CHANGED
   LEAD_DUPLICATE_FLAGGED
+  DISCOVERY_SESSION_CREATED
+  DISCOVERY_SESSION_UPDATED
+  DISCOVERY_READY_FOR_REVIEW
+  DISCOVERY_GAP_WAIVED
+  DISCOVERY_GAP_REOPENED
   EMPLOYEE_PROFILE_UPDATED
   DEPARTMENT_CREATED
   DEPARTMENT_UPDATED
@@ -407,6 +448,9 @@ model Company {
   salesActivities     SalesActivity[]
   salesProposals      SalesProposal[]
   leads               Lead[]
+  intakeSessions      IntakeSession[]
+  intakeAnswers       IntakeAnswer[]
+  requirementGaps     RequirementGap[]
   timeEntries         TimeEntry[]
   timesheets          Timesheet[]
   workSchedules       WorkSchedule[]
@@ -455,6 +499,11 @@ model User {
   approvedExpenses         Expense[]          @relation("ExpenseApprover")
   ownedSalesOpportunities  SalesOpportunity[] @relation("SalesOpportunityOwner")
   ownedLeads               Lead[]             @relation("LeadOwner")
+  ownedIntakeSessions      IntakeSession[]    @relation("IntakeSessionOwner")
+  createdIntakeSessions    IntakeSession[]    @relation("IntakeSessionCreator")
+  updatedIntakeSessions    IntakeSession[]    @relation("IntakeSessionUpdater")
+  capturedIntakeAnswers    IntakeAnswer[]     @relation("IntakeAnswerCapture")
+  resolvedRequirementGaps  RequirementGap[]   @relation("RequirementGapResolver")
   createdSalesActivities   SalesActivity[]    @relation("SalesActivityCreator")
   createdSalesProposals    SalesProposal[]    @relation("SalesProposalCreator")
   timeEntries              TimeEntry[]        @relation("TimeEntryOwner")
@@ -1728,7 +1777,8 @@ model Lead {
   convertedAt    DateTime?
   archivedAt     DateTime?
 
-  opportunity SalesOpportunity?
+  opportunity   SalesOpportunity?
+  intakeSession IntakeSession?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1791,8 +1841,9 @@ model SalesOpportunity {
   wonAt      DateTime?
   lostAt     DateTime?
 
-  activities SalesActivity[]
-  proposals  SalesProposal[]
+  activities    SalesActivity[]
+  proposals     SalesProposal[]
+  intakeSession IntakeSession?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1807,6 +1858,108 @@ model SalesOpportunity {
   @@index([source])
   @@index([expectedCloseDate])
   @@index([nextFollowUpAt])
+  @@index([updatedAt])
+}
+
+model IntakeSession {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  leadId String @unique
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  opportunityId String?           @unique
+  opportunity   SalesOpportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+
+  ownerId String?
+  owner   User?   @relation("IntakeSessionOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+
+  createdById String?
+  createdBy   User?   @relation("IntakeSessionCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  updatedById String?
+  updatedBy   User?   @relation("IntakeSessionUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  serviceTrack    DiscoveryServiceTrack
+  templateVersion String                @default("DISCOVERY_V1")
+  status          IntakeSessionStatus   @default(COLLECTING)
+  completionScore Int                   @default(0)
+  currentSection  String?
+  internalSummary String?
+
+  readyForReviewAt DateTime?
+  completedAt      DateTime?
+  archivedAt       DateTime?
+
+  answers IntakeAnswer[]
+  gaps    RequirementGap[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([ownerId])
+  @@index([status])
+  @@index([serviceTrack])
+  @@index([updatedAt])
+}
+
+model IntakeAnswer {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  intakeSessionId String
+  intakeSession   IntakeSession @relation(fields: [intakeSessionId], references: [id], onDelete: Cascade)
+
+  capturedById String?
+  capturedBy   User?   @relation("IntakeAnswerCapture", fields: [capturedById], references: [id], onDelete: SetNull)
+
+  questionKey   String
+  questionLabel String
+  sectionKey    String
+  value         String
+  source        IntakeAnswerSource @default(CUSTOMER_FACT)
+  isUnknown     Boolean            @default(false)
+
+  capturedAt DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([intakeSessionId, questionKey])
+  @@index([companyId])
+  @@index([capturedById])
+  @@index([source])
+  @@index([sectionKey])
+  @@index([updatedAt])
+}
+
+model RequirementGap {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  intakeSessionId String
+  intakeSession   IntakeSession @relation(fields: [intakeSessionId], references: [id], onDelete: Cascade)
+
+  resolvedById String?
+  resolvedBy   User?   @relation("RequirementGapResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  questionKey String
+  title       String
+  severity    RequirementGapSeverity
+  status      RequirementGapStatus   @default(OPEN)
+  resolution  String?
+  resolvedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([intakeSessionId, questionKey])
+  @@index([companyId])
+  @@index([resolvedById])
+  @@index([status])
+  @@index([severity])
   @@index([updatedAt])
 }
 

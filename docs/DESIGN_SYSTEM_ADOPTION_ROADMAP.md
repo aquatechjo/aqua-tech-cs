@@ -242,6 +242,21 @@ Status: **implemented**
 - Apply server-side client-read and client-management permissions, audit events, transactions, and accessible confirmation workflows.
 - Use canonical DS-04 data panels, detail lists, stacked tables, modals, alerts, badges, and confirmation dialogs.
 
+## DISC-01 — Discovery Intake Foundation
+
+Status: **implemented**
+
+- Start the roadmap's Discovery phase only after the CRM and contact foundation is complete.
+- Add one tenant-scoped intake session per Lead with optional opportunity linkage.
+- Define shared and service-specific question contracts for websites, software, automation and AI, marketing, and general services.
+- Preserve the distinction between customer facts, uploaded evidence, AI inference, internal notes, and approved decisions.
+- Calculate completion from trustworthy answer sources only and keep unknown answers as explicit information gaps.
+- Materialize requirement gaps with severity, resolution, documented waiver, and reopen behavior.
+- Block review readiness while an open gap remains, while allowing a documented exception to remain visible to the human reviewer.
+- Add a canonical Discovery list and focused section-based intake editor using DS-04 panels, filters, tables, tabs, form sections, alerts, badges, and accessible modals.
+- Enforce server-side discovery read and management roles, tenant scoping, row locks, transactions, and durable activity events.
+- Keep the public chatbot, conversation messages, uploads, AI extraction, and versioned discovery report for subsequent batches.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.

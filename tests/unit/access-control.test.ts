@@ -212,6 +212,14 @@ test("sales access separates pipeline visibility from sales mutations", () => {
   assert.equal(hasRole("OPERATIONS_MANAGER", ACCESS_ROLES.salesRead), true);
   assert.equal(hasRole("OPERATIONS_MANAGER", ACCESS_ROLES.salesManagement), false);
   assert.equal(hasRole("FINANCE_MANAGER", ACCESS_ROLES.salesRead), false);
+  assert.equal(hasRole("SALES_MANAGER", ACCESS_ROLES.discoveryRead), true);
+  assert.equal(hasRole("SALES_MANAGER", ACCESS_ROLES.discoveryManagement), true);
+  assert.equal(hasRole("OPERATIONS_MANAGER", ACCESS_ROLES.discoveryRead), true);
+  assert.equal(
+    hasRole("OPERATIONS_MANAGER", ACCESS_ROLES.discoveryManagement),
+    false,
+  );
+  assert.equal(hasRole("MEMBER", ACCESS_ROLES.discoveryRead), false);
 });
 
 
