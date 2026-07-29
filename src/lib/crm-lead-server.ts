@@ -2,6 +2,7 @@ import "server-only"
 
 import type { Prisma } from "@/generated/prisma/client"
 import { ActivityAction } from "@/generated/prisma/enums"
+import { ApiError } from "@/lib/api-response"
 import {
   leadCompletionScore,
   leadIdentity,
@@ -14,6 +15,13 @@ import {
 import { prisma } from "@/lib/prisma"
 
 type DatabaseClient = Prisma.TransactionClient | typeof prisma
+
+const leadOwnerRoles = [
+  "OWNER",
+  "ADMIN",
+  "SALES_MANAGER",
+  "OPERATIONS_MANAGER",
+] as const
 
 type LeadServiceRequest = {
   id: string
@@ -32,7 +40,7 @@ type LeadServiceRequest = {
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT"
 }
 
-async function resolveLeadOwnerId(
+export async function resolveLeadOwnerId(
   db: DatabaseClient,
   companyId: string,
   assignedToId: string | null,
@@ -64,7 +72,61 @@ async function resolveLeadOwnerId(
   return owner?.id ?? null
 }
 
-async function findPossibleDuplicateId(
+export async function assertLeadOwner(
+  db: DatabaseClient,
+  companyId: string,
+  ownerId?: string | null,
+) {
+  if (!ownerId) return null
+
+  const owner = await db.user.findFirst({
+    where: {
+      id: ownerId,
+      companyId,
+      isActive: true,
+      role: {
+        in: [...leadOwnerRoles],
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  })
+
+  if (!owner) {
+    throw new ApiError(
+      "مسؤول العميل المحتمل غير موجود أو لا يملك صلاحية المبيعات",
+      404,
+      "LEAD_OWNER_NOT_FOUND",
+    )
+  }
+
+  return owner
+}
+
+export function nullableLeadText(value?: string | null) {
+  const normalized = value?.trim()
+  return normalized ? normalized : null
+}
+
+export function optionalLeadDate(value?: string | null) {
+  if (!value) return null
+
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    throw new ApiError(
+      "تاريخ الإجراء التالي غير صحيح",
+      400,
+      "INVALID_LEAD_NEXT_ACTION_DATE",
+    )
+  }
+
+  return date
+}
+
+export async function findPossibleDuplicateId(
   db: DatabaseClient,
   companyId: string,
   identity: {

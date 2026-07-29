@@ -218,6 +218,17 @@ Status: **implemented**
 - Preserve the old seed marker when detecting an existing welcome notification so reseeding does not create duplicates.
 - Treat the local folder, future repository, deployment project, and integration names as `aqua-tech-cs`; database table names and historical batch records are unchanged.
 
+## CRM-02 — Leads Management Adoption
+
+Status: **implemented**
+
+- Add a dedicated Leads qualification surface within the canonical application shell.
+- Use the DS-04 filter, data-panel, stacked-table, pagination, modal, alert, badge, and confirmation patterns.
+- Keep read and mutation capabilities aligned with server-side sales permissions.
+- Support manual Lead intake, ownership, qualification, next actions, source and priority tracking, duplicate review, and conversion to sales opportunities.
+- Preserve Service Request synchronization without overwriting the original intake message.
+- Keep Latin-digit operational dates, logical RTL/LTR layout, responsive table behavior, accessible confirmations, and reduced-motion coverage through canonical components.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.

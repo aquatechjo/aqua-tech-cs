@@ -30,6 +30,11 @@ export const aquaRouteDefinitions: readonly AquaRouteDefinition[] = [
     subtitle: "خط الفرص والمتابعات والعروض والتحويل إلى مشاريع",
   },
   {
+    path: "/dashboard/leads",
+    title: "العملاء المحتملون",
+    subtitle: "تأهيل Leads وتحديد المسؤول والإجراء التالي",
+  },
+  {
     path: "/dashboard/sales/opportunities",
     title: "فرص المبيعات",
     subtitle: "متابعة تفاصيل الفرص والأنشطة والعروض",

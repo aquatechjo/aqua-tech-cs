@@ -31,6 +31,11 @@ export default async function DashboardLayout({
       label: "الأعمال",
       items: [
         {
+          label: "العملاء المحتملون",
+          href: "/dashboard/leads",
+          enabled: hasRole(user.role, ACCESS_ROLES.salesRead),
+        },
+        {
           label: "المبيعات",
           href: "/dashboard/sales",
           enabled: hasRole(user.role, ACCESS_ROLES.salesRead),

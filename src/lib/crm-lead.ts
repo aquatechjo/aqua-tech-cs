@@ -45,6 +45,21 @@ export type ServiceRequestStatusValue =
   | "CONVERTED"
   | "ARCHIVED"
 
+export type LeadActionBucket =
+  | "OVERDUE"
+  | "UPCOMING"
+  | "MISSING"
+  | "CLOSED"
+
+export const OPEN_LEAD_STATUSES: readonly LeadStatusValue[] = [
+  "NEW",
+  "CONTACTED",
+  "DISCOVERY",
+  "NEEDS_INFO",
+  "QUALIFIED",
+  "NURTURE",
+]
+
 function optionalText(value?: string | null) {
   const trimmed = value?.trim()
   return trimmed ? trimmed : null
@@ -93,6 +108,78 @@ export function leadStatusFromServiceRequest(
     default:
       return "NEW"
   }
+}
+
+export function serviceRequestStatusFromLead(
+  status: LeadStatusValue,
+): ServiceRequestStatusValue {
+  switch (status) {
+    case "CONTACTED":
+    case "DISCOVERY":
+    case "NEEDS_INFO":
+    case "NURTURE":
+      return "CONTACTED"
+    case "QUALIFIED":
+      return "QUALIFIED"
+    case "DISQUALIFIED":
+    case "SPAM":
+      return "REJECTED"
+    case "DUPLICATE":
+    case "ARCHIVED":
+      return "ARCHIVED"
+    case "CONVERTED":
+      return "CONVERTED"
+    case "NEW":
+    default:
+      return "NEW"
+  }
+}
+
+export function leadSourceToOpportunitySource(
+  source: LeadSourceValue,
+): ServiceRequestSourceValue {
+  switch (source) {
+    case "WEBSITE":
+    case "FACEBOOK":
+    case "INSTAGRAM":
+    case "WHATSAPP":
+    case "REFERRAL":
+    case "MANUAL":
+      return source
+    default:
+      return "OTHER"
+  }
+}
+
+export function isOpenLeadStatus(status: LeadStatusValue) {
+  return OPEN_LEAD_STATUSES.includes(status)
+}
+
+export function leadActionBucket({
+  status,
+  nextActionAt,
+  now = new Date(),
+}: {
+  status: LeadStatusValue
+  nextActionAt: Date | string | null
+  now?: Date
+}): LeadActionBucket {
+  if (!isOpenLeadStatus(status)) return "CLOSED"
+  if (!nextActionAt) return "MISSING"
+
+  return new Date(nextActionAt).getTime() < now.getTime()
+    ? "OVERDUE"
+    : "UPCOMING"
+}
+
+export function canConvertLeadToOpportunity({
+  status,
+  hasOpportunity,
+}: {
+  status: LeadStatusValue
+  hasOpportunity: boolean
+}) {
+  return status === "QUALIFIED" && !hasOpportunity
 }
 
 export function leadCompletionScore({
