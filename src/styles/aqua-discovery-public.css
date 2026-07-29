@@ -1,0 +1,464 @@
+.aqua-discovery-public {
+  min-block-size: 100vh;
+  background:
+    radial-gradient(
+      circle at 12% 8%,
+      rgba(var(--at-product-accent-rgb), 0.14),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 88% 22%,
+      rgba(var(--at-product-accent-secondary-rgb), 0.12),
+      transparent 32%
+    ),
+    var(--at-product-bg);
+  color: var(--at-product-text);
+}
+
+.aqua-discovery-public__shell {
+  inline-size: min(100% - (var(--at-space-6) * 2), 1200px);
+  min-block-size: 100vh;
+  margin-inline: auto;
+  padding-block: var(--at-space-6);
+}
+
+.aqua-discovery-public__header,
+.aqua-discovery-public__header-meta,
+.aqua-discovery-public__intro,
+.aqua-discovery-public__progress-card > div,
+.aqua-discovery-public__composer-actions,
+.aqua-discovery-public__footer {
+  display: flex;
+  align-items: center;
+}
+
+.aqua-discovery-public__header {
+  justify-content: space-between;
+  min-block-size: 56px;
+  padding-block-end: var(--at-space-4);
+  border-block-end: 1px solid var(--at-product-border);
+}
+
+.aqua-discovery-public__header-meta {
+  gap: var(--at-space-3);
+  color: var(--at-product-muted);
+  font-size: 0.82rem;
+}
+
+.aqua-discovery-public__intro {
+  gap: var(--at-space-8);
+  justify-content: space-between;
+  padding-block: var(--at-space-8);
+}
+
+.aqua-discovery-public__intro > div:first-child {
+  max-inline-size: 690px;
+}
+
+.aqua-discovery-public__eyebrow,
+.aqua-discovery-public__section-heading > span {
+  color: var(--at-product-accent-soft);
+  font-family: var(--at-font-mono);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.aqua-discovery-public__intro h1 {
+  margin: var(--at-space-2) 0;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 950;
+  line-height: 1.15;
+}
+
+.aqua-discovery-public__intro p,
+.aqua-discovery-public__section-heading p,
+.aqua-discovery-public__complete p {
+  margin: 0;
+  color: var(--at-product-muted);
+  line-height: 1.8;
+}
+
+.aqua-discovery-public__progress-card {
+  inline-size: min(100%, 330px);
+  flex: 0 0 auto;
+  padding: var(--at-space-4);
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-lg);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.aqua-discovery-public__progress-card > div {
+  justify-content: space-between;
+  margin-block-end: var(--at-space-3);
+  font-size: 0.84rem;
+}
+
+.aqua-discovery-public__progress-card strong {
+  color: var(--at-product-accent-soft);
+}
+
+.aqua-discovery-public__progress-card progress {
+  display: block;
+  inline-size: 100%;
+  block-size: var(--at-space-2);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--at-radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--at-product-accent);
+}
+
+.aqua-discovery-public__progress-card progress::-webkit-progress-bar {
+  border-radius: var(--at-radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.aqua-discovery-public__progress-card progress::-webkit-progress-value {
+  border-radius: var(--at-radius-pill);
+  background: linear-gradient(
+    90deg,
+    var(--at-product-accent),
+    var(--at-brand-aqua)
+  );
+}
+
+.aqua-discovery-public__progress-card progress::-moz-progress-bar {
+  border-radius: var(--at-radius-pill);
+  background: linear-gradient(
+    90deg,
+    var(--at-product-accent),
+    var(--at-brand-aqua)
+  );
+}
+
+.aqua-discovery-public__progress-card small {
+  display: block;
+  margin-block-start: var(--at-space-3);
+  color: var(--at-product-soft-text);
+  font-size: 0.74rem;
+  line-height: 1.65;
+}
+
+.aqua-discovery-public__consent {
+  max-inline-size: 720px;
+  margin-inline: auto;
+}
+
+.aqua-discovery-public__section-heading {
+  margin-block-end: var(--at-space-6);
+}
+
+.aqua-discovery-public__section-heading h2 {
+  margin: var(--at-space-2) 0;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.aqua-discovery-public__check {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--at-space-3);
+  align-items: start;
+  margin-block-end: var(--at-space-4);
+  padding: var(--at-space-4);
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-md);
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--at-product-muted);
+  cursor: pointer;
+  line-height: 1.7;
+}
+
+.aqua-discovery-public__check input {
+  inline-size: 20px;
+  block-size: 20px;
+  margin-block-start: 0.18rem;
+  accent-color: var(--at-product-accent);
+}
+
+.aqua-discovery-public__check:has(input:focus-visible) {
+  border-color: var(--at-product-accent);
+  box-shadow: 0 0 0 3px var(--at-focus-ring);
+}
+
+.aqua-discovery-public__workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--at-space-4);
+  max-inline-size: 860px;
+  margin-inline: auto;
+}
+
+.aqua-discovery-public__conversation {
+  display: flex;
+  flex-direction: column;
+  gap: var(--at-space-3);
+  max-block-size: 380px;
+  overflow-y: auto;
+  padding: var(--at-space-4);
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-xl);
+  background: rgba(2, 6, 23, 0.56);
+  scroll-behavior: smooth;
+}
+
+.aqua-discovery-public__message {
+  max-inline-size: min(82%, 650px);
+  padding: var(--at-space-3) var(--at-space-4);
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-lg);
+}
+
+.aqua-discovery-public__message--system {
+  align-self: flex-start;
+  border-start-start-radius: var(--at-radius-xs);
+  background: rgba(var(--at-product-accent-rgb), 0.08);
+}
+
+.aqua-discovery-public__message--customer {
+  align-self: flex-end;
+  border-color: rgba(var(--at-product-accent-secondary-rgb), 0.24);
+  border-start-end-radius: var(--at-radius-xs);
+  background: rgba(var(--at-product-accent-secondary-rgb), 0.12);
+}
+
+.aqua-discovery-public__message > span {
+  display: block;
+  margin-block-end: var(--at-space-1);
+  color: var(--at-product-accent-soft);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.aqua-discovery-public__message p {
+  margin: 0;
+  color: var(--at-product-text);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.aqua-discovery-public__composer,
+.aqua-discovery-public__summary,
+.aqua-discovery-public__complete {
+  overflow: hidden;
+}
+
+.aqua-discovery-public__composer-actions {
+  gap: var(--at-space-3);
+  justify-content: flex-end;
+  margin-block-start: var(--at-space-4);
+}
+
+.aqua-discovery-public__answers {
+  display: grid;
+  gap: var(--at-space-3);
+  max-block-size: 520px;
+  margin-block-end: var(--at-space-6);
+  overflow-y: auto;
+}
+
+.aqua-discovery-public__answers article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--at-space-4);
+  align-items: start;
+  padding: var(--at-space-4);
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-md);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.aqua-discovery-public__answers article span {
+  color: var(--at-product-accent-soft);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.aqua-discovery-public__answers article h3 {
+  margin: var(--at-space-1) 0 var(--at-space-2);
+  font-size: 0.92rem;
+  font-weight: 850;
+  line-height: 1.55;
+}
+
+.aqua-discovery-public__answers article p {
+  margin: 0;
+  color: var(--at-product-muted);
+  font-size: 0.88rem;
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+
+.aqua-discovery-public__complete {
+  display: grid;
+  justify-items: center;
+  gap: var(--at-space-3);
+  text-align: center;
+}
+
+.aqua-discovery-public__complete > svg {
+  inline-size: 52px;
+  block-size: 52px;
+  color: var(--at-success);
+}
+
+.aqua-discovery-public__complete h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 950;
+}
+
+.aqua-discovery-public__complete p {
+  max-inline-size: 620px;
+}
+
+.aqua-discovery-public__help {
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-lg);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.aqua-discovery-public__help > button {
+  display: flex;
+  gap: var(--at-space-2);
+  align-items: center;
+  inline-size: 100%;
+  min-block-size: 48px;
+  padding: var(--at-space-3) var(--at-space-4);
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: var(--at-product-muted);
+  font-weight: 750;
+  text-align: start;
+}
+
+.aqua-discovery-public__help > button:hover {
+  color: var(--at-product-text);
+}
+
+.aqua-discovery-public__help > button:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px var(--at-focus-ring);
+}
+
+.aqua-discovery-public__help > button svg {
+  inline-size: 18px;
+  block-size: 18px;
+}
+
+.aqua-discovery-public__help > div {
+  display: grid;
+  gap: var(--at-space-3);
+  padding: 0 var(--at-space-4) var(--at-space-4);
+}
+
+.aqua-discovery-public__footer {
+  gap: var(--at-space-3);
+  justify-content: space-between;
+  margin-block-start: var(--at-space-8);
+  padding-block-start: var(--at-space-4);
+  border-block-start: 1px solid var(--at-product-border);
+  color: var(--at-product-soft-text);
+  font-size: 0.74rem;
+}
+
+.aqua-discovery-public__footer span:first-child {
+  color: var(--at-product-accent-soft);
+  font-family: var(--at-font-latin);
+  font-weight: 800;
+}
+
+.aqua-discovery-public__invalid {
+  display: grid;
+  min-block-size: 100vh;
+  place-items: center;
+  padding: var(--at-space-6);
+}
+
+.aqua-discovery-public__invalid-card {
+  inline-size: min(100%, 560px);
+  padding: var(--at-space-8);
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-xl);
+  background: var(--at-product-surface);
+  text-align: center;
+}
+
+.aqua-discovery-public__status-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 64px;
+  min-block-size: 40px;
+  border-radius: var(--at-radius-pill);
+  background: rgba(var(--at-product-accent-rgb), 0.1);
+  color: var(--at-product-accent-soft);
+  font-family: var(--at-font-mono);
+  font-weight: 800;
+}
+
+.aqua-discovery-public__invalid-card h1 {
+  margin: var(--at-space-4) 0 var(--at-space-2);
+  font-size: 1.75rem;
+  font-weight: 900;
+}
+
+.aqua-discovery-public__invalid-card p {
+  margin: 0;
+  color: var(--at-product-muted);
+  line-height: 1.8;
+}
+
+@media (max-width: 767.98px) {
+  .aqua-discovery-public__shell {
+    inline-size: min(100% - (var(--at-space-4) * 2), 1200px);
+    padding-block: var(--at-space-4);
+  }
+
+  .aqua-discovery-public__header-meta > span {
+    display: none;
+  }
+
+  .aqua-discovery-public__intro {
+    align-items: stretch;
+    flex-direction: column;
+    gap: var(--at-space-4);
+    padding-block: var(--at-space-6);
+  }
+
+  .aqua-discovery-public__progress-card {
+    inline-size: 100%;
+  }
+
+  .aqua-discovery-public__conversation {
+    max-block-size: 320px;
+    padding: var(--at-space-3);
+  }
+
+  .aqua-discovery-public__message {
+    max-inline-size: 94%;
+  }
+
+  .aqua-discovery-public__composer-actions,
+  .aqua-discovery-public__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .aqua-discovery-public__composer-actions .aqua-button {
+    inline-size: 100%;
+  }
+
+  .aqua-discovery-public__answers article {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aqua-discovery-public__conversation {
+    scroll-behavior: auto;
+  }
+}

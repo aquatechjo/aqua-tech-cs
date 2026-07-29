@@ -31,6 +31,13 @@ export default async function DiscoverySessionPage({
       completionScore: true,
       currentSection: true,
       internalSummary: true,
+      publicAccessTokenHash: true,
+      publicAccessExpiresAt: true,
+      publicAccessRevokedAt: true,
+      conversationStartedAt: true,
+      conversationSubmittedAt: true,
+      conversationEscalatedAt: true,
+      lastCustomerMessageAt: true,
       readyForReviewAt: true,
       createdAt: true,
       updatedAt: true,
@@ -111,6 +118,11 @@ export default async function DiscoverySessionPage({
           updatedAt: true,
         },
       },
+      _count: {
+        select: {
+          conversationMessages: true,
+        },
+      },
     },
   })
 
@@ -118,25 +130,49 @@ export default async function DiscoverySessionPage({
     notFound()
   }
 
+  const {
+    publicAccessTokenHash,
+    publicAccessExpiresAt,
+    publicAccessRevokedAt,
+    conversationStartedAt,
+    conversationSubmittedAt,
+    conversationEscalatedAt,
+    lastCustomerMessageAt,
+    ...safeSession
+  } = session
+
   return (
     <DiscoveryIntakeClient
       session={{
-        ...session,
+        ...safeSession,
+        hasPublicLink: Boolean(publicAccessTokenHash),
+        publicAccessExpiresAt:
+          publicAccessExpiresAt?.toISOString() ?? null,
+        publicAccessRevokedAt:
+          publicAccessRevokedAt?.toISOString() ?? null,
+        conversationStartedAt:
+          conversationStartedAt?.toISOString() ?? null,
+        conversationSubmittedAt:
+          conversationSubmittedAt?.toISOString() ?? null,
+        conversationEscalatedAt:
+          conversationEscalatedAt?.toISOString() ?? null,
+        lastCustomerMessageAt:
+          lastCustomerMessageAt?.toISOString() ?? null,
         readyForReviewAt:
-          session.readyForReviewAt?.toISOString() ?? null,
-        createdAt: session.createdAt.toISOString(),
-        updatedAt: session.updatedAt.toISOString(),
+          safeSession.readyForReviewAt?.toISOString() ?? null,
+        createdAt: safeSession.createdAt.toISOString(),
+        updatedAt: safeSession.updatedAt.toISOString(),
         lead: {
-          ...session.lead,
+          ...safeSession.lead,
           nextActionAt:
-            session.lead.nextActionAt?.toISOString() ?? null,
+            safeSession.lead.nextActionAt?.toISOString() ?? null,
         },
-        answers: session.answers.map((answer) => ({
+        answers: safeSession.answers.map((answer) => ({
           ...answer,
           capturedAt: answer.capturedAt.toISOString(),
           updatedAt: answer.updatedAt.toISOString(),
         })),
-        gaps: session.gaps.map((gap) => ({
+        gaps: safeSession.gaps.map((gap) => ({
           ...gap,
           resolvedAt: gap.resolvedAt?.toISOString() ?? null,
           createdAt: gap.createdAt.toISOString(),

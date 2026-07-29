@@ -257,6 +257,21 @@ Status: **implemented**
 - Enforce server-side discovery read and management roles, tenant scoping, row locks, transactions, and durable activity events.
 - Keep the public chatbot, conversation messages, uploads, AI extraction, and versioned discovery report for subsequent batches.
 
+## DISC-02 — Conversational Discovery
+
+Status: **implemented**
+
+- Add a public, resumable customer conversation on top of the structured `DISC-01` question and gap contracts.
+- Issue 256-bit opaque access links while storing only their SHA-256 hashes, with expiry, rotation, immediate revocation, no indexing, and no referrer leakage.
+- Require contact confirmation and versioned privacy consent before accepting customer answers.
+- Ask one contextual question at a time, skip already captured information, save every message in sequence, and preserve explicit unknown answers as review gaps.
+- Keep public customer facts isolated from internal notes, AI inferences, approved decisions, and the internal session summary.
+- Add a customer-editable answer summary, final confirmation, resumable progress, and a documented staff-escalation path.
+- Move confirmed conversations to `READY_FOR_REVIEW` only when no open gap remains; otherwise keep them in `NEEDS_INFO` for human follow-up.
+- Add an internal link-management panel with one-time link disclosure, rotation, canonical revocation confirmation, conversation timestamps, message counts, and escalation status.
+- Protect public mutations with origin checks, body limits, per-token/IP rate limits, row locks, transactions, tenant ownership inherited from the session, and durable activity events.
+- Keep uploads, AI extraction, versioned discovery reports, human report review, pricing, proposals, and automatic channel delivery for subsequent batches.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.

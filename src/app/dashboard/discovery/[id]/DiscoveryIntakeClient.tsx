@@ -2,10 +2,14 @@
 
 import {
   CheckCircle2,
+  Copy,
+  ExternalLink,
+  Link2,
   RotateCcw,
   Save,
   Send,
   ShieldAlert,
+  ShieldOff,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
@@ -15,9 +19,11 @@ import {
   AquaBadge,
   AquaButton,
   AquaCard,
+  AquaConfirmDialog,
   AquaDataPanel,
   AquaDetailList,
   AquaFormSection,
+  AquaInput,
   AquaLinkButton,
   AquaModal,
   AquaSelect,
@@ -81,6 +87,13 @@ type SessionItem = {
   completionScore: number
   currentSection: string | null
   internalSummary: string | null
+  hasPublicLink: boolean
+  publicAccessExpiresAt: string | null
+  publicAccessRevokedAt: string | null
+  conversationStartedAt: string | null
+  conversationSubmittedAt: string | null
+  conversationEscalatedAt: string | null
+  lastCustomerMessageAt: string | null
   readyForReviewAt: string | null
   createdAt: string
   updatedAt: string
@@ -115,6 +128,9 @@ type SessionItem = {
   } | null
   answers: AnswerItem[]
   gaps: GapItem[]
+  _count: {
+    conversationMessages: number
+  }
 }
 
 type AnswerDraft = {
@@ -253,6 +269,20 @@ export default function DiscoveryIntakeClient({
   const [pendingGap, setPendingGap] = useState<GapItem | null>(null)
   const [waiverReason, setWaiverReason] = useState("")
   const [gapLoading, setGapLoading] = useState(false)
+  const [publicLink, setPublicLink] = useState(() => ({
+    active:
+      session.hasPublicLink &&
+      !session.publicAccessRevokedAt &&
+      Boolean(
+        session.publicAccessExpiresAt &&
+          new Date(session.publicAccessExpiresAt).getTime() >
+            Date.now(),
+      ),
+    url: null as string | null,
+    expiresAt: session.publicAccessExpiresAt,
+  }))
+  const [publicLinkLoading, setPublicLinkLoading] = useState(false)
+  const [showRevokeLink, setShowRevokeLink] = useState(false)
   const questions = discoveryQuestionsForTrack(serviceTrack)
   const activeQuestions = questions.filter(
     (question) => question.sectionKey === activeSection,
@@ -365,6 +395,17 @@ export default function DiscoveryIntakeClient({
           `لم تصبح الجلسة جاهزة بعد. بقيت ${data.data.blockerCount} فجوة مفتوحة.`,
         )
       } else {
+        if (
+          intent === "READY_FOR_REVIEW" &&
+          data.data.readyForReview &&
+          !session.conversationSubmittedAt
+        ) {
+          setPublicLink({
+            active: false,
+            url: null,
+            expiresAt: null,
+          })
+        }
         setSuccess(
           intent === "READY_FOR_REVIEW"
             ? "اجتازت الجلسة بوابة الاكتمال وأصبحت جاهزة للمراجعة."
@@ -422,6 +463,65 @@ export default function DiscoveryIntakeClient({
       setError("تعذر الاتصال بالخادم")
     } finally {
       setGapLoading(false)
+    }
+  }
+
+  async function managePublicLink(action: "ISSUE" | "REVOKE") {
+    setError("")
+    setSuccess("")
+    setPublicLinkLoading(true)
+
+    try {
+      const response = await fetch(
+        `/api/discovery/sessions/${session.id}/public-link`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ action }),
+        },
+      )
+      const data = await response.json()
+
+      if (!response.ok || !data.ok) {
+        setError(
+          data.message || "تعذر إدارة رابط محادثة العميل",
+        )
+        return
+      }
+
+      const url = data.data.path
+        ? new URL(data.data.path, window.location.origin).toString()
+        : null
+
+      setPublicLink({
+        active: data.data.active,
+        url,
+        expiresAt: data.data.expiresAt,
+      })
+      setShowRevokeLink(false)
+      setSuccess(
+        action === "ISSUE"
+          ? "تم إصدار رابط جديد. انسخه الآن وأرسله للعميل عبر القناة المعتمدة."
+          : "تم إلغاء الرابط ولن يقبل أي وصول جديد.",
+      )
+      router.refresh()
+    } catch {
+      setError("تعذر الاتصال بالخادم")
+    } finally {
+      setPublicLinkLoading(false)
+    }
+  }
+
+  async function copyPublicLink() {
+    if (!publicLink.url) return
+
+    try {
+      await navigator.clipboard.writeText(publicLink.url)
+      setSuccess("تم نسخ رابط محادثة العميل.")
+    } catch {
+      setError("تعذر نسخ الرابط تلقائيًا. انسخه من الحقل يدويًا.")
     }
   }
 
@@ -816,6 +916,140 @@ export default function DiscoveryIntakeClient({
             </AquaDataPanel>
 
             <AquaDataPanel
+              eyebrow="Customer conversation"
+              title="رابط محادثة العميل"
+              description="الرابط يحمل مفتاح وصول غير قابل للتخمين، يظهر عند الإصدار فقط، ويمكن تدويره أو إلغاؤه فورًا."
+              meta={
+                <AquaBadge
+                  variant={
+                    session.conversationSubmittedAt
+                      ? "success"
+                      : publicLink.active
+                        ? "aqua"
+                        : "muted"
+                  }
+                  size="sm"
+                >
+                  {session.conversationSubmittedAt
+                    ? "أرسلها العميل"
+                    : publicLink.active
+                      ? "الرابط نشط"
+                      : "لا يوجد رابط"}
+                </AquaBadge>
+              }
+            >
+              <AquaDetailList
+                columns={1}
+                items={[
+                  {
+                    label: "بدء العميل",
+                    value: session.conversationStartedAt
+                      ? formatDate.format(
+                          new Date(session.conversationStartedAt),
+                        )
+                      : "لم يبدأ",
+                  },
+                  {
+                    label: "الرسائل المحفوظة",
+                    value: session._count.conversationMessages,
+                    dir: "ltr",
+                  },
+                  {
+                    label: "آخر إجابة",
+                    value: session.lastCustomerMessageAt
+                      ? formatDate.format(
+                          new Date(session.lastCustomerMessageAt),
+                        )
+                      : "لا توجد",
+                  },
+                  {
+                    label: "طلب مساعدة",
+                    value: session.conversationEscalatedAt
+                      ? "مطلوب تواصل موظف"
+                      : "لا يوجد",
+                  },
+                  {
+                    label: "انتهاء الرابط",
+                    value: publicLink.expiresAt
+                      ? formatDate.format(
+                          new Date(publicLink.expiresAt),
+                        )
+                      : "—",
+                  },
+                ]}
+              />
+
+              {publicLink.url ? (
+                <div className="mt-3">
+                  <AquaInput
+                    label="الرابط الجديد"
+                    value={publicLink.url}
+                    readOnly
+                    dir="ltr"
+                  />
+                  <div className="d-flex flex-wrap gap-2 mt-2">
+                    <AquaButton
+                      size="sm"
+                      leadingIcon={<Copy />}
+                      onClick={copyPublicLink}
+                    >
+                      نسخ الرابط
+                    </AquaButton>
+                    <AquaLinkButton
+                      href={publicLink.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      size="sm"
+                      variant="secondary"
+                      leadingIcon={<ExternalLink />}
+                    >
+                      معاينة
+                    </AquaLinkButton>
+                  </div>
+                </div>
+              ) : publicLink.active ? (
+                <AquaAlert
+                  variant="neutral"
+                  title="الرابط الحالي مخفي"
+                  className="mt-3"
+                >
+                  لأسباب أمنية لا يمكن استعادة قيمة الرابط بعد مغادرة
+                  الصفحة. أصدر رابطًا جديدًا إذا احتجت نسخه مرة أخرى؛
+                  سيُلغى الرابط السابق تلقائيًا.
+                </AquaAlert>
+              ) : null}
+
+              {canEdit &&
+              session.status !== "READY_FOR_REVIEW" &&
+              !session.conversationSubmittedAt ? (
+                <div className="d-flex flex-wrap gap-2 mt-3">
+                  <AquaButton
+                    size="sm"
+                    leadingIcon={<Link2 />}
+                    loading={publicLinkLoading}
+                    loadingLabel="جارٍ الإصدار"
+                    onClick={() => managePublicLink("ISSUE")}
+                  >
+                    {publicLink.active
+                      ? "إصدار رابط بديل"
+                      : "إنشاء رابط للعميل"}
+                  </AquaButton>
+                  {publicLink.active ? (
+                    <AquaButton
+                      size="sm"
+                      variant="danger"
+                      leadingIcon={<ShieldOff />}
+                      disabled={publicLinkLoading}
+                      onClick={() => setShowRevokeLink(true)}
+                    >
+                      إلغاء الرابط
+                    </AquaButton>
+                  ) : null}
+                </div>
+              ) : null}
+            </AquaDataPanel>
+
+            <AquaDataPanel
               eyebrow="Requirement gaps"
               title="فجوات المتطلبات"
               description="يجب الإجابة عن الفجوة أو توثيق سبب تجاوزها قبل إرسال الجلسة للمراجعة."
@@ -922,6 +1156,20 @@ export default function DiscoveryIntakeClient({
           </div>
         </div>
       </div>
+
+      <AquaConfirmDialog
+        open={showRevokeLink}
+        onClose={() => {
+          if (!publicLinkLoading) setShowRevokeLink(false)
+        }}
+        onConfirm={() => managePublicLink("REVOKE")}
+        title="إلغاء رابط محادثة العميل؟"
+        description="سيتوقف الرابط الحالي فورًا ولن يستطيع العميل فتحه أو إرسال إجابات جديدة. يمكنك إصدار رابط بديل لاحقًا ما دامت الجلسة مفتوحة."
+        confirmLabel="إلغاء الرابط"
+        confirmVariant="danger"
+        tone="danger"
+        loading={publicLinkLoading}
+      />
 
       <AquaModal
         open={Boolean(pendingGap)}

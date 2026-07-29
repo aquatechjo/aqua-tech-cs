@@ -211,6 +211,13 @@ export async function PATCH(
             status === "READY_FOR_REVIEW"
               ? session.readyForReviewAt ?? now
               : null,
+          ...(status === "READY_FOR_REVIEW" &&
+          !session.conversationSubmittedAt
+            ? {
+                publicAccessTokenHash: null,
+                publicAccessRevokedAt: now,
+              }
+            : {}),
           updatedById: user.id,
         },
       })

@@ -136,6 +136,11 @@ function actionLabel(action: ActivityAction) {
     DISCOVERY_READY_FOR_REVIEW: "إرسال اكتشاف للمراجعة",
     DISCOVERY_GAP_WAIVED: "تجاوز فجوة متطلبات",
     DISCOVERY_GAP_REOPENED: "إعادة فتح فجوة متطلبات",
+    DISCOVERY_PUBLIC_LINK_ISSUED: "إصدار رابط اكتشاف",
+    DISCOVERY_PUBLIC_LINK_REVOKED: "إلغاء رابط اكتشاف",
+    DISCOVERY_CONVERSATION_STARTED: "بدء محادثة اكتشاف",
+    DISCOVERY_CONVERSATION_ESCALATED: "طلب مساعدة في الاكتشاف",
+    DISCOVERY_CONVERSATION_SUBMITTED: "إرسال محادثة اكتشاف",
 
     COMPANY_UPDATED: "تعديل بيانات الشركة",
 
@@ -175,12 +180,14 @@ function actionBadgeClass(action: ActivityAction) {
     action === "ATTENDANCE_CHECKED_OUT" ||
     action === "LEAVE_REQUEST_APPROVED"
     || action === "DISCOVERY_READY_FOR_REVIEW"
+    || action === "DISCOVERY_CONVERSATION_SUBMITTED"
   ) {
     return "text-bg-success";
   }
 
   if (
     action === "USER_DEACTIVATED" ||
+    action === "DISCOVERY_PUBLIC_LINK_REVOKED" ||
     action === "CLIENT_ARCHIVED" ||
     action === "CONTACT_ARCHIVED" ||
     action === "PROJECT_ARCHIVED" ||
@@ -223,6 +230,8 @@ function actionBadgeClass(action: ActivityAction) {
     action === "LEAVE_TYPE_CREATED" ||
     action === "HOLIDAY_CREATED"
     || action === "DISCOVERY_SESSION_CREATED"
+    || action === "DISCOVERY_PUBLIC_LINK_ISSUED"
+    || action === "DISCOVERY_CONVERSATION_STARTED"
   ) {
     return "text-bg-info";
   }
@@ -236,6 +245,7 @@ function actionBadgeClass(action: ActivityAction) {
     action === "LEAVE_REQUEST_SUBMITTED"
     || action === "DISCOVERY_GAP_WAIVED"
     || action === "DISCOVERY_GAP_REOPENED"
+    || action === "DISCOVERY_CONVERSATION_ESCALATED"
   ) {
     return "text-bg-warning";
   }

@@ -88,7 +88,7 @@ export async function persistDiscoveryAnswers({
   intakeSessionId: string
   track: DiscoveryServiceTrackValue
   answers: readonly SavedAnswer[]
-  capturedById: string
+  capturedById?: string | null
 }) {
   const allowedQuestions = new Map(
     discoveryQuestionsForTrack(track).map((question) => [
@@ -159,7 +159,7 @@ export async function syncDiscoveryRequirementGaps({
   intakeSessionId: string
   track: DiscoveryServiceTrackValue
   answers: readonly DiscoveryAnswerValue[]
-  actorUserId: string
+  actorUserId?: string | null
   now?: Date
 }) {
   const questions = discoveryQuestionsForTrack(track).filter(
@@ -284,7 +284,7 @@ export async function refreshDiscoverySessionProgress({
   companyId: string
   intakeSessionId: string
   track: DiscoveryServiceTrackValue
-  actorUserId: string
+  actorUserId?: string | null
   now?: Date
 }) {
   const storedAnswers = await db.intakeAnswer.findMany({
@@ -320,7 +320,7 @@ export async function refreshDiscoverySessionProgress({
       templateVersion: DISCOVERY_TEMPLATE_VERSION,
       serviceTrack: track,
       completionScore,
-      updatedById: actorUserId,
+      ...(actorUserId ? { updatedById: actorUserId } : {}),
     },
   })
 
