@@ -5,6 +5,7 @@ import { err, ok, withApiHandler } from "@/lib/api-response"
 import { requireAuth } from "@/lib/auth"
 import { requireProjectExecutionManager } from "@/lib/project-execution-server"
 import { prisma } from "@/lib/prisma"
+import { assertProjectExecutionActivated } from "@/lib/project-readiness-server"
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
 
 const updateMemberSchema = z.object({
@@ -26,6 +27,10 @@ async function updateProjectMember(
   const user = await requireAuth()
   const { id: projectId, memberId } = await context.params
   const project = await requireProjectExecutionManager(user, projectId)
+  await assertProjectExecutionActivated(prisma, {
+    companyId: user.companyId,
+    projectId,
+  })
   const body = await readJsonBody(request)
   const parsed = updateMemberSchema.safeParse(body)
 

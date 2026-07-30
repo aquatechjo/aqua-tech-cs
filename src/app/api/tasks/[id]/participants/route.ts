@@ -8,6 +8,7 @@ import { err, ok, withApiHandler } from "@/lib/api-response"
 import { requireAuth } from "@/lib/auth"
 import { requireEditableTask } from "@/lib/project-execution-server"
 import { prisma } from "@/lib/prisma"
+import { assertProjectExecutionActivated } from "@/lib/project-readiness-server"
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
 import { canAssignTaskTo } from "@/lib/task-scope"
 import { resolveTaskAccessScope } from "@/lib/task-scope-server"
@@ -30,6 +31,12 @@ async function addTaskParticipant(
     resolveTaskAccessScope(user),
   ])
   assertCanManageTaskParticipants(user, task.accessContext)
+  if (task.projectId) {
+    await assertProjectExecutionActivated(prisma, {
+      companyId: user.companyId,
+      projectId: task.projectId,
+    })
+  }
 
   const body = await readJsonBody(request)
   const parsed = participantSchema.safeParse(body)

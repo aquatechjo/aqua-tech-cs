@@ -6,6 +6,7 @@ import { requireAuth } from "@/lib/auth";
 import { buildProjectVisibilityWhere } from "@/lib/project-scope";
 import { resolveProjectAccessScope } from "@/lib/project-scope-server";
 import { prisma } from "@/lib/prisma";
+import { assertProjectExecutionActivated } from "@/lib/project-readiness-server";
 import { projectStatusToWorkflowStatus } from "@/lib/project-workflow-server";
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security";
 
@@ -170,6 +171,7 @@ export async function PATCH(
         { code: "VALIDATION_ERROR", details: parsed.error.flatten() },
       );
     }
+    const data = parsed.data;
 
     const existingProject = await prisma.project.findFirst({
       where: {
@@ -184,7 +186,27 @@ export async function PATCH(
       });
     }
 
-    const data = parsed.data;
+    if (
+      data.status &&
+      ["IN_PROGRESS", "ON_HOLD", "COMPLETED"].includes(data.status) &&
+      existingProject.status !== data.status
+    ) {
+      if (existingProject.status === "PLANNING") {
+        return err(
+          "ابدأ المشروع من بوابة الجاهزية بعد توثيق العقد والدفعة وقائد المشروع",
+          409,
+          {
+            code: "PROJECT_READINESS_ACTIVATION_REQUIRED",
+          },
+        );
+      }
+
+      await assertProjectExecutionActivated(prisma, {
+        companyId: user.companyId,
+        projectId: existingProject.id,
+      });
+    }
+
     const startDate =
       data.startDate !== undefined
         ? nullableDate(data.startDate)
@@ -295,13 +317,7 @@ export async function PATCH(
         });
 
         const event =
-          data.status === "IN_PROGRESS" &&
-          existingProject.status !== "IN_PROGRESS"
-            ? {
-                event: "PROJECT_STARTED" as const,
-                eventKey: "workflow.project.started",
-              }
-            : data.status === "COMPLETED" &&
+          data.status === "COMPLETED" &&
                 existingProject.status !== "COMPLETED"
               ? {
                   event: "PROJECT_COMPLETED" as const,

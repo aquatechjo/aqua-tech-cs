@@ -11,7 +11,9 @@ import {
   canEditTask,
   canManageProjectExecution,
   canManageProjectLeadership,
+  canManageProjectReadiness,
   canManageTaskParticipants,
+  canOverrideProjectReadiness,
   canViewCompanyTime,
   hasRole,
 } from "../../src/lib/access-control";
@@ -178,6 +180,15 @@ test("only leadership can assign project leads and task owners", () => {
   assert.equal(canAssignTaskOwner({ role: "MEMBER" }, "MANAGER"), true);
   assert.equal(canAssignTaskOwner({ role: "MEMBER" }, "CONTRIBUTOR"), false);
 });
+
+test("project readiness management and override remain separate duties", () => {
+  assert.equal(canManageProjectReadiness("OPERATIONS_MANAGER"), true)
+  assert.equal(canOverrideProjectReadiness("OPERATIONS_MANAGER"), false)
+  assert.equal(canManageProjectReadiness("FINANCE_MANAGER"), false)
+  assert.equal(canOverrideProjectReadiness("ADMIN"), true)
+  assert.equal(canOverrideProjectReadiness("OWNER"), true)
+  assert.equal(canManageProjectReadiness("MEMBER"), false)
+})
 
 test("task owners can manage participants but contributors cannot", () => {
   const task = {

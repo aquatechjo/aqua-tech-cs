@@ -4,6 +4,7 @@ import { err, ok, withApiHandler } from "@/lib/api-response"
 import { requireAuth } from "@/lib/auth"
 import { requireEditableTask } from "@/lib/project-execution-server"
 import { prisma } from "@/lib/prisma"
+import { assertProjectExecutionActivated } from "@/lib/project-readiness-server"
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
 
 const updateBlockerSchema = z.object({
@@ -28,6 +29,12 @@ async function updateTaskBlocker(
   const user = await requireAuth()
   const { id: taskId, blockerId } = await context.params
   const task = await requireEditableTask(user, taskId)
+  if (task.projectId) {
+    await assertProjectExecutionActivated(prisma, {
+      companyId: user.companyId,
+      projectId: task.projectId,
+    })
+  }
   const body = await readJsonBody(request)
   const parsed = updateBlockerSchema.safeParse(body)
 

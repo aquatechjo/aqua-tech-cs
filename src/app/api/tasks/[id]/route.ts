@@ -5,6 +5,8 @@ import { ApiError, err, ok, withApiHandler } from "@/lib/api-response"
 import { requireAuth } from "@/lib/auth"
 import { assertProgress } from "@/lib/project-execution"
 import { prisma } from "@/lib/prisma"
+import { projectExecutionNeedsActivation } from "@/lib/project-readiness"
+import { assertProjectExecutionActivated } from "@/lib/project-readiness-server"
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
 import {
   buildTaskVisibilityWhere,
@@ -258,6 +260,23 @@ async function updateTask(
       select: { id: true, clientId: true },
     })
     if (!project) return err("المشروع المحدد غير موجود", 404, { code: "PROJECT_NOT_FOUND" })
+
+    if (
+      projectExecutionNeedsActivation({
+        assignedToId:
+          data.assignedToId !== undefined || projectChanged
+            ? safeAssignedToId
+            : null,
+        progress: data.progress,
+        status: data.status,
+      })
+    ) {
+      await assertProjectExecutionActivated(prisma, {
+        companyId: user.companyId,
+        projectId: project.id,
+      })
+    }
+
     if (data.clientId === undefined && project.clientId) safeClientId = project.clientId
 
     if (

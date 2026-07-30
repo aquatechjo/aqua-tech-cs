@@ -543,6 +543,11 @@ export async function POST(
           createdById: user.id,
           workflowTemplateId: parsedInput.data.workflowTemplateId,
           templateHint: opportunity.serviceType ?? opportunity.title,
+          readiness: {
+            contractRequired: true,
+            paymentRequired: true,
+            currency: acceptedContent.data.commercial.currency,
+          },
           eventContext: {
             source: "ACCEPTED_PROPOSAL",
             opportunityId: opportunity.id,

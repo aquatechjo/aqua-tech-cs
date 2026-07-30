@@ -17,6 +17,12 @@ type ProjectWorkflowCreateInput = {
   workflowTemplateId?: string | null
   templateHint?: string | null
   eventContext?: Record<string, unknown>
+  readiness?: {
+    contractRequired: boolean
+    paymentRequired: boolean
+    requiredPaymentAmount?: string | null
+    currency?: string
+  }
   project: {
     clientId?: string | null
     name: string
@@ -131,6 +137,21 @@ export async function createProjectWithWorkflow(
       startDate: input.project.startDate ?? null,
       dueDate: input.project.dueDate ?? null,
       completedAt,
+    },
+  })
+
+  await tx.projectReadiness.create({
+    data: {
+      companyId: input.companyId,
+      projectId: project.id,
+      contractRequired:
+        input.readiness?.contractRequired ?? false,
+      paymentRequired:
+        input.readiness?.paymentRequired ?? false,
+      requiredPaymentAmount:
+        input.readiness?.requiredPaymentAmount ?? null,
+      currency:
+        input.readiness?.currency ?? input.project.currency,
     },
   })
 

@@ -2,11 +2,15 @@
 
 import {
   AlertTriangle,
+  Banknote,
   CalendarClock,
   CheckCircle2,
+  FileSignature,
   FolderKanban,
   GitBranch,
   ListChecks,
+  LockKeyhole,
+  Play,
   Plus,
   ShieldCheck,
   Trash2,
@@ -156,8 +160,43 @@ type PendingAction = {
   endpoint: string
   key: string
   successMessage: string
+  method?: "DELETE" | "PATCH"
+  body?: Record<string, unknown>
   tone?: "warning" | "danger" | "neutral"
 }
+
+type Readiness = {
+  contractRequired: boolean
+  contractStatus: "PENDING" | "SIGNED"
+  contractReference: string | null
+  contractSignedAt: string | null
+  contractVerifiedAt: string | null
+  contractVerifiedBy: { id: string; name: string } | null
+  paymentRequired: boolean
+  requiredPaymentAmount: string | null
+  paidAmount: string | null
+  currency: string
+  paymentConfiguredAt: string | null
+  paymentConfiguredBy: { id: string; name: string } | null
+  overrideReason: string | null
+  overrideGrantedAt: string | null
+  overrideGrantedBy: { id: string; name: string } | null
+  activatedAt: string | null
+  activatedBy: { id: string; name: string } | null
+  state: "BLOCKED" | "READY" | "ACTIVATED"
+  issues: string[]
+  contractSatisfied: boolean
+  paymentSatisfied: boolean
+  readyToActivate: boolean
+  businessDate: string
+}
+
+type ReadinessModal =
+  | "CONTRACT"
+  | "PAYMENT"
+  | "OVERRIDE"
+  | "ACTIVATE"
+  | null
 
 const memberRoleLabels: Record<Member["role"], string> = {
   PROJECT_LEAD: "قائد المشروع",
@@ -257,6 +296,7 @@ function errorMessage(payload: unknown, fallback: string) {
 export default function ProjectExecutionClient({
   project,
   workflow,
+  readiness,
   scope,
   members,
   phases,
@@ -264,6 +304,7 @@ export default function ProjectExecutionClient({
   employees,
   canManage,
   canManageLeadership,
+  readinessPermissions,
   summary,
 }: {
   project: {
@@ -296,6 +337,7 @@ export default function ProjectExecutionClient({
     notificationRuleCount: number
     n8nRuleCount: number
   } | null
+  readiness: Readiness
   scope: {
     label: string
     dataScope: "personal" | "team" | "company"
@@ -307,6 +349,13 @@ export default function ProjectExecutionClient({
   employees: Employee[]
   canManage: boolean
   canManageLeadership: boolean
+  readinessPermissions: {
+    canManageContract: boolean
+    canManagePayment: boolean
+    canOverride: boolean
+    canActivate: boolean
+    canViewFinance: boolean
+  }
   summary: {
     progress: number
     totalTasks: number
@@ -323,6 +372,8 @@ export default function ProjectExecutionClient({
   const [phaseModalOpen, setPhaseModalOpen] = useState(false)
   const [pendingAction, setPendingAction] =
     useState<PendingAction | null>(null)
+  const [readinessModal, setReadinessModal] =
+    useState<ReadinessModal>(null)
   const [selectedTaskId, setSelectedTaskId] = useState(
     tasks[0]?.id ?? ""
   )
@@ -347,6 +398,7 @@ export default function ProjectExecutionClient({
       ) ?? null,
     [effectiveSelectedTaskId, tasks]
   )
+  const executionActivated = readiness.state === "ACTIVATED"
 
   async function mutate(
     key: string,
@@ -390,6 +442,104 @@ export default function ProjectExecutionClient({
     } finally {
       setBusyKey("")
     }
+  }
+
+  async function updateReadiness(
+    key: string,
+    payload: Record<string, unknown>,
+    successMessage: string,
+  ) {
+    const saved = await mutate(
+      key,
+      `/api/projects/${project.id}/readiness`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      },
+      successMessage,
+    )
+    if (saved) setReadinessModal(null)
+  }
+
+  async function submitContract(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault()
+    const form = new FormData(event.currentTarget)
+    const contractRequired =
+      form.get("contractRequired") === "true"
+
+    await updateReadiness(
+      "readiness-contract",
+      {
+        action: "UPDATE_CONTRACT",
+        contractRequired,
+        contractStatus: contractRequired
+          ? form.get("contractStatus")
+          : "PENDING",
+        contractReference:
+          form.get("contractReference") || null,
+        contractSignedAt: form.get("contractSignedAt") || null,
+      },
+      "تم تحديث شرط العقد",
+    )
+  }
+
+  async function submitPaymentRequirement(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault()
+    const form = new FormData(event.currentTarget)
+    const paymentRequired =
+      form.get("paymentRequired") === "true"
+
+    await updateReadiness(
+      "readiness-payment",
+      {
+        action: "UPDATE_PAYMENT",
+        paymentRequired,
+        requiredPaymentAmount: paymentRequired
+          ? form.get("requiredPaymentAmount")
+          : null,
+        currency: form.get("currency"),
+      },
+      "تم تحديث شرط الدفعة",
+    )
+  }
+
+  async function submitOverride(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault()
+    const form = new FormData(event.currentTarget)
+
+    await updateReadiness(
+      "readiness-override",
+      {
+        action: "GRANT_OVERRIDE",
+        reason: form.get("reason"),
+      },
+      "تم تسجيل التجاوز الإداري",
+    )
+  }
+
+  async function submitActivation(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault()
+    const form = new FormData(event.currentTarget)
+
+    await updateReadiness(
+      "readiness-activate",
+      {
+        action: "ACTIVATE",
+        startDate: form.get("startDate"),
+        projectLeadEmployeeProfileId: form.get(
+          "projectLeadEmployeeProfileId",
+        ),
+      },
+      "تم تفعيل المشروع وبدء سير العمل",
+    )
   }
 
   async function addMember(
@@ -513,7 +663,12 @@ export default function ProjectExecutionClient({
     const saved = await mutate(
       pendingAction.key,
       pendingAction.endpoint,
-      { method: "DELETE" },
+      {
+        method: pendingAction.method ?? "DELETE",
+        ...(pendingAction.body
+          ? { body: JSON.stringify(pendingAction.body) }
+          : {}),
+      },
       pendingAction.successMessage
     )
     if (saved) setPendingAction(null)
@@ -584,6 +739,209 @@ export default function ProjectExecutionClient({
           يحدد فريق العمليات تاريخ البدء وقائد المشروع.
         </AquaAlert>
       ) : null}
+
+      <AquaCard padding="md" className={styles.readinessGate}>
+        <div className={styles.readinessHeader}>
+          <div className={styles.readinessTitle}>
+            <span className={styles.readinessIcon} aria-hidden="true">
+              <LockKeyhole />
+            </span>
+            <div>
+              <div className={styles.readinessTitleRow}>
+                <h2>بوابة جاهزية المشروع</h2>
+                <AquaBadge
+                  variant={
+                    readiness.state === "ACTIVATED"
+                      ? "success"
+                      : readiness.state === "READY"
+                        ? "aqua"
+                        : "warning"
+                  }
+                  size="sm"
+                  dot
+                >
+                  {readiness.state === "ACTIVATED"
+                    ? "مفعّل"
+                    : readiness.state === "READY"
+                      ? "جاهز للبدء"
+                      : "بانتظار المتطلبات"}
+                </AquaBadge>
+              </div>
+              <p>
+                لا يبدأ سير العمل ولا تُوزع التكليفات قبل توثيق
+                المتطلبات واختيار قائد المشروع.
+              </p>
+            </div>
+          </div>
+          {readiness.activatedAt ? (
+            <span className={styles.readinessMeta}>
+              فُعّل بواسطة{" "}
+              {readiness.activatedBy?.name ?? "الإدارة"} ·{" "}
+              <bdi dir="ltr">
+                {dateOnly(readiness.activatedAt)}
+              </bdi>
+            </span>
+          ) : null}
+        </div>
+
+        <div className={styles.readinessChecks}>
+          <article
+            className={styles.readinessCheck}
+            data-complete={readiness.contractSatisfied}
+          >
+            <span aria-hidden="true">
+              <FileSignature />
+            </span>
+            <div>
+              <strong>العقد</strong>
+              <p>
+                {!readiness.contractRequired
+                  ? "غير مطلوب"
+                  : readiness.contractStatus === "SIGNED"
+                    ? `موثّق${
+                        readiness.contractReference
+                          ? ` — ${readiness.contractReference}`
+                          : ""
+                      }`
+                    : "بانتظار التوقيع والتوثيق"}
+              </p>
+            </div>
+            <AquaBadge
+              variant={
+                readiness.contractSatisfied ? "success" : "warning"
+              }
+              size="sm"
+            >
+              {readiness.contractSatisfied ? "مكتمل" : "ناقص"}
+            </AquaBadge>
+          </article>
+
+          <article
+            className={styles.readinessCheck}
+            data-complete={readiness.paymentSatisfied}
+          >
+            <span aria-hidden="true">
+              <Banknote />
+            </span>
+            <div>
+              <strong>دفعة البدء</strong>
+              <p>
+                {!readiness.paymentRequired
+                  ? "غير مطلوبة"
+                  : readinessPermissions.canViewFinance
+                    ? `المسجل ${readiness.paidAmount ?? "0"} من ${
+                        readiness.requiredPaymentAmount ?? "غير محدد"
+                      } ${readiness.currency}`
+                    : readiness.paymentSatisfied
+                      ? "تم استيفاء الشرط المالي"
+                      : "بانتظار اعتماد الإدارة المالية"}
+              </p>
+            </div>
+            <AquaBadge
+              variant={
+                readiness.paymentSatisfied ? "success" : "warning"
+              }
+              size="sm"
+            >
+              {readiness.paymentSatisfied ? "مكتمل" : "ناقص"}
+            </AquaBadge>
+          </article>
+        </div>
+
+        {readiness.overrideGrantedAt ? (
+          <AquaAlert
+            variant="warning"
+            title="يوجد تجاوز إداري موثّق"
+          >
+            {readiness.overrideReason} — بواسطة{" "}
+            {readiness.overrideGrantedBy?.name ?? "الإدارة"}.
+          </AquaAlert>
+        ) : null}
+
+        {readiness.issues.length > 0 &&
+        readiness.state !== "ACTIVATED" ? (
+          <div className={styles.readinessIssues}>
+            <strong>المتبقي قبل البدء:</strong>
+            <ul>
+              {readiness.issues.map((issue) => (
+                <li key={issue}>{issue}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {!readiness.activatedAt ? (
+          <div className={styles.readinessActions}>
+            {readinessPermissions.canManageContract ? (
+              <AquaButton
+                variant="ghost"
+                size="sm"
+                onClick={() => setReadinessModal("CONTRACT")}
+              >
+                توثيق العقد
+              </AquaButton>
+            ) : null}
+            {readinessPermissions.canManagePayment ? (
+              <AquaButton
+                variant="ghost"
+                size="sm"
+                onClick={() => setReadinessModal("PAYMENT")}
+              >
+                تحديد الدفعة
+              </AquaButton>
+            ) : null}
+            {readinessPermissions.canOverride ? (
+              readiness.overrideGrantedAt ? (
+                <AquaButton
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    setPendingAction({
+                      title: "إلغاء تجاوز الجاهزية",
+                      description:
+                        "سيعود المشروع إلى شروط العقد والدفعة الفعلية قبل التفعيل.",
+                      endpoint: `/api/projects/${project.id}/readiness`,
+                      key: "readiness-override-revoke",
+                      successMessage:
+                        "تم إلغاء التجاوز الإداري",
+                      method: "PATCH",
+                      body: {
+                        action: "REVOKE_OVERRIDE",
+                      },
+                      tone: "warning",
+                    })
+                  }
+                >
+                  إلغاء التجاوز
+                </AquaButton>
+              ) : (
+                <AquaButton
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setReadinessModal("OVERRIDE")}
+                >
+                  تجاوز موثّق
+                </AquaButton>
+              )
+            ) : null}
+            {readinessPermissions.canActivate ? (
+              <AquaButton
+                size="sm"
+                onClick={() => setReadinessModal("ACTIVATE")}
+                disabled={!readiness.readyToActivate}
+                title={
+                  readiness.readyToActivate
+                    ? "تفعيل المشروع"
+                    : "أكمل متطلبات الجاهزية أولًا"
+                }
+              >
+                <Play aria-hidden="true" />
+                تفعيل وبدء المشروع
+              </AquaButton>
+            ) : null}
+          </div>
+        ) : null}
+      </AquaCard>
 
       {workflow ? (
         <AquaCard padding="sm" className={styles.workflowSummary}>
@@ -730,7 +1088,7 @@ export default function ProjectExecutionClient({
             </AquaBadge>
           }
           actions={
-            canManage ? (
+            canManage && executionActivated ? (
               <AquaButton
                 size="sm"
                 leadingIcon={<UserPlus />}
@@ -769,6 +1127,7 @@ export default function ProjectExecutionClient({
                     ) : null}
                   </div>
                   {canManage &&
+                  executionActivated &&
                   member.role !== "PROJECT_LEAD" &&
                   (member.role !== "MANAGER" ||
                     canManageLeadership) ? (
@@ -863,7 +1222,7 @@ export default function ProjectExecutionClient({
                         <select
                           className="form-select aqua-control aqua-control--sm"
                           value={draft.status}
-                          disabled={!canManage}
+                          disabled={!canManage || !executionActivated}
                           onChange={(event) =>
                             setPhaseDrafts((current) => ({
                               ...current,
@@ -875,7 +1234,14 @@ export default function ProjectExecutionClient({
                             }))
                           }
                         >
-                          {Object.entries(phaseStatusLabels).map(
+                          {Object.entries(phaseStatusLabels)
+                            .filter(
+                              ([value]) =>
+                                executionActivated ||
+                                value === "PLANNED" ||
+                                value === "CANCELLED",
+                            )
+                            .map(
                             ([value, label]) => (
                               <option value={value} key={value}>
                                 {label}
@@ -892,7 +1258,7 @@ export default function ProjectExecutionClient({
                           max={100}
                           className="form-control aqua-control aqua-control--sm"
                           value={draft.progress}
-                          disabled={!canManage}
+                          disabled={!canManage || !executionActivated}
                           onChange={(event) =>
                             setPhaseDrafts((current) => ({
                               ...current,
@@ -906,7 +1272,7 @@ export default function ProjectExecutionClient({
                           }
                         />
                       </label>
-                      {canManage ? (
+                      {canManage && executionActivated ? (
                         <div className={styles.phaseActions}>
                           <AquaButton
                             size="sm"
@@ -1067,7 +1433,7 @@ export default function ProjectExecutionClient({
                         className="form-select aqua-control aqua-control--sm"
                         aria-label={`حالة ${task.title}`}
                         value={draft.status}
-                        disabled={!task.canEdit}
+                        disabled={!task.canEdit || !executionActivated}
                         onChange={(event) =>
                           setTaskDrafts((current) => ({
                             ...current,
@@ -1079,7 +1445,15 @@ export default function ProjectExecutionClient({
                           }))
                         }
                       >
-                        {Object.entries(taskStatusLabels).map(
+                        {Object.entries(taskStatusLabels)
+                          .filter(
+                            ([value]) =>
+                              executionActivated ||
+                              value === "TODO" ||
+                              value === "CANCELLED" ||
+                              value === "ARCHIVED",
+                          )
+                          .map(
                           ([value, label]) => (
                             <option value={value} key={value}>
                               {label}
@@ -1096,7 +1470,7 @@ export default function ProjectExecutionClient({
                         className="form-control aqua-control aqua-control--sm"
                         aria-label={`إنجاز ${task.title}`}
                         value={draft.progress}
-                        disabled={!task.canEdit}
+                        disabled={!task.canEdit || !executionActivated}
                         onChange={(event) =>
                           setTaskDrafts((current) => ({
                             ...current,
@@ -1218,6 +1592,7 @@ export default function ProjectExecutionClient({
                         </span>
                       </div>
                       {selectedTask.canManageParticipants &&
+                      executionActivated &&
                       (participant.role !== "OWNER" ||
                         selectedTask.canAssignOwner) ? (
                         <AquaButton
@@ -1242,7 +1617,8 @@ export default function ProjectExecutionClient({
                   ))
                 )}
               </div>
-              {selectedTask.canManageParticipants ? (
+              {selectedTask.canManageParticipants &&
+              executionActivated ? (
                 <form
                   className={styles.controlForm}
                   onSubmit={addParticipant}
@@ -1426,6 +1802,7 @@ export default function ProjectExecutionClient({
                         <p>{blocker.description}</p>
                       ) : null}
                       {blocker.status === "OPEN" &&
+                      executionActivated &&
                       selectedTask.canEdit ? (
                         <div className={styles.resolveRow}>
                           <input
@@ -1480,7 +1857,7 @@ export default function ProjectExecutionClient({
                   ))
                 )}
               </div>
-              {selectedTask.canEdit ? (
+              {selectedTask.canEdit && executionActivated ? (
                 <form
                   className={styles.controlForm}
                   onSubmit={addBlocker}
@@ -1524,6 +1901,245 @@ export default function ProjectExecutionClient({
           </div>
         </AquaDataPanel>
       ) : null}
+
+      <AquaModal
+        open={readinessModal === "CONTRACT"}
+        onClose={() => setReadinessModal(null)}
+        title="توثيق شرط العقد"
+        description="سجّل حالة العقد ومرجعه الفعلي. لا يُعد العرض المقبول وحده عقدًا موقّعًا."
+        size="md"
+        closeOnBackdrop={busyKey !== "readiness-contract"}
+        footer={
+          <div className="aqua-modal__action-row">
+            <AquaButton
+              variant="ghost"
+              onClick={() => setReadinessModal(null)}
+              disabled={busyKey === "readiness-contract"}
+            >
+              إلغاء
+            </AquaButton>
+            <AquaButton
+              type="submit"
+              form="project-readiness-contract-form"
+              loading={busyKey === "readiness-contract"}
+            >
+              حفظ العقد
+            </AquaButton>
+          </div>
+        }
+      >
+        <form
+          id="project-readiness-contract-form"
+          className={styles.modalForm}
+          onSubmit={submitContract}
+        >
+          <AquaSelect
+            name="contractRequired"
+            label="هل العقد مطلوب؟"
+            defaultValue={String(readiness.contractRequired)}
+          >
+            <option value="true">نعم، مطلوب قبل البدء</option>
+            <option value="false">غير مطلوب لهذا المشروع</option>
+          </AquaSelect>
+          <AquaSelect
+            name="contractStatus"
+            label="حالة العقد"
+            defaultValue={readiness.contractStatus}
+          >
+            <option value="PENDING">بانتظار التوقيع</option>
+            <option value="SIGNED">موقّع وموثّق</option>
+          </AquaSelect>
+          <AquaInput
+            name="contractReference"
+            label="مرجع العقد"
+            defaultValue={readiness.contractReference ?? ""}
+            placeholder="رقم العقد أو رابط المستند"
+          />
+          <AquaInput
+            name="contractSignedAt"
+            label="تاريخ التوقيع"
+            type="date"
+            dir="ltr"
+            defaultValue={
+              readiness.contractSignedAt?.slice(0, 10) ?? ""
+            }
+          />
+        </form>
+      </AquaModal>
+
+      <AquaModal
+        open={readinessModal === "PAYMENT"}
+        onClose={() => setReadinessModal(null)}
+        title="تحديد دفعة البدء"
+        description="يُحتسب المدفوع تلقائيًا من المدفوعات المسجلة على فواتير هذا المشروع وبالعملة نفسها."
+        size="md"
+        closeOnBackdrop={busyKey !== "readiness-payment"}
+        footer={
+          <div className="aqua-modal__action-row">
+            <AquaButton
+              variant="ghost"
+              onClick={() => setReadinessModal(null)}
+              disabled={busyKey === "readiness-payment"}
+            >
+              إلغاء
+            </AquaButton>
+            <AquaButton
+              type="submit"
+              form="project-readiness-payment-form"
+              loading={busyKey === "readiness-payment"}
+            >
+              حفظ الدفعة
+            </AquaButton>
+          </div>
+        }
+      >
+        <form
+          id="project-readiness-payment-form"
+          className={styles.modalForm}
+          onSubmit={submitPaymentRequirement}
+        >
+          <AquaSelect
+            name="paymentRequired"
+            label="هل دفعة البدء مطلوبة؟"
+            defaultValue={String(readiness.paymentRequired)}
+          >
+            <option value="true">نعم، مطلوبة قبل البدء</option>
+            <option value="false">غير مطلوبة لهذا المشروع</option>
+          </AquaSelect>
+          <AquaInput
+            name="requiredPaymentAmount"
+            label="المبلغ المطلوب"
+            inputMode="decimal"
+            dir="ltr"
+            defaultValue={readiness.requiredPaymentAmount ?? ""}
+            placeholder="500.00"
+          />
+          <AquaInput
+            name="currency"
+            label="العملة"
+            dir="ltr"
+            maxLength={3}
+            required
+            defaultValue={readiness.currency}
+          />
+          <AquaAlert variant="info">
+            المدفوع المسجل حاليًا:{" "}
+            <bdi dir="ltr">
+              {readiness.paidAmount ?? "0"} {readiness.currency}
+            </bdi>
+          </AquaAlert>
+        </form>
+      </AquaModal>
+
+      <AquaModal
+        open={readinessModal === "OVERRIDE"}
+        onClose={() => setReadinessModal(null)}
+        title="تجاوز إداري موثّق"
+        description="استخدم التجاوز لحالة استثنائية فقط. سيظهر السبب وهوية المنفذ في سجل المشروع."
+        size="md"
+        closeOnBackdrop={busyKey !== "readiness-override"}
+        footer={
+          <div className="aqua-modal__action-row">
+            <AquaButton
+              variant="ghost"
+              onClick={() => setReadinessModal(null)}
+              disabled={busyKey === "readiness-override"}
+            >
+              إلغاء
+            </AquaButton>
+            <AquaButton
+              type="submit"
+              form="project-readiness-override-form"
+              loading={busyKey === "readiness-override"}
+            >
+              تسجيل التجاوز
+            </AquaButton>
+          </div>
+        }
+      >
+        <form
+          id="project-readiness-override-form"
+          className={styles.modalForm}
+          onSubmit={submitOverride}
+        >
+          <AquaTextarea
+            name="reason"
+            label="سبب التجاوز"
+            rows={4}
+            minLength={10}
+            maxLength={1000}
+            required
+            placeholder="اشرح الحالة الاستثنائية ومن اعتمدها ولماذا يمكن البدء."
+            data-aqua-autofocus
+          />
+        </form>
+      </AquaModal>
+
+      <AquaModal
+        open={readinessModal === "ACTIVATE"}
+        onClose={() => setReadinessModal(null)}
+        title="تفعيل وبدء المشروع"
+        description="يعيد النظام فحص العقد والمدفوعات، ثم يبدأ سير العمل ويعيّن قائد المشروع داخل العملية نفسها."
+        size="md"
+        closeOnBackdrop={busyKey !== "readiness-activate"}
+        footer={
+          <div className="aqua-modal__action-row">
+            <AquaButton
+              variant="ghost"
+              onClick={() => setReadinessModal(null)}
+              disabled={busyKey === "readiness-activate"}
+            >
+              إلغاء
+            </AquaButton>
+            <AquaButton
+              type="submit"
+              form="project-readiness-activate-form"
+              loading={busyKey === "readiness-activate"}
+            >
+              تفعيل المشروع
+            </AquaButton>
+          </div>
+        }
+      >
+        <form
+          id="project-readiness-activate-form"
+          className={styles.modalForm}
+          onSubmit={submitActivation}
+        >
+          <AquaInput
+            name="startDate"
+            label="تاريخ البدء"
+            type="date"
+            dir="ltr"
+            required
+            defaultValue={readiness.businessDate}
+          />
+          <AquaSelect
+            name="projectLeadEmployeeProfileId"
+            label="قائد المشروع"
+            required
+            defaultValue=""
+          >
+            <option value="" disabled>
+              اختر قائد المشروع
+            </option>
+            {employees.map((employee) => (
+              <option value={employee.id} key={employee.id}>
+                {employee.user.name} —{" "}
+                {employee.jobRole?.name ?? "دون مسمى"}
+              </option>
+            ))}
+          </AquaSelect>
+          {readiness.overrideGrantedAt ? (
+            <AquaAlert
+              variant="warning"
+              title="سيُستخدم التجاوز الإداري"
+            >
+              سيبدأ المشروع مع حفظ سبب التجاوز في سجل التفعيل.
+            </AquaAlert>
+          ) : null}
+        </form>
+      </AquaModal>
 
       <AquaModal
         open={memberModalOpen}
@@ -1647,13 +2263,18 @@ export default function ProjectExecutionClient({
             label="الحالة"
             defaultValue="PLANNED"
           >
-            {Object.entries(phaseStatusLabels).map(
-              ([value, label]) => (
+            {Object.entries(phaseStatusLabels)
+              .filter(
+                ([value]) =>
+                  executionActivated ||
+                  value === "PLANNED" ||
+                  value === "CANCELLED",
+              )
+              .map(([value, label]) => (
                 <option value={value} key={value}>
                   {label}
                 </option>
-              )
-            )}
+              ))}
           </AquaSelect>
           <AquaInput
             name="sortOrder"

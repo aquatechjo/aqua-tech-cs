@@ -410,7 +410,9 @@ export default function ProjectsClient({
 
     const nextStatus =
       pendingArchive.status === "ARCHIVED"
-        ? "IN_PROGRESS"
+        ? pendingArchive.startDate
+          ? "IN_PROGRESS"
+          : "PLANNING"
         : "ARCHIVED"
     const saved = await updateProjectStatus(
       pendingArchive,
@@ -873,6 +875,16 @@ export default function ProjectsClient({
             </AquaAlert>
           ) : null}
 
+          {!isEditing ? (
+            <AquaAlert
+              variant="info"
+              title="يبدأ المشروع في التخطيط"
+            >
+              يُنشأ المشروع وسير العمل دون بدء التنفيذ. فعّله من بوابة
+              الجاهزية بعد توثيق شروط العقد والدفعة المطلوبة.
+            </AquaAlert>
+          ) : null}
+
           <div className="aqua-form-grid">
             {isEditing ? (
               <div
@@ -998,7 +1010,16 @@ export default function ProjectsClient({
               }
               span={3}
             >
-              {projectStatuses.map((item) => (
+              {(isEditing
+                ? status === "PLANNING"
+                  ? projectStatuses.filter((item) =>
+                      ["PLANNING", "CANCELLED", "ARCHIVED"].includes(
+                        item,
+                      ),
+                    )
+                  : projectStatuses
+                : ["PLANNING"] as ProjectStatus[]
+              ).map((item) => (
                 <option key={item} value={item}>
                   {projectStatusLabel(item)}
                 </option>
@@ -1084,7 +1105,9 @@ export default function ProjectsClient({
         }
         description={
           pendingArchive?.status === "ARCHIVED"
-            ? `سيعود مشروع «${pendingArchive?.name ?? ""}» إلى حالة قيد التنفيذ.`
+            ? pendingArchive.startDate
+              ? `سيعود مشروع «${pendingArchive?.name ?? ""}» إلى حالة قيد التنفيذ.`
+              : `سيعود مشروع «${pendingArchive?.name ?? ""}» إلى حالة التخطيط دون بدء التنفيذ.`
             : `سيختفي مشروع «${pendingArchive?.name ?? ""}» من قوائم العمل النشطة مع بقاء بياناته محفوظة.`
         }
         confirmLabel={

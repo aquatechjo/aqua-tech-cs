@@ -24,6 +24,12 @@ export const ACCESS_ROLES = {
     "OPERATIONS_MANAGER",
   ],
   projectManagement: ["OWNER", "ADMIN", "OPERATIONS_MANAGER"],
+  projectReadinessManagement: [
+    "OWNER",
+    "ADMIN",
+    "OPERATIONS_MANAGER",
+  ],
+  projectReadinessOverride: ["OWNER", "ADMIN"],
   serviceRequestManagement: [
     "OWNER",
     "ADMIN",
@@ -254,6 +260,14 @@ export function canManageProjectLeadership(
     hasRole(user.role, ACCESS_ROLES.projectManagement) ||
     projectMemberRole === "PROJECT_LEAD"
   )
+}
+
+export function canManageProjectReadiness(role: AccessRole) {
+  return hasRole(role, ACCESS_ROLES.projectReadinessManagement)
+}
+
+export function canOverrideProjectReadiness(role: AccessRole) {
+  return hasRole(role, ACCESS_ROLES.projectReadinessOverride)
 }
 
 export function assertCanManageProjectLeadership(

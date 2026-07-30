@@ -368,6 +368,37 @@ Status: **implemented**
   scheduling, team assignment, Workflow activation, invoicing, notifications,
   and n8n dispatch for later governed batches.
 
+## PROJ-02 — Project Readiness Gate
+
+Status: **implemented**
+
+- Create one tenant-scoped readiness record for every Project and preserve
+  existing active Projects by backfilling their activation state.
+- Require accepted-Proposal Projects to document a signed contract and a
+  positive required payment amount before delivery may start.
+- Derive paid readiness only from posted Payments on Invoices linked to the
+  same Project, Company, and currency instead of accepting browser-supplied
+  paid totals.
+- Separate contract verification, finance configuration, operational
+  activation, and Owner/Admin-only documented override permissions.
+- Keep contract references and verification actors, payment configuration
+  actors, override reasons, activation actors, and timestamps in a durable
+  audit chain.
+- Recheck readiness under a serializable transaction and row lock, then
+  activate the Project and Workflow, schedule the cloned phases and tasks,
+  and assign only the explicitly selected Project lead.
+- Block server-side execution mutations before activation, including team
+  assignment, participant assignment, active phase or task changes, progress,
+  and blockers, while preserving planning edits.
+- Create manual Projects only in `PLANNING`, and route the first start through
+  the readiness gate instead of generic status editing.
+- Surface a scoped, responsive readiness card with canonical alerts, badges,
+  modals, and confirmations while masking exact payment values from users
+  without finance-read permission.
+- Keep contract document storage, invoice generation, notification delivery,
+  broader staffing, kickoff records, risks, deliverables, change requests,
+  and n8n dispatch for later governed batches.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.

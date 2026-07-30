@@ -5,6 +5,8 @@ import { requireAuth } from "@/lib/auth"
 import { assertProgress, normalizePhaseCode } from "@/lib/project-execution"
 import { requireProjectExecutionManager } from "@/lib/project-execution-server"
 import { prisma } from "@/lib/prisma"
+import { projectExecutionNeedsActivation } from "@/lib/project-readiness"
+import { assertProjectExecutionActivated } from "@/lib/project-readiness-server"
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
 
 const optionalDateStringSchema = z.string().refine(
@@ -66,6 +68,18 @@ async function updateProjectPhase(
   if (!existing) {
     return err("المرحلة غير موجودة", 404, {
       code: "PROJECT_PHASE_NOT_FOUND",
+    })
+  }
+
+  if (
+    projectExecutionNeedsActivation({
+      progress: parsed.data.progress,
+      status: parsed.data.status,
+    })
+  ) {
+    await assertProjectExecutionActivated(prisma, {
+      companyId: user.companyId,
+      projectId,
     })
   }
 

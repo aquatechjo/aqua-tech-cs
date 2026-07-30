@@ -25,9 +25,7 @@ const projectSchema = z.object({
   name: z.string().trim().min(2, "اسم المشروع مطلوب").max(180),
   code: z.string().trim().max(80).optional().nullable(),
   description: z.string().trim().max(2000).optional().nullable(),
-  status: z
-    .enum(["PLANNING", "IN_PROGRESS", "ON_HOLD", "COMPLETED", "CANCELLED", "ARCHIVED"])
-    .default("PLANNING"),
+  status: z.literal("PLANNING").default("PLANNING"),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
   budget: z
     .string()
@@ -209,7 +207,7 @@ export async function POST(request: Request) {
           currency: data.currency || "JOD",
           startDate,
           dueDate,
-          completedAt: data.status === "COMPLETED" ? new Date() : null,
+          completedAt: null,
         },
       });
       const createdProject = created.project;

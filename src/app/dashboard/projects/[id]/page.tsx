@@ -2,20 +2,26 @@ import type { Prisma } from "@/generated/prisma/client"
 import { notFound } from "next/navigation"
 
 import {
+  ACCESS_ROLES,
   canAssignTaskOwner,
   canEditTask,
   canManageProjectExecution,
   canManageProjectLeadership,
+  canManageProjectReadiness,
   canManageTaskParticipants,
+  canOverrideProjectReadiness,
+  hasRole,
 } from "@/lib/access-control"
 import { requireAuth } from "@/lib/auth"
 import { averageProgress } from "@/lib/project-execution"
+import { localDateKey } from "@/lib/finance"
 import {
   buildProjectVisibilityWhere,
   projectScopeFromTaskScope,
   projectScopeLabel,
 } from "@/lib/project-scope"
 import { prisma } from "@/lib/prisma"
+import { getProjectReadinessSnapshot } from "@/lib/project-readiness-server"
 import { buildTaskVisibilityWhere } from "@/lib/task-scope"
 import { resolveTaskAccessScope } from "@/lib/task-scope-server"
 
@@ -190,6 +196,20 @@ export default async function ProjectExecutionPage({
   })
 
   if (!project) notFound()
+
+  const readinessSnapshot = await getProjectReadinessSnapshot(
+    prisma,
+    {
+      companyId: user.companyId,
+      projectId: project.id,
+      projectStatus: project.status,
+      workflowStatus: project.workflow?.status ?? null,
+    },
+  )
+  const canViewReadinessFinance = hasRole(
+    user.role,
+    ACCESS_ROLES.financeRead,
+  )
 
   const currentMembership = project.members.find(
     (member) => member.employeeProfile.user.id === user.id
@@ -370,6 +390,61 @@ export default async function ProjectExecutionPage({
             }
           : null
       }
+      readiness={{
+        contractRequired:
+          readinessSnapshot.readiness.contractRequired,
+        contractStatus:
+          readinessSnapshot.readiness.contractStatus,
+        contractReference:
+          readinessSnapshot.readiness.contractReference,
+        contractSignedAt:
+          readinessSnapshot.readiness.contractSignedAt?.toISOString() ??
+          null,
+        contractVerifiedAt:
+          readinessSnapshot.readiness.contractVerifiedAt?.toISOString() ??
+          null,
+        contractVerifiedBy:
+          readinessSnapshot.readiness.contractVerifiedBy,
+        paymentRequired:
+          readinessSnapshot.readiness.paymentRequired,
+        requiredPaymentAmount: canViewReadinessFinance
+          ? readinessSnapshot.readiness.requiredPaymentAmount?.toString() ??
+            null
+          : null,
+        paidAmount: canViewReadinessFinance
+          ? readinessSnapshot.paidAmount
+          : null,
+        currency: readinessSnapshot.readiness.currency,
+        paymentConfiguredAt:
+          readinessSnapshot.readiness.paymentConfiguredAt?.toISOString() ??
+          null,
+        paymentConfiguredBy:
+          readinessSnapshot.readiness.paymentConfiguredBy,
+        overrideReason:
+          readinessSnapshot.readiness.overrideReason,
+        overrideGrantedAt:
+          readinessSnapshot.readiness.overrideGrantedAt?.toISOString() ??
+          null,
+        overrideGrantedBy:
+          readinessSnapshot.readiness.overrideGrantedBy,
+        activatedAt:
+          readinessSnapshot.readiness.activatedAt?.toISOString() ??
+          null,
+        activatedBy:
+          readinessSnapshot.readiness.activatedBy,
+        state: readinessSnapshot.evaluation.state,
+        issues: readinessSnapshot.evaluation.issues,
+        contractSatisfied:
+          readinessSnapshot.evaluation.contractSatisfied,
+        paymentSatisfied:
+          readinessSnapshot.evaluation.paymentSatisfied,
+        readyToActivate:
+          readinessSnapshot.evaluation.readyToActivate,
+        businessDate: localDateKey(
+          new Date(),
+          user.company.timezone,
+        ),
+      }}
       scope={{
         label: projectScopeLabel(projectScope),
         dataScope: projectScope.dataScope,
@@ -394,6 +469,16 @@ export default async function ProjectExecutionPage({
         user,
         currentMembership?.role
       )}
+      readinessPermissions={{
+        canManageContract: canManageProjectReadiness(user.role),
+        canManagePayment: hasRole(
+          user.role,
+          ACCESS_ROLES.financeManagement,
+        ),
+        canOverride: canOverrideProjectReadiness(user.role),
+        canActivate: canManageProjectReadiness(user.role),
+        canViewFinance: canViewReadinessFinance,
+      }}
       summary={{
         progress: averageProgress(
           tasks.map((task) => task.progress)

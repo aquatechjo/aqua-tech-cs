@@ -4,6 +4,7 @@ import { err, ok, withApiHandler } from "@/lib/api-response"
 import { requireAuth } from "@/lib/auth"
 import { requireEditableTask } from "@/lib/project-execution-server"
 import { prisma } from "@/lib/prisma"
+import { assertProjectExecutionActivated } from "@/lib/project-readiness-server"
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
 
 const blockerSchema = z.object({
@@ -26,6 +27,12 @@ async function createTaskBlocker(
   const user = await requireAuth()
   const { id: taskId } = await context.params
   const task = await requireEditableTask(user, taskId)
+  if (task.projectId) {
+    await assertProjectExecutionActivated(prisma, {
+      companyId: user.companyId,
+      projectId: task.projectId,
+    })
+  }
   if (["DONE", "CANCELLED", "ARCHIVED"].includes(task.status)) {
     return err("لا يمكن تسجيل عائق على مهمة مغلقة أو مؤرشفة", 409, {
       code: "TASK_NOT_ACTIVE",

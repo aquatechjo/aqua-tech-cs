@@ -53,6 +53,11 @@ enum WorkflowStatus {
   CANCELLED
 }
 
+enum ProjectContractStatus {
+  PENDING
+  SIGNED
+}
+
 enum WorkflowApprovalGate {
   PHASE_START
   PHASE_COMPLETION
@@ -362,6 +367,10 @@ enum ActivityAction {
   CONTACT_PRIMARY_CHANGED
   PROJECT_CREATED
   PROJECT_UPDATED
+  PROJECT_READINESS_UPDATED
+  PROJECT_READINESS_OVERRIDE_GRANTED
+  PROJECT_READINESS_OVERRIDE_REVOKED
+  PROJECT_STARTED
   PROJECT_ARCHIVED
   PROJECT_RESTORED
   PROJECT_COMPLETED
@@ -523,6 +532,7 @@ model Company {
   projectPhases           ProjectPhase[]
   workflowTemplates       WorkflowTemplate[]
   projectWorkflows        ProjectWorkflow[]
+  projectReadinessGates   ProjectReadiness[]
   workflowApprovals       ProjectWorkflowApproval[]
   workflowRules           ProjectWorkflowRule[]
   workflowEvents          WorkflowEvent[]
@@ -583,47 +593,51 @@ model User {
   notifications       Notification[]
   uploadedFiles       File[]
 
-  createdAt                 DateTime                 @default(now())
-  updatedAt                 DateTime                 @updatedAt
-  assignedTasks             Task[]                   @relation("TaskAssignee")
-  createdTasks              Task[]                   @relation("TaskCreator")
-  assignedServiceRequests   ServiceRequest[]         @relation("ServiceRequestAssignee")
-  employeeProfile           EmployeeProfile?
-  reportedTaskBlockers      TaskBlocker[]            @relation("TaskBlockerReporter")
-  resolvedTaskBlockers      TaskBlocker[]            @relation("TaskBlockerResolver")
-  createdInvoices           Invoice[]                @relation("InvoiceCreator")
-  recordedPayments          Payment[]                @relation("PaymentRecorder")
-  reversedPayments          Payment[]                @relation("PaymentReverser")
-  createdExpenses           Expense[]                @relation("ExpenseCreator")
-  approvedExpenses          Expense[]                @relation("ExpenseApprover")
-  ownedSalesOpportunities   SalesOpportunity[]       @relation("SalesOpportunityOwner")
-  ownedLeads                Lead[]                   @relation("LeadOwner")
-  ownedIntakeSessions       IntakeSession[]          @relation("IntakeSessionOwner")
-  createdIntakeSessions     IntakeSession[]          @relation("IntakeSessionCreator")
-  updatedIntakeSessions     IntakeSession[]          @relation("IntakeSessionUpdater")
-  capturedIntakeAnswers     IntakeAnswer[]           @relation("IntakeAnswerCapture")
-  resolvedRequirementGaps   RequirementGap[]         @relation("RequirementGapResolver")
-  createdDiscoveryReports   DiscoveryReport[]        @relation("DiscoveryReportCreator")
-  authorizedDiscoveryAi     DiscoveryReport[]        @relation("DiscoveryReportAiAuthorizer")
-  reviewedDiscoveryReports  DiscoveryReport[]        @relation("DiscoveryReportReviewer")
-  createdReportVersions     DiscoveryReportVersion[] @relation("DiscoveryReportVersionCreator")
-  createdPricingWorkspaces  PricingWorkspace[]       @relation("PricingWorkspaceCreator")
-  reviewedPricingWorkspaces PricingWorkspace[]       @relation("PricingWorkspaceReviewer")
-  createdPricingVersions    PricingVersion[]         @relation("PricingVersionCreator")
-  createdProposalWorkspaces ProposalWorkspace[]      @relation("ProposalWorkspaceCreator")
-  reviewedProposalWorkspaces ProposalWorkspace[]     @relation("ProposalWorkspaceReviewer")
-  createdProposalVersions   ProposalVersion[]        @relation("ProposalVersionCreator")
-  createdProposalDeliveries ProposalDelivery[]       @relation("ProposalDeliveryCreator")
-  createdSalesActivities    SalesActivity[]          @relation("SalesActivityCreator")
-  createdSalesProposals     SalesProposal[]          @relation("SalesProposalCreator")
-  timeEntries               TimeEntry[]              @relation("TimeEntryOwner")
-  timesheets                Timesheet[]              @relation("TimesheetOwner")
-  approvedTimesheets        Timesheet[]              @relation("TimesheetApprover")
-  attendanceRecords         AttendanceRecord[]       @relation("AttendanceOwner")
-  updatedAttendanceRecords  AttendanceRecord[]       @relation("AttendanceUpdater")
-  leaveBalances             LeaveBalance[]           @relation("LeaveBalanceOwner")
-  leaveRequests             LeaveRequest[]           @relation("LeaveRequester")
-  reviewedLeaveRequests     LeaveRequest[]           @relation("LeaveReviewer")
+  createdAt                  DateTime                 @default(now())
+  updatedAt                  DateTime                 @updatedAt
+  assignedTasks              Task[]                   @relation("TaskAssignee")
+  createdTasks               Task[]                   @relation("TaskCreator")
+  assignedServiceRequests    ServiceRequest[]         @relation("ServiceRequestAssignee")
+  employeeProfile            EmployeeProfile?
+  reportedTaskBlockers       TaskBlocker[]            @relation("TaskBlockerReporter")
+  resolvedTaskBlockers       TaskBlocker[]            @relation("TaskBlockerResolver")
+  createdInvoices            Invoice[]                @relation("InvoiceCreator")
+  recordedPayments           Payment[]                @relation("PaymentRecorder")
+  reversedPayments           Payment[]                @relation("PaymentReverser")
+  createdExpenses            Expense[]                @relation("ExpenseCreator")
+  approvedExpenses           Expense[]                @relation("ExpenseApprover")
+  ownedSalesOpportunities    SalesOpportunity[]       @relation("SalesOpportunityOwner")
+  ownedLeads                 Lead[]                   @relation("LeadOwner")
+  ownedIntakeSessions        IntakeSession[]          @relation("IntakeSessionOwner")
+  createdIntakeSessions      IntakeSession[]          @relation("IntakeSessionCreator")
+  updatedIntakeSessions      IntakeSession[]          @relation("IntakeSessionUpdater")
+  capturedIntakeAnswers      IntakeAnswer[]           @relation("IntakeAnswerCapture")
+  resolvedRequirementGaps    RequirementGap[]         @relation("RequirementGapResolver")
+  createdDiscoveryReports    DiscoveryReport[]        @relation("DiscoveryReportCreator")
+  authorizedDiscoveryAi      DiscoveryReport[]        @relation("DiscoveryReportAiAuthorizer")
+  reviewedDiscoveryReports   DiscoveryReport[]        @relation("DiscoveryReportReviewer")
+  createdReportVersions      DiscoveryReportVersion[] @relation("DiscoveryReportVersionCreator")
+  createdPricingWorkspaces   PricingWorkspace[]       @relation("PricingWorkspaceCreator")
+  reviewedPricingWorkspaces  PricingWorkspace[]       @relation("PricingWorkspaceReviewer")
+  createdPricingVersions     PricingVersion[]         @relation("PricingVersionCreator")
+  createdProposalWorkspaces  ProposalWorkspace[]      @relation("ProposalWorkspaceCreator")
+  reviewedProposalWorkspaces ProposalWorkspace[]      @relation("ProposalWorkspaceReviewer")
+  createdProposalVersions    ProposalVersion[]        @relation("ProposalVersionCreator")
+  createdProposalDeliveries  ProposalDelivery[]       @relation("ProposalDeliveryCreator")
+  createdSalesActivities     SalesActivity[]          @relation("SalesActivityCreator")
+  createdSalesProposals      SalesProposal[]          @relation("SalesProposalCreator")
+  timeEntries                TimeEntry[]              @relation("TimeEntryOwner")
+  timesheets                 Timesheet[]              @relation("TimesheetOwner")
+  approvedTimesheets         Timesheet[]              @relation("TimesheetApprover")
+  attendanceRecords          AttendanceRecord[]       @relation("AttendanceOwner")
+  updatedAttendanceRecords   AttendanceRecord[]       @relation("AttendanceUpdater")
+  leaveBalances              LeaveBalance[]           @relation("LeaveBalanceOwner")
+  leaveRequests              LeaveRequest[]           @relation("LeaveRequester")
+  reviewedLeaveRequests      LeaveRequest[]           @relation("LeaveReviewer")
+  verifiedProjectContracts   ProjectReadiness[]       @relation("ProjectContractVerifier")
+  configuredProjectPayments  ProjectReadiness[]       @relation("ProjectPaymentConfigurer")
+  grantedReadinessOverrides  ProjectReadiness[]       @relation("ProjectReadinessOverrideGrantor")
+  activatedProjects          ProjectReadiness[]       @relation("ProjectReadinessActivator")
 
   @@index([companyId])
   @@index([role])
@@ -1012,26 +1026,27 @@ model Project {
   currency        String           @default("JOD")
   serviceRequests ServiceRequest[]
 
-  startDate        DateTime?
-  dueDate          DateTime?
-  completedAt      DateTime?
-  originProposalWorkspaceId String?   @unique
-  originProposalWorkspace   ProposalWorkspace? @relation("ProposalConvertedProject", fields: [originProposalWorkspaceId], references: [id], onDelete: Restrict)
-  originProposalResponseId  String?   @unique
+  startDate                 DateTime?
+  dueDate                   DateTime?
+  completedAt               DateTime?
+  originProposalWorkspaceId String?                 @unique
+  originProposalWorkspace   ProposalWorkspace?      @relation("ProposalConvertedProject", fields: [originProposalWorkspaceId], references: [id], onDelete: Restrict)
+  originProposalResponseId  String?                 @unique
   originProposalResponse    ProposalClientResponse? @relation("ProposalResponseConvertedProject", fields: [originProposalResponseId], references: [id], onDelete: Restrict)
   originProposalVersion     Int?
   originProposalContentHash String?
   originClientContentHash   String?
   clientAcceptedAt          DateTime?
   proposalConvertedAt       DateTime?
-  tasks            Task[]
-  members          ProjectMember[]
-  phases           ProjectPhase[]
-  workflow         ProjectWorkflow?
-  invoices         Invoice[]
-  expenses         Expense[]
-  salesOpportunity SalesOpportunity?
-  timeEntries      TimeEntry[]
+  tasks                     Task[]
+  members                   ProjectMember[]
+  phases                    ProjectPhase[]
+  workflow                  ProjectWorkflow?
+  readiness                 ProjectReadiness?
+  invoices                  Invoice[]
+  expenses                  Expense[]
+  salesOpportunity          SalesOpportunity?
+  timeEntries               TimeEntry[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1042,6 +1057,52 @@ model Project {
   @@index([priority])
   @@index([proposalConvertedAt])
   @@index([createdAt])
+}
+
+model ProjectReadiness {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  projectId String  @unique
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  contractRequired  Boolean               @default(false)
+  contractStatus    ProjectContractStatus @default(PENDING)
+  contractReference String?
+  contractSignedAt  DateTime?
+
+  contractVerifiedById String?
+  contractVerifiedBy   User?     @relation("ProjectContractVerifier", fields: [contractVerifiedById], references: [id], onDelete: SetNull)
+  contractVerifiedAt   DateTime?
+
+  paymentRequired       Boolean  @default(false)
+  requiredPaymentAmount Decimal? @db.Decimal(14, 2)
+  currency              String   @default("JOD")
+
+  paymentConfiguredById String?
+  paymentConfiguredBy   User?     @relation("ProjectPaymentConfigurer", fields: [paymentConfiguredById], references: [id], onDelete: SetNull)
+  paymentConfiguredAt   DateTime?
+
+  overrideReason      String?
+  overrideGrantedAt   DateTime?
+  overrideGrantedById String?
+  overrideGrantedBy   User?     @relation("ProjectReadinessOverrideGrantor", fields: [overrideGrantedById], references: [id], onDelete: SetNull)
+
+  activatedAt   DateTime?
+  activatedById String?
+  activatedBy   User?     @relation("ProjectReadinessActivator", fields: [activatedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([contractStatus])
+  @@index([activatedAt])
+  @@index([contractVerifiedById])
+  @@index([paymentConfiguredById])
+  @@index([overrideGrantedById])
+  @@index([activatedById])
 }
 
 model Task {
@@ -1961,10 +2022,10 @@ model SalesOpportunity {
   wonAt      DateTime?
   lostAt     DateTime?
 
-  activities       SalesActivity[]
-  proposals        SalesProposal[]
-  intakeSession    IntakeSession?
-  pricingWorkspace PricingWorkspace?
+  activities        SalesActivity[]
+  proposals         SalesProposal[]
+  intakeSession     IntakeSession?
+  pricingWorkspace  PricingWorkspace?
   proposalWorkspace ProposalWorkspace?
 
   createdAt DateTime @default(now())
@@ -2228,7 +2289,7 @@ model PricingWorkspace {
   changesRequestedAt DateTime?
   approvedAt         DateTime?
 
-  versions PricingVersion[]
+  versions          PricingVersion[]
   proposalWorkspace ProposalWorkspace?
 
   createdAt DateTime @default(now())
@@ -2293,22 +2354,22 @@ model ProposalWorkspace {
   currentVersion Int                     @default(0)
   reviewNotes    String?
 
-  submittedAt        DateTime?
-  changesRequestedAt DateTime?
-  approvedAt         DateTime?
-  sentVersion        Int?
+  submittedAt           DateTime?
+  changesRequestedAt    DateTime?
+  approvedAt            DateTime?
+  sentVersion           Int?
   sentClientContentHash String?
-  sentAt             DateTime?
-  clientRespondedAt  DateTime?
-  clientResponseName String?
-  clientResponseEmail String?
-  clientResponseTitle String?
-  clientResponseNotes String?
+  sentAt                DateTime?
+  clientRespondedAt     DateTime?
+  clientResponseName    String?
+  clientResponseEmail   String?
+  clientResponseTitle   String?
+  clientResponseNotes   String?
 
-  versions   ProposalVersion[]
-  deliveries ProposalDelivery[]
-  responses  ProposalClientResponse[]
-  convertedProject Project? @relation("ProposalConvertedProject")
+  versions         ProposalVersion[]
+  deliveries       ProposalDelivery[]
+  responses        ProposalClientResponse[]
+  convertedProject Project?                 @relation("ProposalConvertedProject")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2363,10 +2424,10 @@ model ProposalDelivery {
   workspace   ProposalWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   createdById String?
-  createdBy   User? @relation("ProposalDeliveryCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdBy   User?   @relation("ProposalDeliveryCreator", fields: [createdById], references: [id], onDelete: SetNull)
 
   channel ProposalDeliveryChannel
-  status  ProposalDeliveryStatus @default(PREPARED)
+  status  ProposalDeliveryStatus  @default(PREPARED)
 
   version           Int
   clientContentHash String
@@ -2375,7 +2436,7 @@ model ProposalDelivery {
   recipientEmail String?
   recipientPhone String?
 
-  tokenHash String @unique
+  tokenHash String    @unique
   expiresAt DateTime
   revokedAt DateTime?
 
@@ -2383,11 +2444,11 @@ model ProposalDelivery {
   failureCode       String?
   failureMessage    String?
 
-  preparedAt DateTime @default(now())
-  sentAt     DateTime?
+  preparedAt    DateTime  @default(now())
+  sentAt        DateTime?
   firstViewedAt DateTime?
   lastViewedAt  DateTime?
-  viewCount     Int @default(0)
+  viewCount     Int       @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2417,15 +2478,15 @@ model ProposalClientResponse {
   clientContentHash String
   decision          ProposalClientDecision
 
-  responderName  String
-  responderEmail String
-  responderTitle String?
-  notes          String?
+  responderName      String
+  responderEmail     String
+  responderTitle     String?
+  notes              String?
   authorityConfirmed Boolean
 
-  ipAddress String?
-  userAgent String?
-  respondedAt DateTime @default(now())
+  ipAddress        String?
+  userAgent        String?
+  respondedAt      DateTime @default(now())
   convertedProject Project? @relation("ProposalResponseConvertedProject")
 
   @@unique([workspaceId, version])

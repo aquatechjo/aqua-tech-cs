@@ -5,6 +5,7 @@ import { err, ok, withApiHandler } from "@/lib/api-response"
 import { requireAuth } from "@/lib/auth"
 import { requireProjectExecutionManager } from "@/lib/project-execution-server"
 import { prisma } from "@/lib/prisma"
+import { assertProjectExecutionActivated } from "@/lib/project-readiness-server"
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
 import { canAssignTaskTo } from "@/lib/task-scope"
 import { resolveTaskAccessScope } from "@/lib/task-scope-server"
@@ -34,6 +35,10 @@ async function addProjectMember(
     requireProjectExecutionManager(user, projectId),
     resolveTaskAccessScope(user),
   ])
+  await assertProjectExecutionActivated(prisma, {
+    companyId: user.companyId,
+    projectId,
+  })
   const body = await readJsonBody(request)
   const parsed = memberSchema.safeParse(body)
 

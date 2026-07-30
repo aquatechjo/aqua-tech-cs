@@ -236,6 +236,10 @@ test("PROJ-01 route is tenant-scoped, locked, hash-verified, and replay-safe", (
   assert.match(acceptedBranch, /originProposalWorkspaceId/)
   assert.match(acceptedBranch, /originProposalResponseId/)
   assert.match(acceptedBranch, /status: "PLANNING"/)
+  assert.match(
+    acceptedBranch,
+    /readiness:\s*\{[\s\S]+contractRequired: true,[\s\S]+paymentRequired: true/,
+  )
   assert.doesNotMatch(acceptedBranch, /startDate:/)
   assert.doesNotMatch(acceptedBranch, /assignedToId/)
 })
