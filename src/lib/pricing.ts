@@ -179,6 +179,13 @@ function lineTotalMinor(quantity: string, unitAmount: string) {
   )
 }
 
+export function calculatePricingLineTotal(
+  quantity: string,
+  unitAmount: string,
+) {
+  return minorToMoneyText(lineTotalMinor(quantity, unitAmount))
+}
+
 function signedMinorToText(value: bigint) {
   const sign = value < BIGINT_ZERO ? "-" : ""
   const absolute = value < BIGINT_ZERO ? -value : value

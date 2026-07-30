@@ -56,6 +56,15 @@ export const ACCESS_ROLES = {
     "FINANCE_MANAGER",
   ],
   pricingApproval: ["OWNER", "ADMIN", "FINANCE_MANAGER"],
+  proposalRead: [
+    "OWNER",
+    "ADMIN",
+    "SALES_MANAGER",
+    "OPERATIONS_MANAGER",
+    "FINANCE_MANAGER",
+  ],
+  proposalManagement: ["OWNER", "ADMIN", "SALES_MANAGER"],
+  proposalApproval: ["OWNER", "ADMIN", "SALES_MANAGER"],
   taskManagement: ["OWNER", "ADMIN", "OPERATIONS_MANAGER"],
   financeRead: ["OWNER", "ADMIN", "FINANCE_MANAGER", "OPERATIONS_MANAGER"],
   financeManagement: ["OWNER", "ADMIN", "FINANCE_MANAGER"],
@@ -341,6 +350,35 @@ export function assertCanApprovePricing(
       versionCreatorId === approver.id
         ? "PRICING_SELF_APPROVAL_FORBIDDEN"
         : "PRICING_APPROVAL_FORBIDDEN",
+    )
+  }
+}
+
+export function canApproveProposal(
+  approver: { id: string; role: AccessRole },
+  versionCreatorId: string | null,
+) {
+  if (!hasRole(approver.role, ACCESS_ROLES.proposalApproval)) return false
+  return (
+    approver.role === "OWNER" ||
+    versionCreatorId === null ||
+    approver.id !== versionCreatorId
+  )
+}
+
+export function assertCanApproveProposal(
+  approver: { id: string; role: AccessRole },
+  versionCreatorId: string | null,
+) {
+  if (!canApproveProposal(approver, versionCreatorId)) {
+    throw new ApiError(
+      versionCreatorId === approver.id
+        ? "لا يمكنك اعتماد إصدار العرض الذي أنشأته بنفسك"
+        : "لا تملك صلاحية اعتماد العرض",
+      403,
+      versionCreatorId === approver.id
+        ? "PROPOSAL_SELF_APPROVAL_FORBIDDEN"
+        : "PROPOSAL_APPROVAL_FORBIDDEN",
     )
   }
 }

@@ -397,6 +397,15 @@ export default function PricingWorkspaceClient({
         >
           أصبح هذا الإصدار مدخلًا صالحًا لبناء العرض المركزي في
           PROP‑01. لم يُنشئ النظام عرضًا أو يرسله للعميل تلقائيًا.
+          <div className="mt-3">
+            <AquaLinkButton
+              href={`/dashboard/discovery/${session.id}/proposal`}
+              variant="primary"
+              size="sm"
+            >
+              فتح مساحة العرض
+            </AquaLinkButton>
+          </div>
         </AquaAlert>
       ) : null}
 

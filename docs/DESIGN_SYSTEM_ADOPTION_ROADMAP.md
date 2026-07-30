@@ -303,6 +303,24 @@ Status: **implemented**
 - Update the opportunity amount and next Lead action only after approval; do not create, send, accept, or reject a Proposal in this batch.
 - Keep the central Proposal Engine, client-safe proposal projection, delivery channels, negotiation, acceptance, contracts, and project creation for later independent batches.
 
+## PROP-01 — Central Proposal Engine
+
+Status: **implemented**
+
+- Start proposal authoring only from an explicitly approved Pricing version and preserve the approved Discovery and Pricing version hashes in every Proposal version.
+- Create one tenant-scoped Proposal workspace with immutable, numbered human versions and a durable proposal number.
+- Seed client narrative from the approved Discovery Report while requiring humans to decide the duration, payment milestones, review, and approval.
+- Derive the commercial snapshot on the server from approved Pricing instead of accepting browser-supplied prices.
+- Generate a client-safe projection containing only client sections, safe commercial lines, adjustments, totals, payment milestones, and client notes.
+- Exclude internal sections, costs, profit, margin, raw Discovery data, and internal Pricing notes from the client projection and preserve a separate projection hash.
+- Add a central Proposal queue plus a focused workspace with canonical DS-04 panels, stacked tables, tabs, forms, alerts, badges, modals, and confirmation patterns.
+- Enforce `DRAFT`, `IN_REVIEW`, `CHANGES_REQUESTED`, and `APPROVED` transitions with tenant scoping, row locks, transactions, and durable activity events.
+- Require duration, positive client value, and payment milestones totaling exactly 100% before review.
+- Separate authoring from approval for non-owner users while preserving the owner exception used by previous human approval gates.
+- Block the legacy proposal-creation route for opportunities that entered the managed Discovery and Pricing journey.
+- Update the Lead next action only after approval; do not send the Proposal, change the opportunity to sent, record client acceptance, or create a contract or project in this batch.
+- Keep delivery channels, negotiation, client acceptance or rejection, contracts, and project creation for PROP-02 and PROJ-01.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.

@@ -5,6 +5,7 @@ import {
   canApproveTimesheet,
   canApproveLeave,
   canApprovePricing,
+  canApproveProposal,
   canViewCompanyHr,
   canAssignTaskOwner,
   canEditTask,
@@ -231,6 +232,39 @@ test("pricing separates read, authoring, and approval duties", () => {
   )
   assert.equal(
     canApprovePricing({ id: "owner", role: "OWNER" }, "owner"),
+    true,
+  )
+})
+
+test("proposal access separates visibility, authoring, and approval duties", () => {
+  assert.equal(
+    hasRole("FINANCE_MANAGER", ACCESS_ROLES.proposalRead),
+    true,
+  )
+  assert.equal(
+    hasRole("FINANCE_MANAGER", ACCESS_ROLES.proposalManagement),
+    false,
+  )
+  assert.equal(
+    hasRole("SALES_MANAGER", ACCESS_ROLES.proposalManagement),
+    true,
+  )
+  assert.equal(
+    canApproveProposal(
+      { id: "reviewer", role: "SALES_MANAGER" },
+      "author",
+    ),
+    true,
+  )
+  assert.equal(
+    canApproveProposal(
+      { id: "author", role: "SALES_MANAGER" },
+      "author",
+    ),
+    false,
+  )
+  assert.equal(
+    canApproveProposal({ id: "owner", role: "OWNER" }, "owner"),
     true,
   )
 })

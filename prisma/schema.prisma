@@ -303,6 +303,13 @@ enum PricingWorkspaceStatus {
   APPROVED
 }
 
+enum ProposalWorkspaceStatus {
+  DRAFT
+  IN_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+}
+
 enum NotificationType {
   INFO
   SUCCESS
@@ -372,6 +379,10 @@ enum ActivityAction {
   PRICING_SUBMITTED
   PRICING_CHANGES_REQUESTED
   PRICING_APPROVED
+  PROPOSAL_VERSION_CREATED
+  PROPOSAL_SUBMITTED
+  PROPOSAL_CHANGES_REQUESTED
+  PROPOSAL_APPROVED
   EMPLOYEE_PROFILE_UPDATED
   DEPARTMENT_CREATED
   DEPARTMENT_UPDATED
@@ -503,6 +514,8 @@ model Company {
   discoveryReportVersions DiscoveryReportVersion[]
   pricingWorkspaces       PricingWorkspace[]
   pricingVersions         PricingVersion[]
+  proposalWorkspaces      ProposalWorkspace[]
+  proposalVersions        ProposalVersion[]
   timeEntries             TimeEntry[]
   timesheets              Timesheet[]
   workSchedules           WorkSchedule[]
@@ -563,6 +576,9 @@ model User {
   createdPricingWorkspaces  PricingWorkspace[]       @relation("PricingWorkspaceCreator")
   reviewedPricingWorkspaces PricingWorkspace[]       @relation("PricingWorkspaceReviewer")
   createdPricingVersions    PricingVersion[]         @relation("PricingVersionCreator")
+  createdProposalWorkspaces ProposalWorkspace[]      @relation("ProposalWorkspaceCreator")
+  reviewedProposalWorkspaces ProposalWorkspace[]     @relation("ProposalWorkspaceReviewer")
+  createdProposalVersions   ProposalVersion[]        @relation("ProposalVersionCreator")
   createdSalesActivities    SalesActivity[]          @relation("SalesActivityCreator")
   createdSalesProposals     SalesProposal[]          @relation("SalesProposalCreator")
   timeEntries               TimeEntry[]              @relation("TimeEntryOwner")
@@ -1904,6 +1920,7 @@ model SalesOpportunity {
   proposals        SalesProposal[]
   intakeSession    IntakeSession?
   pricingWorkspace PricingWorkspace?
+  proposalWorkspace ProposalWorkspace?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1969,6 +1986,7 @@ model IntakeSession {
   conversationMessages ConversationMessage[]
   report               DiscoveryReport?
   pricingWorkspace     PricingWorkspace?
+  proposalWorkspace    ProposalWorkspace?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2166,6 +2184,7 @@ model PricingWorkspace {
   approvedAt         DateTime?
 
   versions PricingVersion[]
+  proposalWorkspace ProposalWorkspace?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2200,6 +2219,79 @@ model PricingVersion {
   @@unique([workspaceId, version])
   @@index([companyId])
   @@index([createdById])
+  @@index([discoveryContentHash])
+  @@index([createdAt])
+}
+
+model ProposalWorkspace {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  intakeSessionId String        @unique
+  intakeSession   IntakeSession @relation(fields: [intakeSessionId], references: [id], onDelete: Cascade)
+
+  pricingWorkspaceId String           @unique
+  pricingWorkspace   PricingWorkspace @relation(fields: [pricingWorkspaceId], references: [id], onDelete: Cascade)
+
+  opportunityId String?           @unique
+  opportunity   SalesOpportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+
+  createdById String?
+  createdBy   User?   @relation("ProposalWorkspaceCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  reviewedById String?
+  reviewedBy   User?   @relation("ProposalWorkspaceReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  proposalNumber String
+  status         ProposalWorkspaceStatus @default(DRAFT)
+  currentVersion Int                     @default(0)
+  reviewNotes    String?
+
+  submittedAt        DateTime?
+  changesRequestedAt DateTime?
+  approvedAt         DateTime?
+
+  versions ProposalVersion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, proposalNumber])
+  @@index([companyId])
+  @@index([createdById])
+  @@index([reviewedById])
+  @@index([status])
+  @@index([updatedAt])
+}
+
+model ProposalVersion {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  workspaceId String
+  workspace   ProposalWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  createdById String?
+  createdBy   User?   @relation("ProposalVersionCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  version Int
+  content Json
+
+  contentHash            String
+  clientContentHash      String
+  pricingVersion         Int
+  pricingContentHash     String
+  discoveryReportVersion Int
+  discoveryContentHash   String
+
+  createdAt DateTime @default(now())
+
+  @@unique([workspaceId, version])
+  @@index([companyId])
+  @@index([createdById])
+  @@index([pricingContentHash])
   @@index([discoveryContentHash])
   @@index([createdAt])
 }

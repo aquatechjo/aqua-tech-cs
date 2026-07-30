@@ -68,6 +68,13 @@ export async function POST(
 
       const opportunity = await tx.salesOpportunity.findFirst({
         where: { id, companyId: user.companyId },
+        include: {
+          pricingWorkspace: {
+            select: {
+              id: true,
+            },
+          },
+        },
       })
       if (!opportunity) {
         throw new ApiError("فرصة البيع غير موجودة", 404, "OPPORTUNITY_NOT_FOUND")
@@ -78,6 +85,14 @@ export async function POST(
           "لا يمكن إنشاء عرض لفرصة مغلقة",
           409,
           "CLOSED_OPPORTUNITY_PROPOSAL_NOT_ALLOWED",
+        )
+      }
+
+      if (opportunity.pricingWorkspace) {
+        throw new ApiError(
+          "هذه الفرصة تستخدم مسار العرض المركزي المعتمد. افتحها من صفحة العروض.",
+          409,
+          "CENTRAL_PROPOSAL_REQUIRED",
         )
       }
 

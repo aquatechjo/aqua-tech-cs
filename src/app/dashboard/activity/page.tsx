@@ -150,6 +150,10 @@ function actionLabel(action: ActivityAction) {
     PRICING_SUBMITTED: "إرسال تسعير للمراجعة",
     PRICING_CHANGES_REQUESTED: "طلب تعديلات على تسعير",
     PRICING_APPROVED: "اعتماد تسعير",
+    PROPOSAL_VERSION_CREATED: "حفظ إصدار عرض",
+    PROPOSAL_SUBMITTED: "إرسال عرض للمراجعة",
+    PROPOSAL_CHANGES_REQUESTED: "طلب تعديلات على عرض",
+    PROPOSAL_APPROVED: "اعتماد عرض",
 
     COMPANY_UPDATED: "تعديل بيانات الشركة",
 
@@ -192,6 +196,7 @@ function actionBadgeClass(action: ActivityAction) {
     || action === "DISCOVERY_CONVERSATION_SUBMITTED"
     || action === "DISCOVERY_REPORT_APPROVED"
     || action === "PRICING_APPROVED"
+    || action === "PROPOSAL_APPROVED"
   ) {
     return "text-bg-success";
   }
@@ -246,6 +251,7 @@ function actionBadgeClass(action: ActivityAction) {
     || action === "DISCOVERY_REPORT_AI_GENERATED"
     || action === "DISCOVERY_REPORT_VERSION_CREATED"
     || action === "PRICING_VERSION_CREATED"
+    || action === "PROPOSAL_VERSION_CREATED"
   ) {
     return "text-bg-info";
   }
@@ -264,6 +270,8 @@ function actionBadgeClass(action: ActivityAction) {
     || action === "DISCOVERY_REPORT_CHANGES_REQUESTED"
     || action === "PRICING_SUBMITTED"
     || action === "PRICING_CHANGES_REQUESTED"
+    || action === "PROPOSAL_SUBMITTED"
+    || action === "PROPOSAL_CHANGES_REQUESTED"
   ) {
     return "text-bg-warning";
   }
