@@ -41,6 +41,11 @@ export default async function DashboardLayout({
           enabled: hasRole(user.role, ACCESS_ROLES.discoveryRead),
         },
         {
+          label: "النطاق والتسعير",
+          href: "/dashboard/pricing",
+          enabled: hasRole(user.role, ACCESS_ROLES.pricingRead),
+        },
+        {
           label: "المبيعات",
           href: "/dashboard/sales",
           enabled: hasRole(user.role, ACCESS_ROLES.salesRead),

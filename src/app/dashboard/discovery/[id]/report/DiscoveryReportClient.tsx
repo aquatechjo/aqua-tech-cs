@@ -371,8 +371,18 @@ export default function DiscoveryReportClient({
           title="تقرير الاكتشاف معتمد"
           icon={<CheckCircle2 />}
         >
-          أُغلقت مرحلة الاكتشاف، والخطوة التالية هي مراجعة النطاق
-          والتسعير البشري قبل إنشاء العرض المركزي.
+          <div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <span>
+              أُغلقت مرحلة الاكتشاف، والخطوة التالية هي مراجعة النطاق
+              والتسعير البشري قبل إنشاء العرض المركزي.
+            </span>
+            <AquaLinkButton
+              href={`/dashboard/discovery/${session.id}/pricing`}
+              size="sm"
+            >
+              فتح مساحة التسعير
+            </AquaLinkButton>
+          </div>
         </AquaAlert>
       ) : null}
 

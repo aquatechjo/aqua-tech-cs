@@ -146,6 +146,10 @@ function actionLabel(action: ActivityAction) {
     DISCOVERY_REPORT_SUBMITTED: "إرسال تقرير اكتشاف للمراجعة",
     DISCOVERY_REPORT_CHANGES_REQUESTED: "طلب تعديلات على تقرير اكتشاف",
     DISCOVERY_REPORT_APPROVED: "اعتماد تقرير اكتشاف",
+    PRICING_VERSION_CREATED: "حفظ إصدار تسعير",
+    PRICING_SUBMITTED: "إرسال تسعير للمراجعة",
+    PRICING_CHANGES_REQUESTED: "طلب تعديلات على تسعير",
+    PRICING_APPROVED: "اعتماد تسعير",
 
     COMPANY_UPDATED: "تعديل بيانات الشركة",
 
@@ -187,6 +191,7 @@ function actionBadgeClass(action: ActivityAction) {
     || action === "DISCOVERY_READY_FOR_REVIEW"
     || action === "DISCOVERY_CONVERSATION_SUBMITTED"
     || action === "DISCOVERY_REPORT_APPROVED"
+    || action === "PRICING_APPROVED"
   ) {
     return "text-bg-success";
   }
@@ -240,6 +245,7 @@ function actionBadgeClass(action: ActivityAction) {
     || action === "DISCOVERY_CONVERSATION_STARTED"
     || action === "DISCOVERY_REPORT_AI_GENERATED"
     || action === "DISCOVERY_REPORT_VERSION_CREATED"
+    || action === "PRICING_VERSION_CREATED"
   ) {
     return "text-bg-info";
   }
@@ -256,6 +262,8 @@ function actionBadgeClass(action: ActivityAction) {
     || action === "DISCOVERY_CONVERSATION_ESCALATED"
     || action === "DISCOVERY_REPORT_SUBMITTED"
     || action === "DISCOVERY_REPORT_CHANGES_REQUESTED"
+    || action === "PRICING_SUBMITTED"
+    || action === "PRICING_CHANGES_REQUESTED"
   ) {
     return "text-bg-warning";
   }

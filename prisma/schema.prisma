@@ -296,6 +296,13 @@ enum DiscoveryReportVersionOrigin {
   HUMAN_REVISION
 }
 
+enum PricingWorkspaceStatus {
+  DRAFT
+  IN_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+}
+
 enum NotificationType {
   INFO
   SUCCESS
@@ -361,6 +368,10 @@ enum ActivityAction {
   DISCOVERY_REPORT_SUBMITTED
   DISCOVERY_REPORT_CHANGES_REQUESTED
   DISCOVERY_REPORT_APPROVED
+  PRICING_VERSION_CREATED
+  PRICING_SUBMITTED
+  PRICING_CHANGES_REQUESTED
+  PRICING_APPROVED
   EMPLOYEE_PROFILE_UPDATED
   DEPARTMENT_CREATED
   DEPARTMENT_UPDATED
@@ -490,6 +501,8 @@ model Company {
   conversationMessages    ConversationMessage[]
   discoveryReports        DiscoveryReport[]
   discoveryReportVersions DiscoveryReportVersion[]
+  pricingWorkspaces       PricingWorkspace[]
+  pricingVersions         PricingVersion[]
   timeEntries             TimeEntry[]
   timesheets              Timesheet[]
   workSchedules           WorkSchedule[]
@@ -523,40 +536,43 @@ model User {
   notifications       Notification[]
   uploadedFiles       File[]
 
-  createdAt                DateTime                 @default(now())
-  updatedAt                DateTime                 @updatedAt
-  assignedTasks            Task[]                   @relation("TaskAssignee")
-  createdTasks             Task[]                   @relation("TaskCreator")
-  assignedServiceRequests  ServiceRequest[]         @relation("ServiceRequestAssignee")
-  employeeProfile          EmployeeProfile?
-  reportedTaskBlockers     TaskBlocker[]            @relation("TaskBlockerReporter")
-  resolvedTaskBlockers     TaskBlocker[]            @relation("TaskBlockerResolver")
-  createdInvoices          Invoice[]                @relation("InvoiceCreator")
-  recordedPayments         Payment[]                @relation("PaymentRecorder")
-  reversedPayments         Payment[]                @relation("PaymentReverser")
-  createdExpenses          Expense[]                @relation("ExpenseCreator")
-  approvedExpenses         Expense[]                @relation("ExpenseApprover")
-  ownedSalesOpportunities  SalesOpportunity[]       @relation("SalesOpportunityOwner")
-  ownedLeads               Lead[]                   @relation("LeadOwner")
-  ownedIntakeSessions      IntakeSession[]          @relation("IntakeSessionOwner")
-  createdIntakeSessions    IntakeSession[]          @relation("IntakeSessionCreator")
-  updatedIntakeSessions    IntakeSession[]          @relation("IntakeSessionUpdater")
-  capturedIntakeAnswers    IntakeAnswer[]           @relation("IntakeAnswerCapture")
-  resolvedRequirementGaps  RequirementGap[]         @relation("RequirementGapResolver")
-  createdDiscoveryReports  DiscoveryReport[]        @relation("DiscoveryReportCreator")
-  authorizedDiscoveryAi    DiscoveryReport[]        @relation("DiscoveryReportAiAuthorizer")
-  reviewedDiscoveryReports DiscoveryReport[]        @relation("DiscoveryReportReviewer")
-  createdReportVersions    DiscoveryReportVersion[] @relation("DiscoveryReportVersionCreator")
-  createdSalesActivities   SalesActivity[]          @relation("SalesActivityCreator")
-  createdSalesProposals    SalesProposal[]          @relation("SalesProposalCreator")
-  timeEntries              TimeEntry[]              @relation("TimeEntryOwner")
-  timesheets               Timesheet[]              @relation("TimesheetOwner")
-  approvedTimesheets       Timesheet[]              @relation("TimesheetApprover")
-  attendanceRecords        AttendanceRecord[]       @relation("AttendanceOwner")
-  updatedAttendanceRecords AttendanceRecord[]       @relation("AttendanceUpdater")
-  leaveBalances            LeaveBalance[]           @relation("LeaveBalanceOwner")
-  leaveRequests            LeaveRequest[]           @relation("LeaveRequester")
-  reviewedLeaveRequests    LeaveRequest[]           @relation("LeaveReviewer")
+  createdAt                 DateTime                 @default(now())
+  updatedAt                 DateTime                 @updatedAt
+  assignedTasks             Task[]                   @relation("TaskAssignee")
+  createdTasks              Task[]                   @relation("TaskCreator")
+  assignedServiceRequests   ServiceRequest[]         @relation("ServiceRequestAssignee")
+  employeeProfile           EmployeeProfile?
+  reportedTaskBlockers      TaskBlocker[]            @relation("TaskBlockerReporter")
+  resolvedTaskBlockers      TaskBlocker[]            @relation("TaskBlockerResolver")
+  createdInvoices           Invoice[]                @relation("InvoiceCreator")
+  recordedPayments          Payment[]                @relation("PaymentRecorder")
+  reversedPayments          Payment[]                @relation("PaymentReverser")
+  createdExpenses           Expense[]                @relation("ExpenseCreator")
+  approvedExpenses          Expense[]                @relation("ExpenseApprover")
+  ownedSalesOpportunities   SalesOpportunity[]       @relation("SalesOpportunityOwner")
+  ownedLeads                Lead[]                   @relation("LeadOwner")
+  ownedIntakeSessions       IntakeSession[]          @relation("IntakeSessionOwner")
+  createdIntakeSessions     IntakeSession[]          @relation("IntakeSessionCreator")
+  updatedIntakeSessions     IntakeSession[]          @relation("IntakeSessionUpdater")
+  capturedIntakeAnswers     IntakeAnswer[]           @relation("IntakeAnswerCapture")
+  resolvedRequirementGaps   RequirementGap[]         @relation("RequirementGapResolver")
+  createdDiscoveryReports   DiscoveryReport[]        @relation("DiscoveryReportCreator")
+  authorizedDiscoveryAi     DiscoveryReport[]        @relation("DiscoveryReportAiAuthorizer")
+  reviewedDiscoveryReports  DiscoveryReport[]        @relation("DiscoveryReportReviewer")
+  createdReportVersions     DiscoveryReportVersion[] @relation("DiscoveryReportVersionCreator")
+  createdPricingWorkspaces  PricingWorkspace[]       @relation("PricingWorkspaceCreator")
+  reviewedPricingWorkspaces PricingWorkspace[]       @relation("PricingWorkspaceReviewer")
+  createdPricingVersions    PricingVersion[]         @relation("PricingVersionCreator")
+  createdSalesActivities    SalesActivity[]          @relation("SalesActivityCreator")
+  createdSalesProposals     SalesProposal[]          @relation("SalesProposalCreator")
+  timeEntries               TimeEntry[]              @relation("TimeEntryOwner")
+  timesheets                Timesheet[]              @relation("TimesheetOwner")
+  approvedTimesheets        Timesheet[]              @relation("TimesheetApprover")
+  attendanceRecords         AttendanceRecord[]       @relation("AttendanceOwner")
+  updatedAttendanceRecords  AttendanceRecord[]       @relation("AttendanceUpdater")
+  leaveBalances             LeaveBalance[]           @relation("LeaveBalanceOwner")
+  leaveRequests             LeaveRequest[]           @relation("LeaveRequester")
+  reviewedLeaveRequests     LeaveRequest[]           @relation("LeaveReviewer")
 
   @@index([companyId])
   @@index([role])
@@ -1884,9 +1900,10 @@ model SalesOpportunity {
   wonAt      DateTime?
   lostAt     DateTime?
 
-  activities    SalesActivity[]
-  proposals     SalesProposal[]
-  intakeSession IntakeSession?
+  activities       SalesActivity[]
+  proposals        SalesProposal[]
+  intakeSession    IntakeSession?
+  pricingWorkspace PricingWorkspace?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1951,6 +1968,7 @@ model IntakeSession {
   gaps                 RequirementGap[]
   conversationMessages ConversationMessage[]
   report               DiscoveryReport?
+  pricingWorkspace     PricingWorkspace?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2072,7 +2090,8 @@ model DiscoveryReport {
   changesRequestedAt DateTime?
   approvedAt         DateTime?
 
-  versions DiscoveryReportVersion[]
+  versions         DiscoveryReportVersion[]
+  pricingWorkspace PricingWorkspace?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2115,6 +2134,73 @@ model DiscoveryReportVersion {
   @@index([createdById])
   @@index([origin])
   @@index([evidenceInputHash])
+  @@index([createdAt])
+}
+
+model PricingWorkspace {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  intakeSessionId String        @unique
+  intakeSession   IntakeSession @relation(fields: [intakeSessionId], references: [id], onDelete: Cascade)
+
+  discoveryReportId String          @unique
+  discoveryReport   DiscoveryReport @relation(fields: [discoveryReportId], references: [id], onDelete: Cascade)
+
+  opportunityId String?           @unique
+  opportunity   SalesOpportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+
+  createdById String?
+  createdBy   User?   @relation("PricingWorkspaceCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  reviewedById String?
+  reviewedBy   User?   @relation("PricingWorkspaceReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  status         PricingWorkspaceStatus @default(DRAFT)
+  currentVersion Int                    @default(0)
+  reviewNotes    String?
+
+  submittedAt        DateTime?
+  changesRequestedAt DateTime?
+  approvedAt         DateTime?
+
+  versions PricingVersion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([createdById])
+  @@index([reviewedById])
+  @@index([status])
+  @@index([updatedAt])
+}
+
+model PricingVersion {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  workspaceId String
+  workspace   PricingWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  createdById String?
+  createdBy   User?   @relation("PricingVersionCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  version Int
+  content Json
+
+  contentHash            String
+  discoveryReportVersion Int
+  discoveryContentHash   String
+
+  createdAt DateTime @default(now())
+
+  @@unique([workspaceId, version])
+  @@index([companyId])
+  @@index([createdById])
+  @@index([discoveryContentHash])
   @@index([createdAt])
 }
 

@@ -286,6 +286,23 @@ Status: **implemented**
 - Complete Discovery only after explicit human approval, then qualify the Lead and eligible opportunity and set the next action to human scope review and pricing.
 - Keep uploads, pricing, the central Proposal Engine, delivery channels, acceptance, contracts, and project creation for later independent batches.
 
+## PRIC-01 — Human Scope and Pricing
+
+Status: **implemented**
+
+- Start pricing only from a completed Discovery session with an explicitly approved human Discovery Report version.
+- Create one tenant-scoped pricing workspace with immutable, numbered human versions instead of overwriting commercial history.
+- Seed the first draft from the approved report scope while requiring the team to enter quantities, client prices, and internal costs manually.
+- Separate `CLIENT` lines and client notes from `INTERNAL` cost lines, item notes, workspace notes, profit, and margin data.
+- Support service, deliverable, phase, and optional line kinds with fractional quantities and server-authoritative decimal calculations.
+- Keep discount and tax configurable as none, percentage, or fixed amount without assuming a tax rate.
+- Calculate client subtotal, discount, net revenue, internal cost, gross profit, margin, tax, and final total; keep tax outside profit and margin.
+- Add a central, tenant-scoped pricing queue so Sales and Finance reviewers can find ready, draft, returned, in-review, and approved work without access to raw Discovery content.
+- Enforce `DRAFT`, `IN_REVIEW`, `CHANGES_REQUESTED`, and `APPROVED` transitions with tenant scoping, row locks, transactions, and durable activity events.
+- Separate authoring from approval: authorized non-owner users cannot approve the pricing version they created, while the system owner may self-approve when no higher approver exists.
+- Update the opportunity amount and next Lead action only after approval; do not create, send, accept, or reject a Proposal in this batch.
+- Keep the central Proposal Engine, client-safe proposal projection, delivery channels, negotiation, acceptance, contracts, and project creation for later independent batches.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.

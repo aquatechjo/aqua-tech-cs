@@ -42,6 +42,20 @@ export const ACCESS_ROLES = {
   ],
   discoveryReportManagement: ["OWNER", "ADMIN", "SALES_MANAGER"],
   discoveryReportApproval: ["OWNER", "ADMIN", "SALES_MANAGER"],
+  pricingRead: [
+    "OWNER",
+    "ADMIN",
+    "SALES_MANAGER",
+    "OPERATIONS_MANAGER",
+    "FINANCE_MANAGER",
+  ],
+  pricingManagement: [
+    "OWNER",
+    "ADMIN",
+    "SALES_MANAGER",
+    "FINANCE_MANAGER",
+  ],
+  pricingApproval: ["OWNER", "ADMIN", "FINANCE_MANAGER"],
   taskManagement: ["OWNER", "ADMIN", "OPERATIONS_MANAGER"],
   financeRead: ["OWNER", "ADMIN", "FINANCE_MANAGER", "OPERATIONS_MANAGER"],
   financeManagement: ["OWNER", "ADMIN", "FINANCE_MANAGER"],
@@ -298,6 +312,35 @@ export function assertCanApproveLeave(
       approver.id === requesterUserId
         ? "LEAVE_SELF_APPROVAL_FORBIDDEN"
         : "LEAVE_APPROVAL_FORBIDDEN",
+    )
+  }
+}
+
+export function canApprovePricing(
+  approver: { id: string; role: AccessRole },
+  versionCreatorId: string | null,
+) {
+  if (!hasRole(approver.role, ACCESS_ROLES.pricingApproval)) return false
+  return (
+    approver.role === "OWNER" ||
+    versionCreatorId === null ||
+    approver.id !== versionCreatorId
+  )
+}
+
+export function assertCanApprovePricing(
+  approver: { id: string; role: AccessRole },
+  versionCreatorId: string | null,
+) {
+  if (!canApprovePricing(approver, versionCreatorId)) {
+    throw new ApiError(
+      versionCreatorId === approver.id
+        ? "لا يمكنك اعتماد إصدار التسعير الذي أنشأته بنفسك"
+        : "لا تملك صلاحية اعتماد التسعير",
+      403,
+      versionCreatorId === approver.id
+        ? "PRICING_SELF_APPROVAL_FORBIDDEN"
+        : "PRICING_APPROVAL_FORBIDDEN",
     )
   }
 }

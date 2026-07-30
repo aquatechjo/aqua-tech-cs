@@ -40,6 +40,11 @@ export const aquaRouteDefinitions: readonly AquaRouteDefinition[] = [
     subtitle: "جلسات Discovery وقياس الاكتمال وفجوات المعلومات",
   },
   {
+    path: "/dashboard/pricing",
+    title: "النطاق والتسعير",
+    subtitle: "إصدارات التسعير الداخلية والمراجعة البشرية قبل العرض",
+  },
+  {
     path: "/dashboard/sales/opportunities",
     title: "فرص المبيعات",
     subtitle: "متابعة تفاصيل الفرص والأنشطة والعروض",

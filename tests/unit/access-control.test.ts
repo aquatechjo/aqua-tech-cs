@@ -4,6 +4,7 @@ import {
   ACCESS_ROLES,
   canApproveTimesheet,
   canApproveLeave,
+  canApprovePricing,
   canViewCompanyHr,
   canAssignTaskOwner,
   canEditTask,
@@ -205,6 +206,34 @@ test("finance access separates visibility from financial mutations", () => {
   assert.equal(hasRole("OPERATIONS_MANAGER", ACCESS_ROLES.financeManagement), false);
   assert.equal(hasRole("SALES_MANAGER", ACCESS_ROLES.financeRead), false);
 });
+
+test("pricing separates read, authoring, and approval duties", () => {
+  assert.equal(hasRole("OPERATIONS_MANAGER", ACCESS_ROLES.pricingRead), true)
+  assert.equal(
+    hasRole("OPERATIONS_MANAGER", ACCESS_ROLES.pricingManagement),
+    false,
+  )
+  assert.equal(
+    hasRole("SALES_MANAGER", ACCESS_ROLES.pricingManagement),
+    true,
+  )
+  assert.equal(
+    hasRole("SALES_MANAGER", ACCESS_ROLES.pricingApproval),
+    false,
+  )
+  assert.equal(
+    canApprovePricing({ id: "finance", role: "FINANCE_MANAGER" }, "author"),
+    true,
+  )
+  assert.equal(
+    canApprovePricing({ id: "finance", role: "FINANCE_MANAGER" }, "finance"),
+    false,
+  )
+  assert.equal(
+    canApprovePricing({ id: "owner", role: "OWNER" }, "owner"),
+    true,
+  )
+})
 
 test("sales access separates pipeline visibility from sales mutations", () => {
   assert.equal(hasRole("SALES_MANAGER", ACCESS_ROLES.salesRead), true);
