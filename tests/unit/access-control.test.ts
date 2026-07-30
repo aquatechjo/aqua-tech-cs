@@ -275,6 +275,16 @@ test("proposal access separates visibility, authoring, and approval duties", () 
     hasRole("FINANCE_MANAGER", ACCESS_ROLES.proposalDelivery),
     false,
   )
+  assert.equal(hasRole("OWNER", ACCESS_ROLES.projectConversion), true)
+  assert.equal(hasRole("ADMIN", ACCESS_ROLES.projectConversion), true)
+  assert.equal(
+    hasRole("SALES_MANAGER", ACCESS_ROLES.projectConversion),
+    false,
+  )
+  assert.equal(
+    hasRole("OPERATIONS_MANAGER", ACCESS_ROLES.projectConversion),
+    false,
+  )
 })
 
 test("sales access separates pipeline visibility from sales mutations", () => {

@@ -162,6 +162,7 @@ function actionLabel(action: ActivityAction) {
     PROPOSAL_CLIENT_CHANGES_REQUESTED: "طلب العميل تعديل العرض",
     PROPOSAL_CLIENT_ACCEPTED: "قبول العميل للعرض",
     PROPOSAL_CLIENT_REJECTED: "رفض العميل للعرض",
+    PROPOSAL_CONVERTED_TO_PROJECT: "تحويل العرض إلى مشروع",
 
     COMPANY_UPDATED: "تعديل بيانات الشركة",
 
@@ -207,6 +208,7 @@ function actionBadgeClass(action: ActivityAction) {
     || action === "PROPOSAL_APPROVED"
     || action === "PROPOSAL_SENT"
     || action === "PROPOSAL_CLIENT_ACCEPTED"
+    || action === "PROPOSAL_CONVERTED_TO_PROJECT"
   ) {
     return "text-bg-success";
   }

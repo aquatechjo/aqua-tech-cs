@@ -414,6 +414,7 @@ enum ActivityAction {
   PROPOSAL_CLIENT_CHANGES_REQUESTED
   PROPOSAL_CLIENT_ACCEPTED
   PROPOSAL_CLIENT_REJECTED
+  PROPOSAL_CONVERTED_TO_PROJECT
   EMPLOYEE_PROFILE_UPDATED
   DEPARTMENT_CREATED
   DEPARTMENT_UPDATED
@@ -1014,6 +1015,15 @@ model Project {
   startDate        DateTime?
   dueDate          DateTime?
   completedAt      DateTime?
+  originProposalWorkspaceId String?   @unique
+  originProposalWorkspace   ProposalWorkspace? @relation("ProposalConvertedProject", fields: [originProposalWorkspaceId], references: [id], onDelete: Restrict)
+  originProposalResponseId  String?   @unique
+  originProposalResponse    ProposalClientResponse? @relation("ProposalResponseConvertedProject", fields: [originProposalResponseId], references: [id], onDelete: Restrict)
+  originProposalVersion     Int?
+  originProposalContentHash String?
+  originClientContentHash   String?
+  clientAcceptedAt          DateTime?
+  proposalConvertedAt       DateTime?
   tasks            Task[]
   members          ProjectMember[]
   phases           ProjectPhase[]
@@ -1030,6 +1040,7 @@ model Project {
   @@index([clientId])
   @@index([status])
   @@index([priority])
+  @@index([proposalConvertedAt])
   @@index([createdAt])
 }
 
@@ -2297,6 +2308,7 @@ model ProposalWorkspace {
   versions   ProposalVersion[]
   deliveries ProposalDelivery[]
   responses  ProposalClientResponse[]
+  convertedProject Project? @relation("ProposalConvertedProject")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2414,6 +2426,7 @@ model ProposalClientResponse {
   ipAddress String?
   userAgent String?
   respondedAt DateTime @default(now())
+  convertedProject Project? @relation("ProposalResponseConvertedProject")
 
   @@unique([workspaceId, version])
   @@index([companyId])

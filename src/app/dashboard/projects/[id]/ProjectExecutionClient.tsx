@@ -276,6 +276,10 @@ export default function ProjectExecutionClient({
     client: { id: string; name: string } | null
     startDate: string | null
     dueDate: string | null
+    originProposalWorkspaceId: string | null
+    originProposalVersion: number | null
+    clientAcceptedAt: string | null
+    proposalConvertedAt: string | null
   }
   workflow: {
     templateName: string
@@ -564,6 +568,21 @@ export default function ProjectExecutionClient({
       ) : null}
       {success ? (
         <AquaAlert variant="success">{success}</AquaAlert>
+      ) : null}
+
+      {project.originProposalWorkspaceId ? (
+        <AquaAlert
+          variant="info"
+          title="مشروع منشأ من عرض مقبول"
+          icon={<CheckCircle2 />}
+        >
+          يحفظ المشروع مرجع الإصدار{" "}
+          <bdi dir="ltr">
+            v{project.originProposalVersion ?? "—"}
+          </bdi>{" "}
+          ورد قبول العميل. بقي في التخطيط دون تكليفات تلقائية حتى
+          يحدد فريق العمليات تاريخ البدء وقائد المشروع.
+        </AquaAlert>
       ) : null}
 
       {workflow ? (

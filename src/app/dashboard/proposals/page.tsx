@@ -252,6 +252,12 @@ export default async function ProposalQueuePage({
       opportunity: {
         select: {
           title: true,
+          project: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       },
       pricingWorkspace: {
@@ -332,9 +338,9 @@ export default async function ProposalQueuePage({
   return (
     <div className="d-flex flex-column gap-4">
       <AquaPageHeader
-        badge="PROP-02"
+        badge="PROJ-01"
         title="العروض المركزية"
-        description="أنشئ العرض واعتمده، ثم أرسله كرابط آمن وتابع مشاهدة العميل وطلباته وقراره."
+        description="أنشئ العرض واعتمده وأرسله، ثم حوّل النسخة المقبولة إلى عميل ومشروع وWorkflow مرتبط."
         brandValue="Proposals"
       />
 
@@ -485,12 +491,19 @@ export default async function ProposalQueuePage({
                       {workspace?.proposalNumber ?? "—"}
                     </td>
                     <td data-label="الحالة">
-                      <AquaBadge
-                        variant={statusDetails[queueStatus].variant}
-                        size="sm"
-                      >
-                        {statusDetails[queueStatus].label}
-                      </AquaBadge>
+                      <div className="d-flex flex-wrap gap-2">
+                        <AquaBadge
+                          variant={statusDetails[queueStatus].variant}
+                          size="sm"
+                        >
+                          {statusDetails[queueStatus].label}
+                        </AquaBadge>
+                        {session.opportunity?.project ? (
+                          <AquaBadge variant="blue" size="sm">
+                            تم التحويل
+                          </AquaBadge>
+                        ) : null}
+                      </div>
                     </td>
                     <td data-label="الإجمالي" dir="ltr">
                       {parsedContent.success
@@ -514,7 +527,11 @@ export default async function ProposalQueuePage({
                     </td>
                     <td data-label="إجراء">
                       <AquaLinkButton
-                        href={`/dashboard/discovery/${session.id}/proposal`}
+                        href={
+                          session.opportunity?.project
+                            ? `/dashboard/projects/${session.opportunity.project.id}`
+                            : `/dashboard/discovery/${session.id}/proposal`
+                        }
                         size="sm"
                         variant={
                           queueStatus === "READY"
@@ -524,7 +541,9 @@ export default async function ProposalQueuePage({
                       >
                         {queueStatus === "READY"
                           ? "بناء العرض"
-                          : "فتح العرض"}
+                          : session.opportunity?.project
+                            ? "فتح المشروع"
+                            : "فتح العرض"}
                       </AquaLinkButton>
                     </td>
                   </tr>

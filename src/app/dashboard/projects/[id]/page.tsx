@@ -338,6 +338,13 @@ export default async function ProjectExecutionPage({
         client: project.client,
         startDate: project.startDate?.toISOString() ?? null,
         dueDate: project.dueDate?.toISOString() ?? null,
+        originProposalWorkspaceId:
+          project.originProposalWorkspaceId,
+        originProposalVersion: project.originProposalVersion,
+        clientAcceptedAt:
+          project.clientAcceptedAt?.toISOString() ?? null,
+        proposalConvertedAt:
+          project.proposalConvertedAt?.toISOString() ?? null,
       }}
       workflow={
         project.workflow

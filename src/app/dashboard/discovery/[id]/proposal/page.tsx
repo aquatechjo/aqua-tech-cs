@@ -52,8 +52,29 @@ export default async function ProposalWorkspacePage({
           title: true,
           stage: true,
           contactName: true,
+          companyName: true,
+          serviceType: true,
           email: true,
           phone: true,
+          project: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              status: true,
+              originProposalWorkspaceId: true,
+              proposalConvertedAt: true,
+              workflow: {
+                select: {
+                  id: true,
+                  templateName: true,
+                  templateCode: true,
+                  templateVersion: true,
+                  status: true,
+                },
+              },
+            },
+          },
         },
       },
       report: {
@@ -224,6 +245,31 @@ export default async function ProposalWorkspacePage({
     versions.find(
       (version) => version.version === workspace?.currentVersion,
     ) ?? null
+  const canConvert = hasRole(
+    user.role,
+    ACCESS_ROLES.projectConversion,
+  )
+  const workflowTemplates =
+    canConvert &&
+    workspace?.status === "ACCEPTED" &&
+    session.opportunity &&
+    !session.opportunity.project
+      ? await prisma.workflowTemplate.findMany({
+          where: {
+            companyId: user.companyId,
+            isActive: true,
+          },
+          orderBy: [{ isDefault: "desc" }, { name: "asc" }],
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            version: true,
+            isDefault: true,
+            description: true,
+          },
+        })
+      : []
 
   return (
     <ProposalWorkspaceClient
@@ -232,7 +278,19 @@ export default async function ProposalWorkspacePage({
         id: session.id,
         serviceTrack: session.serviceTrack,
         lead: session.lead,
-        opportunity: session.opportunity,
+        opportunity: session.opportunity
+          ? {
+              ...session.opportunity,
+              project: session.opportunity.project
+                ? {
+                    ...session.opportunity.project,
+                    proposalConvertedAt:
+                      session.opportunity.project.proposalConvertedAt?.toISOString() ??
+                      null,
+                  }
+                : null,
+            }
+          : null,
       }}
       displayName={displayName}
       source={{
@@ -304,6 +362,8 @@ export default async function ProposalWorkspacePage({
         user.role,
         ACCESS_ROLES.proposalDelivery,
       )}
+      canConvert={canConvert}
+      workflowTemplates={workflowTemplates}
       recipient={{
         name:
           session.opportunity?.contactName ??

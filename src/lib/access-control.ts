@@ -66,6 +66,7 @@ export const ACCESS_ROLES = {
   proposalManagement: ["OWNER", "ADMIN", "SALES_MANAGER"],
   proposalApproval: ["OWNER", "ADMIN", "SALES_MANAGER"],
   proposalDelivery: ["OWNER", "ADMIN", "SALES_MANAGER"],
+  projectConversion: ["OWNER", "ADMIN"],
   taskManagement: ["OWNER", "ADMIN", "OPERATIONS_MANAGER"],
   financeRead: ["OWNER", "ADMIN", "FINANCE_MANAGER", "OPERATIONS_MANAGER"],
   financeManagement: ["OWNER", "ADMIN", "FINANCE_MANAGER"],

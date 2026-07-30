@@ -16,6 +16,7 @@ type ProjectWorkflowCreateInput = {
   createdById: string
   workflowTemplateId?: string | null
   templateHint?: string | null
+  eventContext?: Record<string, unknown>
   project: {
     clientId?: string | null
     name: string
@@ -276,6 +277,7 @@ export async function createProjectWithWorkflow(
         projectName: project.name,
         templateCode: template.code,
         templateVersion: template.version,
+        ...input.eventContext,
       }),
     },
   })

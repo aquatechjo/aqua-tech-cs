@@ -253,12 +253,10 @@ test("PROP-02 delivery and response routes are scoped, locked, and auditable", (
     assert.doesNotMatch(source, /createProjectWithWorkflow/)
   }
 
-  assert.match(convertRoute, /CENTRAL_PROPOSAL_PROJECT_CONVERSION_PENDING/)
-  assert.ok(
-    convertRoute.indexOf(
-      "CENTRAL_PROPOSAL_PROJECT_CONVERSION_PENDING",
-    ) < convertRoute.indexOf("createProjectWithWorkflow(tx"),
-  )
+  assert.match(convertRoute, /ACCESS_ROLES\.projectConversion/)
+  assert.match(convertRoute, /ACCEPTED_PROPOSAL_CONVERSION_NOT_READY/)
+  assert.match(convertRoute, /proposalClientContentHash/)
+  assert.match(convertRoute, /proposalContentHash/)
   assert.match(migration, /"tokenHash" TEXT NOT NULL/)
   assert.doesNotMatch(migration, /"token" TEXT/)
   assert.doesNotMatch(migration, /\bDROP\b/i)

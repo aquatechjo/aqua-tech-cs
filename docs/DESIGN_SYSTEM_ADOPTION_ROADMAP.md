@@ -337,6 +337,37 @@ Status: **implemented**
 - Move sent opportunities to Proposal, accepted opportunities to governed negotiation handoff, requested changes back to authoring, and explicit rejection to Lost with a reason.
 - Keep client creation, contract creation, workflow creation, project creation, and Won conversion for PROJ-01.
 
+## PROJ-01 — Accepted Proposal Conversion
+
+Status: **implemented**
+
+- Convert only an explicitly accepted central Proposal whose sent version,
+  customer response, full content hash, and client projection hash all match.
+- Recalculate both Proposal hashes on the server before any conversion
+  mutation and preserve the accepted version, hashes, response, and timestamps
+  as immutable Project provenance.
+- Limit the conversion action to Owner and Admin while preserving broader
+  read-only Proposal visibility for Sales, Operations, and Finance.
+- Reuse the uniquely linked or identity-matched active Client, create a Client
+  only when no match exists, and stop for conflicting, ambiguous, or archived
+  Client matches.
+- Preserve the Opportunity contact and accepting customer representative as
+  Client contacts without silently replacing an established primary contact.
+- Create the Project in `PLANNING` and clone an explicitly selected active
+  Workflow template in `NOT_STARTED`.
+- Clone phases, tasks, dependencies, approvals, and rules without assigning
+  employees, setting operational dates, or activating delivery.
+- Make conversion transactionally locked and replay-safe with one Project per
+  Proposal workspace and customer response.
+- Link and close eligible Lead, Service Request, and Opportunity records, update
+  the commercial value from the accepted Proposal, and write durable audit
+  events.
+- Surface the conversion from the Proposal workspace and queue, and preserve
+  the accepted-Proposal origin on the Project execution page.
+- Keep contracts, payment readiness, administrative readiness overrides,
+  scheduling, team assignment, Workflow activation, invoicing, notifications,
+  and n8n dispatch for later governed batches.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.

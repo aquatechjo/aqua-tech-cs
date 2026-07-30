@@ -5,6 +5,7 @@ import {
   Copy,
   Eye,
   FileClock,
+  FolderKanban,
   Link2,
   Mail,
   MessageCircle,
@@ -13,6 +14,7 @@ import {
   Send,
   ShieldCheck,
   Trash2,
+  Workflow,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
@@ -185,6 +187,8 @@ export default function ProposalWorkspaceClient({
   canApprove,
   approvalBlockedBySelf,
   canDeliver,
+  canConvert,
+  workflowTemplates,
   recipient,
   timeZone,
 }: {
@@ -201,6 +205,21 @@ export default function ProposalWorkspaceClient({
       id: string
       title: string
       stage: SalesOpportunityStage
+      project: {
+        id: string
+        name: string
+        code: string | null
+        status: string
+        originProposalWorkspaceId: string | null
+        proposalConvertedAt: string | null
+        workflow: {
+          id: string
+          templateName: string
+          templateCode: string
+          templateVersion: number
+          status: string
+        } | null
+      } | null
     } | null
   }
   displayName: string
@@ -217,6 +236,15 @@ export default function ProposalWorkspaceClient({
   canApprove: boolean
   approvalBlockedBySelf: boolean
   canDeliver: boolean
+  canConvert: boolean
+  workflowTemplates: Array<{
+    id: string
+    name: string
+    code: string
+    version: number
+    isDefault: boolean
+    description: string | null
+  }>
   recipient: {
     name: string
     email: string
@@ -239,10 +267,12 @@ export default function ProposalWorkspaceClient({
     | "SEND_EMAIL"
     | "CONFIRM_DELIVERY"
     | "REVOKE"
+    | "CONVERT_PROJECT"
     | null
   >(null)
   const [showApprove, setShowApprove] = useState(false)
   const [showChanges, setShowChanges] = useState(false)
+  const [showConvert, setShowConvert] = useState(false)
   const [reviewNotes, setReviewNotes] = useState("")
   const [previewVersion, setPreviewVersion] = useState<
     WorkspaceItem["versions"][number] | null
@@ -250,6 +280,12 @@ export default function ProposalWorkspaceClient({
   const [recipientName, setRecipientName] = useState(recipient.name)
   const [recipientEmail, setRecipientEmail] = useState(recipient.email)
   const [recipientPhone, setRecipientPhone] = useState(recipient.phone)
+  const [projectName, setProjectName] = useState(
+    session.opportunity?.title ?? `مشروع — ${displayName}`,
+  )
+  const [workflowTemplateId, setWorkflowTemplateId] = useState(
+    workflowTemplates[0]?.id ?? "",
+  )
   const [preparedDelivery, setPreparedDelivery] = useState<{
     deliveryId: string
     channel: "SECURE_LINK" | "WHATSAPP"
@@ -258,6 +294,7 @@ export default function ProposalWorkspaceClient({
     expiresAt: string
   } | null>(null)
   const status = workspace?.status ?? "DRAFT"
+  const convertedProject = session.opportunity?.project ?? null
   const locked =
     status !== "DRAFT" &&
     status !== "CHANGES_REQUESTED" &&
@@ -560,6 +597,57 @@ export default function ProposalWorkspaceClient({
     if (data) setPreparedDelivery(null)
   }
 
+  async function convertAcceptedProposal() {
+    if (!session.opportunity) {
+      setError("لا توجد فرصة بيع مرتبطة بهذا العرض.")
+      return
+    }
+    if (projectName.trim().length < 3) {
+      setError("أدخل اسم مشروع واضحًا.")
+      return
+    }
+    if (!workflowTemplateId) {
+      setError("اختر قالب سير العمل.")
+      return
+    }
+
+    setError("")
+    setSuccess("")
+    setLoadingAction("CONVERT_PROJECT")
+
+    try {
+      const response = await fetch(
+        `/api/sales/opportunities/${session.opportunity.id}/convert`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            projectName: projectName.trim(),
+            workflowTemplateId,
+            acceptanceConfirmed: true,
+          }),
+        },
+      )
+      const data = await response.json()
+
+      if (!response.ok || !data.ok) {
+        setError(data.message || "تعذر تحويل العرض إلى مشروع")
+        return
+      }
+
+      setShowConvert(false)
+      setSuccess("تم إنشاء العميل ومسودة المشروع وربط سير العمل.")
+      router.push(`/dashboard/projects/${data.data.projectId}`)
+      router.refresh()
+    } catch {
+      setError("تعذر الاتصال بالخادم")
+    } finally {
+      setLoadingAction(null)
+    }
+  }
+
   async function copyPreparedLink() {
     if (!preparedDelivery) return
 
@@ -661,7 +749,9 @@ export default function ProposalWorkspaceClient({
           icon={<CheckCircle2 />}
         >
           سُجل القبول باسم {workspace?.clientResponseName ?? "العميل"}.
-          التحويل إلى مشروع يبقى خطوة مستقلة ضمن PROJ‑01.
+          {convertedProject
+            ? " وتم توثيق التحويل إلى مشروع."
+            : " اختر قالب سير العمل ونفّذ التحويل الإداري أدناه."}
         </AquaAlert>
       ) : null}
       {status === "REJECTED" ? (
@@ -722,6 +812,140 @@ export default function ProposalWorkspaceClient({
           </AquaCard>
         </div>
       </div>
+
+      {status === "ACCEPTED" || convertedProject ? (
+        <AquaDataPanel
+          eyebrow="PROJ-01"
+          title={
+            convertedProject
+              ? "تم ربط العرض بالمشروع"
+              : "تحويل العرض المقبول إلى مشروع"
+          }
+          description={
+            convertedProject
+              ? "يحفظ المشروع مرجع إصدار العرض ورد القبول، ويرتبط بنسخة مستقلة من قالب سير العمل."
+              : "ينشئ حساب العميل عند الحاجة ومسودة مشروع وWorkflow غير مبدوء؛ لا يعيّن موظفين ولا يبدأ التنفيذ."
+          }
+          meta={<FolderKanban aria-hidden="true" />}
+        >
+          {convertedProject ? (
+            <div className="row g-3 align-items-end">
+              <div className="col-12 col-xl-8">
+                <AquaDetailList
+                  columns={2}
+                  items={[
+                    {
+                      label: "المشروع",
+                      value: convertedProject.name,
+                    },
+                    {
+                      label: "الرمز",
+                      value: convertedProject.code ?? "—",
+                      dir: "ltr",
+                    },
+                    {
+                      label: "الحالة",
+                      value:
+                        convertedProject.status === "PLANNING"
+                          ? "تخطيط"
+                          : convertedProject.status,
+                    },
+                    {
+                      label: "سير العمل",
+                      value: convertedProject.workflow
+                        ? `${convertedProject.workflow.templateName} · v${convertedProject.workflow.templateVersion}`
+                        : "—",
+                    },
+                  ]}
+                />
+              </div>
+              <div className="col-12 col-xl-4">
+                <AquaLinkButton
+                  href={`/dashboard/projects/${convertedProject.id}`}
+                  leadingIcon={<FolderKanban />}
+                  fullWidth
+                >
+                  فتح المشروع وخطة التنفيذ
+                </AquaLinkButton>
+              </div>
+            </div>
+          ) : !session.opportunity ? (
+            <AquaAlert
+              variant="warning"
+              title="فرصة البيع غير مرتبطة"
+            >
+              اربط جلسة الاكتشاف بفرصة بيع قبل إنشاء المشروع.
+            </AquaAlert>
+          ) : !canConvert ? (
+            <AquaAlert
+              variant="neutral"
+              title="بانتظار التحويل الإداري"
+            >
+              يستطيع مالك النظام أو الإدارة فقط إنشاء حساب العميل
+              ومسودة المشروع من العرض المقبول.
+            </AquaAlert>
+          ) : workflowTemplates.length === 0 ? (
+            <AquaAlert
+              variant="warning"
+              title="لا يوجد قالب سير عمل مفعّل"
+            >
+              فعّل قالب Workflow مناسبًا قبل تحويل العرض.
+            </AquaAlert>
+          ) : (
+            <>
+              <div className="row g-3 align-items-end">
+                <div className="col-12 col-lg-6">
+                  <AquaInput
+                    label="اسم المشروع"
+                    value={projectName}
+                    onChange={(event) =>
+                      setProjectName(event.target.value)
+                    }
+                  />
+                </div>
+                <div className="col-12 col-lg-6">
+                  <AquaSelect
+                    label="قالب سير العمل"
+                    value={workflowTemplateId}
+                    onChange={(event) =>
+                      setWorkflowTemplateId(event.target.value)
+                    }
+                  >
+                    {workflowTemplates.map((template) => (
+                      <option key={template.id} value={template.id}>
+                        {template.name} · v{template.version}
+                        {template.isDefault ? " · الافتراضي" : ""}
+                      </option>
+                    ))}
+                  </AquaSelect>
+                </div>
+              </div>
+              <AquaAlert
+                className="mt-3"
+                variant="info"
+                title="حدود التحويل"
+                icon={<Workflow />}
+              >
+                تُنشأ مراحل ومهام القالب كمسودة غير مسندة ومن دون
+                مواعيد. يحدد فريق العمليات تاريخ البدء وقائد المشروع
+                والتكليفات في خطوة مستقلة.
+              </AquaAlert>
+              <div className="d-flex justify-content-end mt-3">
+                <AquaButton
+                  leadingIcon={<FolderKanban />}
+                  disabled={
+                    projectName.trim().length < 3 ||
+                    !workflowTemplateId
+                  }
+                  onClick={() => setShowConvert(true)}
+                >
+                  تحويل إلى مشروع
+                </AquaButton>
+              </div>
+            </>
+          )}
+        </AquaDataPanel>
+      ) : null}
 
       <AquaTabs
         items={tabItems}
@@ -1568,6 +1792,18 @@ export default function ProposalWorkspaceClient({
           )}
         </AquaDataPanel>
       ) : null}
+
+      <AquaConfirmDialog
+        open={showConvert}
+        onClose={() => setShowConvert(false)}
+        onConfirm={convertAcceptedProposal}
+        title="تحويل العرض المقبول إلى مشروع"
+        description="سيُنشأ أو يُعاد استخدام حساب العميل، ثم تُنشأ مسودة مشروع مرتبطة بالإصدار المقبول ونسخة مستقلة من سير العمل. لن يبدأ المشروع ولن يُعيّن أي موظف تلقائيًا."
+        confirmLabel="إنشاء مسودة المشروع"
+        loading={loadingAction === "CONVERT_PROJECT"}
+        tone="neutral"
+        icon={<FolderKanban />}
+      />
 
       <AquaConfirmDialog
         open={showApprove}
