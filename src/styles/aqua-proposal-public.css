@@ -1,0 +1,275 @@
+.aqua-proposal-public {
+  min-block-size: 100vh;
+  padding-block: var(--at-space-8);
+  padding-inline: var(--at-space-4);
+  background:
+    radial-gradient(
+      circle at 10% 0%,
+      rgba(var(--at-product-primary-rgb), 0.16),
+      transparent 34rem
+    ),
+    var(--at-product-background);
+  color: var(--at-product-text);
+}
+
+.aqua-proposal-public__shell {
+  inline-size: min(100%, 1120px);
+  margin-inline: auto;
+}
+
+.aqua-proposal-public__topline,
+.aqua-proposal-public__response-heading,
+.aqua-proposal-public__footer,
+.aqua-proposal-public__line-items > div,
+.aqua-proposal-public__payments article {
+  display: flex;
+  gap: var(--at-space-4);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.aqua-proposal-public__topline {
+  margin-block-end: var(--at-space-4);
+}
+
+.aqua-proposal-public__topline > div:first-child {
+  display: grid;
+  gap: var(--at-space-1);
+}
+
+.aqua-proposal-public__topline strong {
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.aqua-proposal-public__topline span {
+  color: var(--at-product-muted);
+  font-size: 0.78rem;
+}
+
+.aqua-proposal-public .aqua-system-document {
+  border-radius: var(--at-radius-xl);
+}
+
+.aqua-proposal-public__sections,
+.aqua-proposal-public__commercial,
+.aqua-proposal-public__payments {
+  display: grid;
+  gap: var(--at-space-6);
+  margin-block-start: var(--at-space-8);
+}
+
+.aqua-proposal-public__sections section,
+.aqua-proposal-public__commercial,
+.aqua-proposal-public__payments {
+  break-inside: avoid;
+}
+
+.aqua-proposal-public .aqua-system-document h2 {
+  margin: 0 0 var(--at-space-3);
+  color: #0f172a;
+  font-size: 1.12rem;
+  font-weight: 900;
+}
+
+.aqua-proposal-public__line-items,
+.aqua-proposal-public__payments > div {
+  display: grid;
+  gap: var(--at-space-2);
+}
+
+.aqua-proposal-public__line-items > div,
+.aqua-proposal-public__payments article {
+  padding: var(--at-space-3) var(--at-space-4);
+  border: 1px solid #e2e8f0;
+  border-radius: var(--at-radius-md);
+  background: #f8fafc;
+}
+
+.aqua-proposal-public__line-items > div > div,
+.aqua-proposal-public__payments article > div {
+  display: grid;
+  gap: var(--at-space-1);
+}
+
+.aqua-proposal-public__line-items span,
+.aqua-proposal-public__payments article span {
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.aqua-proposal-public__response {
+  margin-block-start: var(--at-space-6);
+  padding: var(--at-space-6);
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-xl);
+  background: var(--at-product-card);
+  box-shadow: var(--at-shadow-md);
+}
+
+.aqua-proposal-public__response-heading {
+  align-items: flex-start;
+}
+
+.aqua-proposal-public__response-heading > div {
+  max-inline-size: 48rem;
+}
+
+.aqua-proposal-public__response-heading span {
+  color: var(--at-product-primary);
+  font-family: var(--at-font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.aqua-proposal-public__response-heading h2 {
+  margin: var(--at-space-2) 0 var(--at-space-2);
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.aqua-proposal-public__response-heading p {
+  margin: 0;
+  color: var(--at-product-muted);
+  line-height: 1.8;
+}
+
+.aqua-proposal-public__decision-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--at-space-3);
+  margin-block-start: var(--at-space-4);
+}
+
+.aqua-proposal-public__response-form {
+  margin-block-start: var(--at-space-4);
+}
+
+.aqua-proposal-public__authority {
+  display: flex;
+  gap: var(--at-space-3);
+  align-items: flex-start;
+  margin-block: var(--at-space-4);
+  padding: var(--at-space-3);
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-md);
+  color: var(--at-product-muted);
+  cursor: pointer;
+}
+
+.aqua-proposal-public__authority input {
+  inline-size: 1.15rem;
+  block-size: 1.15rem;
+  flex: 0 0 auto;
+  margin-block-start: 0.15rem;
+  accent-color: var(--at-product-primary);
+}
+
+.aqua-proposal-public__authority:has(input:focus-visible) {
+  outline: 3px solid rgba(var(--at-product-primary-rgb), 0.26);
+  outline-offset: 2px;
+}
+
+.aqua-proposal-public__footer {
+  margin-block-start: var(--at-space-4);
+  padding-inline: var(--at-space-2);
+  color: var(--at-product-soft-text);
+  font-size: 0.72rem;
+}
+
+.aqua-proposal-public__invalid {
+  display: grid;
+  min-block-size: calc(100vh - var(--at-space-16));
+  place-items: center;
+}
+
+.aqua-proposal-public__invalid-card {
+  inline-size: min(100%, 560px);
+  padding: var(--at-space-8);
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-xl);
+  background: var(--at-product-card);
+  text-align: center;
+  box-shadow: var(--at-shadow-md);
+}
+
+.aqua-proposal-public__status-mark {
+  display: inline-grid;
+  inline-size: 3.25rem;
+  block-size: 3.25rem;
+  margin-block-end: var(--at-space-4);
+  border-radius: var(--at-radius-md);
+  background: rgba(var(--at-product-primary-rgb), 0.14);
+  color: var(--at-product-primary);
+  font-family: var(--at-font-mono);
+  font-weight: 900;
+  place-items: center;
+}
+
+.aqua-proposal-public__invalid-card h1 {
+  margin-block-end: var(--at-space-3);
+  font-size: 1.55rem;
+  font-weight: 900;
+}
+
+.aqua-proposal-public__invalid-card p {
+  margin: 0;
+  color: var(--at-product-muted);
+  line-height: 1.8;
+}
+
+@media (max-width: 767.98px) {
+  .aqua-proposal-public {
+    padding-block: var(--at-space-4);
+    padding-inline: var(--at-space-2);
+  }
+
+  .aqua-proposal-public__topline,
+  .aqua-proposal-public__response-heading,
+  .aqua-proposal-public__footer,
+  .aqua-proposal-public__line-items > div,
+  .aqua-proposal-public__payments article {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .aqua-proposal-public__decision-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .aqua-proposal-public__decision-grid .aqua-button {
+    inline-size: 100%;
+  }
+
+  .aqua-proposal-public__response {
+    padding: var(--at-space-4);
+  }
+}
+
+@media print {
+  .aqua-proposal-public {
+    padding: 0;
+    background: #ffffff;
+  }
+
+  .aqua-proposal-public__topline,
+  .aqua-proposal-public__response,
+  .aqua-proposal-public__footer {
+    display: none;
+  }
+
+  .aqua-proposal-public .aqua-system-document {
+    border-radius: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aqua-proposal-public *,
+  .aqua-proposal-public *::before,
+  .aqua-proposal-public *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

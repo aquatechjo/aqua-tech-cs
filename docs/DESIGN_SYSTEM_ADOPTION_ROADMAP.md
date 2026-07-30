@@ -321,6 +321,22 @@ Status: **implemented**
 - Update the Lead next action only after approval; do not send the Proposal, change the opportunity to sent, record client acceptance, or create a contract or project in this batch.
 - Keep delivery channels, negotiation, client acceptance or rejection, contracts, and project creation for PROP-02 and PROJ-01.
 
+## PROP-02 — Secure Proposal Delivery and Client Decisions
+
+Status: **implemented**
+
+- Deliver only the explicitly approved current Proposal version and bind every access record to its immutable version and client projection hash.
+- Generate 256-bit opaque public tokens, persist only their SHA-256 hashes, and return raw manual links once during preparation.
+- Support direct email through Resend plus explicit prepare-and-confirm flows for secure-link and WhatsApp delivery.
+- Revoke prior active links when a newer delivery is confirmed, while preventing revocation of an unrelated prepared link from changing an already sent Proposal.
+- Add a client-safe, no-index, no-referrer Proposal page that excludes internal narrative, cost, profit, margin, raw Discovery evidence, and internal Pricing content.
+- Require responder identity and authority confirmation for acceptance, requested changes, or rejection; require meaningful notes for changes and rejection.
+- Store one immutable response per Proposal version with client hash, timestamp, IP address, user agent, and statement version.
+- Track first view, last view, view count, delivery failures, send events, revocations, and client decisions through durable activity records.
+- Apply company-timezone expiry, token-and-IP rate limiting, same-origin checks, bounded bodies, row locks, transactions, and tenant scoping.
+- Move sent opportunities to Proposal, accepted opportunities to governed negotiation handoff, requested changes back to authoring, and explicit rejection to Lost with a reason.
+- Keep client creation, contract creation, workflow creation, project creation, and Won conversion for PROJ-01.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.

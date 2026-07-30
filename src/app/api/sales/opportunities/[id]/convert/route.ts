@@ -36,11 +36,29 @@ export async function POST(
           serviceRequest: true,
           client: { select: { id: true, status: true } },
           project: { select: { id: true } },
+          proposalWorkspace: {
+            select: {
+              id: true,
+              status: true,
+            },
+          },
         },
       })
 
       if (!opportunity) {
         throw new ApiError("فرصة البيع غير موجودة", 404, "OPPORTUNITY_NOT_FOUND")
+      }
+
+      if (opportunity.proposalWorkspace) {
+        throw new ApiError(
+          opportunity.proposalWorkspace.status === "ACCEPTED"
+            ? "تحويل العرض المركزي المقبول سيُفعل ضمن PROJ-01"
+            : "يجب أن يقبل العميل العرض المركزي قبل التحويل إلى مشروع",
+          409,
+          opportunity.proposalWorkspace.status === "ACCEPTED"
+            ? "CENTRAL_PROPOSAL_PROJECT_CONVERSION_PENDING"
+            : "CENTRAL_PROPOSAL_NOT_ACCEPTED",
+        )
       }
 
       if (opportunity.stage === "LOST") {

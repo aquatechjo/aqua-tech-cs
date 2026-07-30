@@ -308,6 +308,29 @@ enum ProposalWorkspaceStatus {
   IN_REVIEW
   CHANGES_REQUESTED
   APPROVED
+  SENT
+  CLIENT_CHANGES_REQUESTED
+  ACCEPTED
+  REJECTED
+}
+
+enum ProposalDeliveryChannel {
+  EMAIL
+  SECURE_LINK
+  WHATSAPP
+}
+
+enum ProposalDeliveryStatus {
+  PREPARED
+  SENT
+  FAILED
+  REVOKED
+}
+
+enum ProposalClientDecision {
+  ACCEPTED
+  CHANGES_REQUESTED
+  REJECTED
 }
 
 enum NotificationType {
@@ -383,6 +406,14 @@ enum ActivityAction {
   PROPOSAL_SUBMITTED
   PROPOSAL_CHANGES_REQUESTED
   PROPOSAL_APPROVED
+  PROPOSAL_DELIVERY_PREPARED
+  PROPOSAL_DELIVERY_FAILED
+  PROPOSAL_SENT
+  PROPOSAL_LINK_REVOKED
+  PROPOSAL_VIEWED
+  PROPOSAL_CLIENT_CHANGES_REQUESTED
+  PROPOSAL_CLIENT_ACCEPTED
+  PROPOSAL_CLIENT_REJECTED
   EMPLOYEE_PROFILE_UPDATED
   DEPARTMENT_CREATED
   DEPARTMENT_UPDATED
@@ -516,6 +547,8 @@ model Company {
   pricingVersions         PricingVersion[]
   proposalWorkspaces      ProposalWorkspace[]
   proposalVersions        ProposalVersion[]
+  proposalDeliveries      ProposalDelivery[]
+  proposalClientResponses ProposalClientResponse[]
   timeEntries             TimeEntry[]
   timesheets              Timesheet[]
   workSchedules           WorkSchedule[]
@@ -579,6 +612,7 @@ model User {
   createdProposalWorkspaces ProposalWorkspace[]      @relation("ProposalWorkspaceCreator")
   reviewedProposalWorkspaces ProposalWorkspace[]     @relation("ProposalWorkspaceReviewer")
   createdProposalVersions   ProposalVersion[]        @relation("ProposalVersionCreator")
+  createdProposalDeliveries ProposalDelivery[]       @relation("ProposalDeliveryCreator")
   createdSalesActivities    SalesActivity[]          @relation("SalesActivityCreator")
   createdSalesProposals     SalesProposal[]          @relation("SalesProposalCreator")
   timeEntries               TimeEntry[]              @relation("TimeEntryOwner")
@@ -2251,8 +2285,18 @@ model ProposalWorkspace {
   submittedAt        DateTime?
   changesRequestedAt DateTime?
   approvedAt         DateTime?
+  sentVersion        Int?
+  sentClientContentHash String?
+  sentAt             DateTime?
+  clientRespondedAt  DateTime?
+  clientResponseName String?
+  clientResponseEmail String?
+  clientResponseTitle String?
+  clientResponseNotes String?
 
-  versions ProposalVersion[]
+  versions   ProposalVersion[]
+  deliveries ProposalDelivery[]
+  responses  ProposalClientResponse[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2262,6 +2306,8 @@ model ProposalWorkspace {
   @@index([createdById])
   @@index([reviewedById])
   @@index([status])
+  @@index([sentAt])
+  @@index([clientRespondedAt])
   @@index([updatedAt])
 }
 
@@ -2294,6 +2340,86 @@ model ProposalVersion {
   @@index([pricingContentHash])
   @@index([discoveryContentHash])
   @@index([createdAt])
+}
+
+model ProposalDelivery {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  workspaceId String
+  workspace   ProposalWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  createdById String?
+  createdBy   User? @relation("ProposalDeliveryCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  channel ProposalDeliveryChannel
+  status  ProposalDeliveryStatus @default(PREPARED)
+
+  version           Int
+  clientContentHash String
+
+  recipientName  String?
+  recipientEmail String?
+  recipientPhone String?
+
+  tokenHash String @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  providerMessageId String?
+  failureCode       String?
+  failureMessage    String?
+
+  preparedAt DateTime @default(now())
+  sentAt     DateTime?
+  firstViewedAt DateTime?
+  lastViewedAt  DateTime?
+  viewCount     Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  responses ProposalClientResponse[]
+
+  @@index([companyId])
+  @@index([workspaceId])
+  @@index([createdById])
+  @@index([status])
+  @@index([expiresAt])
+  @@index([sentAt])
+}
+
+model ProposalClientResponse {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  workspaceId String
+  workspace   ProposalWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  deliveryId String
+  delivery   ProposalDelivery @relation(fields: [deliveryId], references: [id], onDelete: Restrict)
+
+  version           Int
+  clientContentHash String
+  decision          ProposalClientDecision
+
+  responderName  String
+  responderEmail String
+  responderTitle String?
+  notes          String?
+  authorityConfirmed Boolean
+
+  ipAddress String?
+  userAgent String?
+  respondedAt DateTime @default(now())
+
+  @@unique([workspaceId, version])
+  @@index([companyId])
+  @@index([deliveryId])
+  @@index([decision])
+  @@index([respondedAt])
 }
 
 model SalesActivity {

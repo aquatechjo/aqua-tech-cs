@@ -2,8 +2,12 @@
 
 import {
   CheckCircle2,
+  Copy,
   Eye,
   FileClock,
+  Link2,
+  Mail,
+  MessageCircle,
   Plus,
   Save,
   Send,
@@ -58,6 +62,14 @@ type WorkspaceItem = {
   submittedAt: string | null
   changesRequestedAt: string | null
   approvedAt: string | null
+  sentVersion: number | null
+  sentClientContentHash: string | null
+  sentAt: string | null
+  clientRespondedAt: string | null
+  clientResponseName: string | null
+  clientResponseEmail: string | null
+  clientResponseTitle: string | null
+  clientResponseNotes: string | null
   createdAt: string
   updatedAt: string
   createdBy: {
@@ -83,9 +95,25 @@ type WorkspaceItem = {
       name: string
     } | null
   }>
+  deliveries: Array<{
+    id: string
+    channel: "EMAIL" | "SECURE_LINK" | "WHATSAPP"
+    status: "PREPARED" | "SENT" | "FAILED" | "REVOKED"
+    version: number
+    recipientName: string | null
+    recipientEmail: string | null
+    recipientPhone: string | null
+    expiresAt: string
+    sentAt: string | null
+    firstViewedAt: string | null
+    lastViewedAt: string | null
+    viewCount: number
+    failureCode: string | null
+    createdAt: string
+  }>
 }
 
-type TabId = "EDIT" | "CLIENT" | "VERSIONS"
+type TabId = "EDIT" | "CLIENT" | "DELIVERY" | "VERSIONS"
 
 function workspaceStatusLabel(status: ProposalWorkspaceStatus) {
   const labels: Record<ProposalWorkspaceStatus, string> = {
@@ -93,6 +121,10 @@ function workspaceStatusLabel(status: ProposalWorkspaceStatus) {
     IN_REVIEW: "قيد المراجعة",
     CHANGES_REQUESTED: "تحتاج تعديلات",
     APPROVED: "معتمدة",
+    SENT: "مرسلة",
+    CLIENT_CHANGES_REQUESTED: "تعديل من العميل",
+    ACCEPTED: "مقبولة",
+    REJECTED: "مرفوضة",
   }
   return labels[status]
 }
@@ -100,14 +132,40 @@ function workspaceStatusLabel(status: ProposalWorkspaceStatus) {
 function workspaceStatusVariant(
   status: ProposalWorkspaceStatus,
 ): AquaBadgeProps["variant"] {
-  if (status === "APPROVED") return "success"
+  if (status === "APPROVED" || status === "ACCEPTED") {
+    return "success"
+  }
+  if (status === "SENT") return "blue"
+  if (status === "REJECTED") return "danger"
   if (status === "IN_REVIEW") return "blue"
-  if (status === "CHANGES_REQUESTED") return "warning"
+  if (
+    status === "CHANGES_REQUESTED" ||
+    status === "CLIENT_CHANGES_REQUESTED"
+  ) {
+    return "warning"
+  }
   return "aqua"
 }
 
 function audienceLabel(audience: ProposalSection["audience"]) {
   return audience === "CLIENT" ? "نسخة العميل" : "داخلي فقط"
+}
+
+function deliveryChannelLabel(
+  channel: WorkspaceItem["deliveries"][number]["channel"],
+) {
+  if (channel === "EMAIL") return "بريد إلكتروني"
+  if (channel === "WHATSAPP") return "واتساب"
+  return "رابط آمن"
+}
+
+function deliveryStatusLabel(
+  status: WorkspaceItem["deliveries"][number]["status"],
+) {
+  if (status === "SENT") return "مرسل"
+  if (status === "PREPARED") return "بانتظار التأكيد"
+  if (status === "FAILED") return "فشل"
+  return "ملغى"
 }
 
 function itemKey(prefix: string) {
@@ -126,6 +184,8 @@ export default function ProposalWorkspaceClient({
   canManage,
   canApprove,
   approvalBlockedBySelf,
+  canDeliver,
+  recipient,
   timeZone,
 }: {
   session: {
@@ -156,6 +216,12 @@ export default function ProposalWorkspaceClient({
   canManage: boolean
   canApprove: boolean
   approvalBlockedBySelf: boolean
+  canDeliver: boolean
+  recipient: {
+    name: string
+    email: string
+    phone: string
+  }
   timeZone: string
 }) {
   const router = useRouter()
@@ -164,7 +230,16 @@ export default function ProposalWorkspaceClient({
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [loadingAction, setLoadingAction] = useState<
-    "SAVE" | "SUBMIT" | "REQUEST_CHANGES" | "APPROVE" | null
+    | "SAVE"
+    | "SUBMIT"
+    | "REQUEST_CHANGES"
+    | "APPROVE"
+    | "PREPARE_LINK"
+    | "PREPARE_WHATSAPP"
+    | "SEND_EMAIL"
+    | "CONFIRM_DELIVERY"
+    | "REVOKE"
+    | null
   >(null)
   const [showApprove, setShowApprove] = useState(false)
   const [showChanges, setShowChanges] = useState(false)
@@ -172,8 +247,21 @@ export default function ProposalWorkspaceClient({
   const [previewVersion, setPreviewVersion] = useState<
     WorkspaceItem["versions"][number] | null
   >(null)
+  const [recipientName, setRecipientName] = useState(recipient.name)
+  const [recipientEmail, setRecipientEmail] = useState(recipient.email)
+  const [recipientPhone, setRecipientPhone] = useState(recipient.phone)
+  const [preparedDelivery, setPreparedDelivery] = useState<{
+    deliveryId: string
+    channel: "SECURE_LINK" | "WHATSAPP"
+    publicUrl: string
+    whatsappUrl: string | null
+    expiresAt: string
+  } | null>(null)
   const status = workspace?.status ?? "DRAFT"
-  const locked = status === "IN_REVIEW" || status === "APPROVED"
+  const locked =
+    status !== "DRAFT" &&
+    status !== "CHANGES_REQUESTED" &&
+    status !== "CLIENT_CHANGES_REQUESTED"
   const canEdit = canManage && !locked
   const dirty =
     JSON.stringify(draft) !== JSON.stringify(initialDraft)
@@ -333,7 +421,7 @@ export default function ProposalWorkspaceClient({
         action === "SUBMIT"
           ? "أُرسل العرض للمراجعة."
           : action === "APPROVE"
-            ? "تم اعتماد العرض وأصبح جاهزًا للإرسال في PROP‑02."
+            ? "تم اعتماد العرض وأصبح جاهزًا للإرسال."
             : "تم توثيق التعديلات المطلوبة.",
     })
 
@@ -344,9 +432,153 @@ export default function ProposalWorkspaceClient({
     }
   }
 
+  async function deliveryRequest({
+    action,
+    body,
+    successMessage,
+  }: {
+    action:
+      | "PREPARE_LINK"
+      | "PREPARE_WHATSAPP"
+      | "SEND_EMAIL"
+      | "CONFIRM_DELIVERY"
+      | "REVOKE"
+    body: unknown
+    successMessage: string
+  }) {
+    setError("")
+    setSuccess("")
+    setLoadingAction(action)
+
+    try {
+      const response = await fetch(
+        `/api/discovery/sessions/${session.id}/proposal/deliver`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        },
+      )
+      const data = await response.json()
+
+      if (!response.ok || !data.ok) {
+        setError(data.message || "تعذر تنفيذ تسليم العرض")
+        return null
+      }
+
+      setSuccess(successMessage)
+      router.refresh()
+      return data.data
+    } catch {
+      setError("تعذر الاتصال بالخادم")
+      return null
+    } finally {
+      setLoadingAction(null)
+    }
+  }
+
+  async function prepareManualDelivery(
+    channel: "SECURE_LINK" | "WHATSAPP",
+  ) {
+    const data = await deliveryRequest({
+      action:
+        channel === "WHATSAPP"
+          ? "PREPARE_WHATSAPP"
+          : "PREPARE_LINK",
+      body: {
+        action: "PREPARE",
+        channel,
+        recipientName,
+        recipientEmail: recipientEmail || null,
+        recipientPhone: recipientPhone || null,
+      },
+      successMessage:
+        channel === "WHATSAPP"
+          ? "تم إعداد رسالة واتساب. أكد التسليم بعد الإرسال."
+          : "تم إنشاء الرابط. يظهر مرة واحدة، فانسخه ثم أكد التسليم.",
+    })
+
+    if (data) {
+      setPreparedDelivery({
+        deliveryId: data.deliveryId,
+        channel,
+        publicUrl: data.publicUrl,
+        whatsappUrl: data.whatsappUrl,
+        expiresAt: data.expiresAt,
+      })
+    }
+  }
+
+  async function sendEmailDelivery() {
+    if (!recipientEmail.trim()) {
+      setError("أدخل بريد العميل قبل الإرسال.")
+      return
+    }
+
+    const data = await deliveryRequest({
+      action: "SEND_EMAIL",
+      body: {
+        action: "SEND_EMAIL",
+        channel: "EMAIL",
+        recipientName,
+        recipientEmail,
+        recipientPhone: recipientPhone || null,
+      },
+      successMessage: "أُرسل العرض بالبريد وسُجل كنسخة مرسلة.",
+    })
+
+    if (data) setPreparedDelivery(null)
+  }
+
+  async function confirmPreparedDelivery() {
+    if (!preparedDelivery) return
+
+    const data = await deliveryRequest({
+      action: "CONFIRM_DELIVERY",
+      body: {
+        action: "CONFIRM",
+        deliveryId: preparedDelivery.deliveryId,
+      },
+      successMessage: "تم تأكيد تسليم العرض للعميل.",
+    })
+
+    if (data) setPreparedDelivery(null)
+  }
+
+  async function revokeDelivery(deliveryId?: string) {
+    const data = await deliveryRequest({
+      action: "REVOKE",
+      body: {
+        action: "REVOKE",
+        ...(deliveryId ? { deliveryId } : {}),
+      },
+      successMessage: "تم إلغاء الرابط النشط.",
+    })
+
+    if (data) setPreparedDelivery(null)
+  }
+
+  async function copyPreparedLink() {
+    if (!preparedDelivery) return
+
+    try {
+      await navigator.clipboard.writeText(preparedDelivery.publicUrl)
+      setSuccess("تم نسخ رابط العرض.")
+    } catch {
+      setError("تعذر نسخ الرابط تلقائيًا. انسخه من الحقل.")
+    }
+  }
+
   const tabItems = [
     { id: "EDIT", label: "تحرير العرض" },
     { id: "CLIENT", label: "معاينة العميل" },
+    {
+      id: "DELIVERY",
+      label: "الإرسال والرد",
+      count: workspace?.deliveries.length ?? 0,
+    },
     {
       id: "VERSIONS",
       label: "الإصدارات",
@@ -359,8 +591,8 @@ export default function ProposalWorkspaceClient({
       <AquaPageHeader
         badge="Central Proposal"
         title={`العرض المركزي — ${displayName}`}
-        description="صياغة فنية ومالية بإصدارات، مع نسخة عميل آمنة واعتماد بشري قبل الإرسال."
-        brandValue={workspace?.proposalNumber ?? "PROP‑01"}
+        description="صياغة واعتماد وإرسال آمن بإصدارات، مع متابعة مشاهدة العميل وقراره."
+        brandValue={workspace?.proposalNumber ?? "PROP‑02"}
       />
 
       <div className="d-flex flex-wrap gap-2">
@@ -399,8 +631,46 @@ export default function ProposalWorkspaceClient({
           title="العرض معتمد داخليًا"
           icon={<CheckCircle2 />}
         >
-          أصبح جاهزًا لمرحلة الإرسال والمشاركة في PROP‑02. لم يُرسل
-          للعميل ولم يُنشأ مشروع أو عقد.
+          أصبح جاهزًا للإرسال عبر بريد العميل أو رابط آمن أو واتساب.
+        </AquaAlert>
+      ) : null}
+      {status === "SENT" ? (
+        <AquaAlert
+          variant="info"
+          title="العرض لدى العميل"
+          icon={<Send />}
+        >
+          أُرسل الإصدار {workspace?.sentVersion}. تتم متابعة المشاهدة
+          والرد من تبويب «الإرسال والرد».
+        </AquaAlert>
+      ) : null}
+      {status === "CLIENT_CHANGES_REQUESTED" ? (
+        <AquaAlert
+          variant="warning"
+          title="طلب العميل تعديلات"
+          icon={<FileClock />}
+        >
+          {workspace?.clientResponseNotes ??
+            "راجع ملاحظات العميل ثم احفظ إصدارًا جديدًا وأعد دورة المراجعة."}
+        </AquaAlert>
+      ) : null}
+      {status === "ACCEPTED" ? (
+        <AquaAlert
+          variant="success"
+          title="قبل العميل العرض"
+          icon={<CheckCircle2 />}
+        >
+          سُجل القبول باسم {workspace?.clientResponseName ?? "العميل"}.
+          التحويل إلى مشروع يبقى خطوة مستقلة ضمن PROJ‑01.
+        </AquaAlert>
+      ) : null}
+      {status === "REJECTED" ? (
+        <AquaAlert
+          variant="danger"
+          title="رفض العميل العرض"
+        >
+          {workspace?.clientResponseNotes ??
+            "تم إغلاق هذه النسخة وفق رد العميل."}
         </AquaAlert>
       ) : null}
       {dirty && workspace ? (
@@ -944,6 +1214,310 @@ export default function ProposalWorkspaceClient({
         </AquaDataPanel>
       ) : null}
 
+      {activeTab === "DELIVERY" ? (
+        <div className="row g-3">
+          <div className="col-12 col-xl-7">
+            <AquaDataPanel
+              eyebrow="Secure delivery"
+              title="إرسال النسخة المعتمدة"
+              description="كل رابط مربوط بإصدار وHash محددين. لا تُخزن قيمة الرابط السرية، ويُلغى الرابط السابق عند تأكيد إرسال جديد."
+              meta={<Send aria-hidden="true" />}
+            >
+              {status !== "APPROVED" && status !== "SENT" ? (
+                <AquaAlert
+                  variant="warning"
+                  title="الإرسال غير متاح في هذه الحالة"
+                >
+                  يجب أن يكون العرض معتمدًا أو مرسلًا لإعادة الإرسال.
+                </AquaAlert>
+              ) : null}
+
+              <div className="row g-3">
+                <div className="col-12 col-md-4">
+                  <AquaInput
+                    label="اسم المستلم"
+                    value={recipientName}
+                    disabled={!canDeliver}
+                    onChange={(event) =>
+                      setRecipientName(event.target.value)
+                    }
+                  />
+                </div>
+                <div className="col-12 col-md-4">
+                  <AquaInput
+                    label="البريد الإلكتروني"
+                    type="email"
+                    dir="ltr"
+                    value={recipientEmail}
+                    disabled={!canDeliver}
+                    onChange={(event) =>
+                      setRecipientEmail(event.target.value)
+                    }
+                  />
+                </div>
+                <div className="col-12 col-md-4">
+                  <AquaInput
+                    label="رقم واتساب"
+                    type="tel"
+                    dir="ltr"
+                    value={recipientPhone}
+                    disabled={!canDeliver}
+                    onChange={(event) =>
+                      setRecipientPhone(event.target.value)
+                    }
+                  />
+                </div>
+              </div>
+
+              {canDeliver &&
+              (status === "APPROVED" || status === "SENT") ? (
+                <div className="d-flex flex-wrap gap-2 mt-3">
+                  <AquaButton
+                    leadingIcon={<Mail />}
+                    loading={loadingAction === "SEND_EMAIL"}
+                    loadingLabel="جارٍ إرسال البريد"
+                    disabled={
+                      recipientName.trim().length < 2 ||
+                      !recipientEmail.trim()
+                    }
+                    onClick={sendEmailDelivery}
+                  >
+                    إرسال بالبريد
+                  </AquaButton>
+                  <AquaButton
+                    variant="secondary"
+                    leadingIcon={<Link2 />}
+                    loading={loadingAction === "PREPARE_LINK"}
+                    loadingLabel="جارٍ إنشاء الرابط"
+                    disabled={recipientName.trim().length < 2}
+                    onClick={() =>
+                      prepareManualDelivery("SECURE_LINK")
+                    }
+                  >
+                    إنشاء رابط آمن
+                  </AquaButton>
+                  <AquaButton
+                    variant="secondary"
+                    leadingIcon={<MessageCircle />}
+                    loading={loadingAction === "PREPARE_WHATSAPP"}
+                    loadingLabel="جارٍ إعداد واتساب"
+                    disabled={
+                      recipientName.trim().length < 2 ||
+                      !recipientPhone.trim()
+                    }
+                    onClick={() =>
+                      prepareManualDelivery("WHATSAPP")
+                    }
+                  >
+                    إعداد واتساب
+                  </AquaButton>
+                </div>
+              ) : null}
+
+              {preparedDelivery ? (
+                <AquaCard
+                  className="mt-3"
+                  variant="soft"
+                  padding="md"
+                >
+                  <AquaAlert
+                    variant="warning"
+                    title="الرابط يظهر في هذه الجلسة فقط"
+                  >
+                    انسخه أو أرسل رسالة واتساب، ثم أكد التسليم. إنشاء
+                    الرابط وحده لا يغيّر حالة العرض إلى «مرسل».
+                  </AquaAlert>
+                  <AquaInput
+                    label="رابط العميل الآمن"
+                    dir="ltr"
+                    readOnly
+                    value={preparedDelivery.publicUrl}
+                  />
+                  <div className="d-flex flex-wrap gap-2 mt-3">
+                    <AquaButton
+                      variant="secondary"
+                      leadingIcon={<Copy />}
+                      onClick={copyPreparedLink}
+                    >
+                      نسخ الرابط
+                    </AquaButton>
+                    {preparedDelivery.whatsappUrl ? (
+                      <AquaLinkButton
+                        href={preparedDelivery.whatsappUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        variant="secondary"
+                        leadingIcon={<MessageCircle />}
+                      >
+                        فتح واتساب
+                      </AquaLinkButton>
+                    ) : null}
+                    <AquaButton
+                      leadingIcon={<CheckCircle2 />}
+                      loading={
+                        loadingAction === "CONFIRM_DELIVERY"
+                      }
+                      loadingLabel="جارٍ التأكيد"
+                      onClick={confirmPreparedDelivery}
+                    >
+                      تأكيد تم التسليم
+                    </AquaButton>
+                    <AquaButton
+                      variant="ghost"
+                      loading={loadingAction === "REVOKE"}
+                      loadingLabel="جارٍ الإلغاء"
+                      onClick={() =>
+                        revokeDelivery(preparedDelivery.deliveryId)
+                      }
+                    >
+                      إلغاء الرابط
+                    </AquaButton>
+                  </div>
+                </AquaCard>
+              ) : null}
+            </AquaDataPanel>
+          </div>
+
+          <div className="col-12 col-xl-5">
+            <AquaDataPanel
+              eyebrow="Client outcome"
+              title="حالة العميل"
+              description="القبول والتعديل والرفض مسجلة على الإصدار المرسل نفسه."
+            >
+              <AquaDetailList
+                columns={1}
+                items={[
+                  {
+                    label: "الحالة",
+                    value: workspaceStatusLabel(status),
+                  },
+                  {
+                    label: "الإصدار المرسل",
+                    value: workspace?.sentVersion
+                      ? `v${workspace.sentVersion}`
+                      : "—",
+                    dir: "ltr",
+                  },
+                  {
+                    label: "وقت الإرسال",
+                    value: workspace?.sentAt
+                      ? formatDate.format(new Date(workspace.sentAt))
+                      : "—",
+                  },
+                  {
+                    label: "رد العميل",
+                    value: workspace?.clientRespondedAt
+                      ? `${workspace.clientResponseName ?? "العميل"} · ${formatDate.format(
+                          new Date(workspace.clientRespondedAt),
+                        )}`
+                      : "لم يصل رد بعد",
+                  },
+                ]}
+              />
+
+              {status === "SENT" && canDeliver ? (
+                <AquaButton
+                  className="mt-3"
+                  variant="ghost"
+                  loading={loadingAction === "REVOKE"}
+                  loadingLabel="جارٍ الإلغاء"
+                  onClick={() => revokeDelivery()}
+                >
+                  إلغاء جميع الروابط النشطة
+                </AquaButton>
+              ) : null}
+            </AquaDataPanel>
+          </div>
+
+          <div className="col-12">
+            <AquaDataPanel
+              eyebrow="Delivery history"
+              title="سجل التسليم والمشاهدة"
+              description="لا يعرض الروابط السرية؛ يحتفظ بالقناة والإصدار والمستلم والنتيجة فقط."
+            >
+              {workspace?.deliveries.length ? (
+                <div className="d-flex flex-column gap-2">
+                  {workspace.deliveries.map((delivery) => (
+                    <AquaCard
+                      key={delivery.id}
+                      variant="soft"
+                      padding="sm"
+                    >
+                      <div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <div>
+                          <div className="d-flex flex-wrap gap-2 align-items-center">
+                            <strong>
+                              {deliveryChannelLabel(delivery.channel)}
+                            </strong>
+                            <AquaBadge
+                              size="sm"
+                              variant={
+                                delivery.status === "SENT"
+                                  ? "success"
+                                  : delivery.status === "FAILED"
+                                    ? "danger"
+                                    : delivery.status === "PREPARED"
+                                      ? "warning"
+                                      : "muted"
+                              }
+                            >
+                              {deliveryStatusLabel(delivery.status)}
+                            </AquaBadge>
+                            <AquaBadge variant="muted" size="sm">
+                              v{delivery.version}
+                            </AquaBadge>
+                          </div>
+                          <div className="small aqua-muted mt-2">
+                            {delivery.recipientName ?? "مستلم غير محدد"}
+                            {delivery.recipientEmail
+                              ? ` · ${delivery.recipientEmail}`
+                              : ""}
+                            {delivery.recipientPhone
+                              ? ` · ${delivery.recipientPhone}`
+                              : ""}
+                          </div>
+                        </div>
+                        <div className="text-end">
+                          <div className="small">
+                            {delivery.sentAt
+                              ? formatDate.format(
+                                  new Date(delivery.sentAt),
+                                )
+                              : formatDate.format(
+                                  new Date(delivery.createdAt),
+                                )}
+                          </div>
+                          <div className="small aqua-muted mt-1">
+                            المشاهدات: {delivery.viewCount}
+                          </div>
+                          {delivery.status === "PREPARED" &&
+                          canDeliver ? (
+                            <AquaButton
+                              className="mt-2"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                revokeDelivery(delivery.id)
+                              }
+                            >
+                              إلغاء
+                            </AquaButton>
+                          ) : null}
+                        </div>
+                      </div>
+                    </AquaCard>
+                  ))}
+                </div>
+              ) : (
+                <AquaAlert variant="neutral" title="لا يوجد تسليم بعد">
+                  سيظهر هنا سجل البريد والروابط وواتساب بعد أول محاولة.
+                </AquaAlert>
+              )}
+            </AquaDataPanel>
+          </div>
+        </div>
+      ) : null}
+
       {activeTab === "VERSIONS" ? (
         <AquaDataPanel
           eyebrow="Immutable history"
@@ -1000,7 +1574,7 @@ export default function ProposalWorkspaceClient({
         onClose={() => setShowApprove(false)}
         onConfirm={() => reviewAction("APPROVE")}
         title="اعتماد العرض المركزي"
-        description="سيصبح العرض جاهزًا للإرسال في PROP‑02، لكنه لن يُرسل ولن ينشئ مشروعًا أو عقدًا الآن."
+        description="سيصبح العرض جاهزًا للإرسال، لكنه لن يُرسل تلقائيًا ولن ينشئ مشروعًا أو عقدًا."
         confirmLabel="اعتماد العرض"
         loading={loadingAction === "APPROVE"}
         tone="neutral"

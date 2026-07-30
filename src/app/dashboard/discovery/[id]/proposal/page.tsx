@@ -42,6 +42,8 @@ export default async function ProposalWorkspacePage({
           contactName: true,
           companyName: true,
           serviceType: true,
+          email: true,
+          phone: true,
         },
       },
       opportunity: {
@@ -49,6 +51,9 @@ export default async function ProposalWorkspacePage({
           id: true,
           title: true,
           stage: true,
+          contactName: true,
+          email: true,
+          phone: true,
         },
       },
       report: {
@@ -98,6 +103,14 @@ export default async function ProposalWorkspacePage({
           submittedAt: true,
           changesRequestedAt: true,
           approvedAt: true,
+          sentVersion: true,
+          sentClientContentHash: true,
+          sentAt: true,
+          clientRespondedAt: true,
+          clientResponseName: true,
+          clientResponseEmail: true,
+          clientResponseTitle: true,
+          clientResponseNotes: true,
           createdAt: true,
           updatedAt: true,
           createdBy: {
@@ -132,6 +145,28 @@ export default async function ProposalWorkspacePage({
                   name: true,
                 },
               },
+            },
+          },
+          deliveries: {
+            orderBy: {
+              createdAt: "desc",
+            },
+            take: 12,
+            select: {
+              id: true,
+              channel: true,
+              status: true,
+              version: true,
+              recipientName: true,
+              recipientEmail: true,
+              recipientPhone: true,
+              expiresAt: true,
+              sentAt: true,
+              firstViewedAt: true,
+              lastViewedAt: true,
+              viewCount: true,
+              failureCode: true,
+              createdAt: true,
             },
           },
         },
@@ -216,9 +251,22 @@ export default async function ProposalWorkspacePage({
               changesRequestedAt:
                 workspace.changesRequestedAt?.toISOString() ?? null,
               approvedAt: workspace.approvedAt?.toISOString() ?? null,
+              sentAt: workspace.sentAt?.toISOString() ?? null,
+              clientRespondedAt:
+                workspace.clientRespondedAt?.toISOString() ?? null,
               createdAt: workspace.createdAt.toISOString(),
               updatedAt: workspace.updatedAt.toISOString(),
               versions,
+              deliveries: workspace.deliveries.map((delivery) => ({
+                ...delivery,
+                expiresAt: delivery.expiresAt.toISOString(),
+                sentAt: delivery.sentAt?.toISOString() ?? null,
+                firstViewedAt:
+                  delivery.firstViewedAt?.toISOString() ?? null,
+                lastViewedAt:
+                  delivery.lastViewedAt?.toISOString() ?? null,
+                createdAt: delivery.createdAt.toISOString(),
+              })),
             }
           : null
       }
@@ -252,6 +300,23 @@ export default async function ProposalWorkspacePage({
         currentVersion?.createdBy?.id === user.id &&
         user.role !== "OWNER"
       }
+      canDeliver={hasRole(
+        user.role,
+        ACCESS_ROLES.proposalDelivery,
+      )}
+      recipient={{
+        name:
+          session.opportunity?.contactName ??
+          session.lead.contactName,
+        email:
+          session.opportunity?.email ??
+          session.lead.email ??
+          "",
+        phone:
+          session.opportunity?.phone ??
+          session.lead.phone ??
+          "",
+      }}
       timeZone={user.company.timezone}
     />
   )

@@ -131,3 +131,121 @@ export function buildPasswordResetEmail({
 </html>`,
   }
 }
+
+export function buildProposalDeliveryEmail({
+  recipientName,
+  proposalNumber,
+  proposalTitle,
+  proposalUrl,
+  validUntilLabel,
+}: {
+  recipientName: string
+  proposalNumber: string
+  proposalTitle: string
+  proposalUrl: string
+  validUntilLabel: string
+}): TransactionalEmail {
+  const normalizedProposalUrl = requireSafeWebUrl(proposalUrl)
+  const safeName = escapeHtml(recipientName)
+  const safeNumber = escapeHtml(proposalNumber)
+  const safeTitle = escapeHtml(proposalTitle)
+  const safeUrl = escapeHtml(normalizedProposalUrl)
+  const safeValidUntil = escapeHtml(validUntilLabel)
+  const subject = `عرض ${safeNumber} من Aqua Tech`
+
+  return {
+    subject: `عرض ${proposalNumber} من Aqua Tech`,
+    text: [
+      `مرحبًا ${recipientName}،`,
+      "",
+      `أصبح العرض ${proposalNumber} جاهزًا للمراجعة:`,
+      proposalTitle,
+      "",
+      normalizedProposalUrl,
+      "",
+      `يبقى العرض صالحًا حتى ${validUntilLabel}.`,
+      "يمكنك طلب تعديل أو قبول العرض أو رفضه من الرابط الآمن.",
+      "",
+      "لا تشارك هذا الرابط؛ فهو مخصص للوصول إلى نسخة عرضك.",
+      "",
+      `Aqua.Tech — ${aquaTechCsTheme.productName}`,
+    ].join("\n"),
+    html: `<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${subject}</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f1f5f9;color:#0f172a;font-family:Arial,'Segoe UI',Tahoma,sans-serif">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">
+      العرض ${safeNumber} جاهز للمراجعة والرد عبر رابط آمن.
+    </div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;background:#f1f5f9">
+      <tr>
+        <td align="center" style="padding:32px 14px">
+          <table role="presentation" width="620" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:620px;border:1px solid #dbe4ee;border-radius:24px;background:#ffffff;box-shadow:0 18px 50px rgba(15,23,42,.10);overflow:hidden">
+            <tr>
+              <td style="height:5px;background:linear-gradient(90deg,#06b6d4,#2563eb)"></td>
+            </tr>
+            <tr>
+              <td style="padding:30px 34px 20px">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                  <tr>
+                    <td style="vertical-align:middle">
+                      <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                        <tr>
+                          <td style="width:48px;height:48px;border-radius:15px;background:#0e7490;color:#ffffff;font-size:14px;font-weight:900;text-align:center;vertical-align:middle" dir="ltr">AT</td>
+                          <td style="padding-right:12px;text-align:right">
+                            <div style="font-size:19px;font-weight:900;color:#0f172a">Aqua Tech</div>
+                            <div style="margin-top:3px;font-size:11px;font-weight:700;letter-spacing:.04em;color:#64748b" dir="ltr">Growth • Software • AI</div>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td style="vertical-align:middle;text-align:left">
+                      <span style="display:inline-block;border:1px solid #bae6fd;border-radius:999px;background:#ecfeff;color:#0e7490;padding:6px 10px;font-size:11px;font-weight:800" dir="ltr">${safeNumber}</span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:10px 34px 34px;text-align:right">
+                <h1 style="margin:0 0 16px;color:#0f172a;font-size:27px;line-height:1.35;font-weight:900">العرض جاهز للمراجعة</h1>
+                <p style="margin:0 0 12px;color:#334155;font-size:16px;line-height:1.9">مرحبًا ${safeName}،</p>
+                <p style="margin:0 0 10px;color:#475569;font-size:15px;line-height:1.9">أعددنا لك العرض التالي:</p>
+                <p style="margin:0 0 24px;color:#0f172a;font-size:17px;line-height:1.8;font-weight:800">${safeTitle}</p>
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 24px">
+                  <tr>
+                    <td style="border-radius:14px;background:#0e7490">
+                      <a href="${safeUrl}" style="display:inline-block;padding:14px 24px;color:#ffffff;font-size:15px;font-weight:900;text-decoration:none">مراجعة العرض والرد</a>
+                    </td>
+                  </tr>
+                </table>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 22px;border:1px solid #dbeafe;border-radius:16px;background:#f8fafc">
+                  <tr>
+                    <td style="padding:16px 18px;color:#475569;font-size:13px;line-height:1.8">
+                      <strong style="color:#0f172a">صلاحية العرض:</strong>
+                      حتى ${safeValidUntil}. يمكنك طلب تعديل أو قبول العرض أو رفضه من الصفحة نفسها.
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:0 0 8px;color:#64748b;font-size:12px;line-height:1.8">إذا لم يعمل الزر، انسخ الرابط التالي والصقه في المتصفح:</p>
+                <p style="margin:0;direction:ltr;text-align:left;word-break:break-all;color:#0369a1;font-size:12px;line-height:1.7">${safeUrl}</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="border-top:1px solid #e2e8f0;background:#f8fafc;padding:20px 34px;text-align:right">
+                <p style="margin:0;color:#64748b;font-size:12px;line-height:1.8">هذا رابط خاص بنسخة عرضك. لا تشاركه مع أشخاص غير مخولين.</p>
+                <p style="margin:8px 0 0;color:#94a3b8;font-size:11px" dir="ltr">Aqua.Tech © ${aquaTechCsTheme.productName}</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`,
+  }
+}

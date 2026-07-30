@@ -47,7 +47,7 @@ export const aquaRouteDefinitions: readonly AquaRouteDefinition[] = [
   {
     path: "/dashboard/proposals",
     title: "العروض المركزية",
-    subtitle: "إصدارات العرض ونسخة العميل والمراجعة قبل الإرسال",
+    subtitle: "إصدارات العرض والإرسال الآمن ومتابعة رد العميل",
   },
   {
     path: "/dashboard/sales/opportunities",

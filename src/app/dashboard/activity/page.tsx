@@ -154,6 +154,14 @@ function actionLabel(action: ActivityAction) {
     PROPOSAL_SUBMITTED: "إرسال عرض للمراجعة",
     PROPOSAL_CHANGES_REQUESTED: "طلب تعديلات على عرض",
     PROPOSAL_APPROVED: "اعتماد عرض",
+    PROPOSAL_DELIVERY_PREPARED: "إعداد تسليم عرض",
+    PROPOSAL_DELIVERY_FAILED: "فشل تسليم عرض",
+    PROPOSAL_SENT: "إرسال عرض للعميل",
+    PROPOSAL_LINK_REVOKED: "إلغاء رابط عرض",
+    PROPOSAL_VIEWED: "مشاهدة العميل للعرض",
+    PROPOSAL_CLIENT_CHANGES_REQUESTED: "طلب العميل تعديل العرض",
+    PROPOSAL_CLIENT_ACCEPTED: "قبول العميل للعرض",
+    PROPOSAL_CLIENT_REJECTED: "رفض العميل للعرض",
 
     COMPANY_UPDATED: "تعديل بيانات الشركة",
 
@@ -197,6 +205,8 @@ function actionBadgeClass(action: ActivityAction) {
     || action === "DISCOVERY_REPORT_APPROVED"
     || action === "PRICING_APPROVED"
     || action === "PROPOSAL_APPROVED"
+    || action === "PROPOSAL_SENT"
+    || action === "PROPOSAL_CLIENT_ACCEPTED"
   ) {
     return "text-bg-success";
   }
@@ -204,6 +214,9 @@ function actionBadgeClass(action: ActivityAction) {
   if (
     action === "USER_DEACTIVATED" ||
     action === "DISCOVERY_PUBLIC_LINK_REVOKED" ||
+    action === "PROPOSAL_DELIVERY_FAILED" ||
+    action === "PROPOSAL_LINK_REVOKED" ||
+    action === "PROPOSAL_CLIENT_REJECTED" ||
     action === "CLIENT_ARCHIVED" ||
     action === "CONTACT_ARCHIVED" ||
     action === "PROJECT_ARCHIVED" ||
@@ -252,6 +265,8 @@ function actionBadgeClass(action: ActivityAction) {
     || action === "DISCOVERY_REPORT_VERSION_CREATED"
     || action === "PRICING_VERSION_CREATED"
     || action === "PROPOSAL_VERSION_CREATED"
+    || action === "PROPOSAL_DELIVERY_PREPARED"
+    || action === "PROPOSAL_VIEWED"
   ) {
     return "text-bg-info";
   }
@@ -272,6 +287,7 @@ function actionBadgeClass(action: ActivityAction) {
     || action === "PRICING_CHANGES_REQUESTED"
     || action === "PROPOSAL_SUBMITTED"
     || action === "PROPOSAL_CHANGES_REQUESTED"
+    || action === "PROPOSAL_CLIENT_CHANGES_REQUESTED"
   ) {
     return "text-bg-warning";
   }

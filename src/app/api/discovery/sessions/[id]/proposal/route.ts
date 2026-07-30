@@ -207,11 +207,12 @@ export async function PATCH(
       }
 
       if (
-        workspace.status === "IN_REVIEW" ||
-        workspace.status === "APPROVED"
+        workspace.status !== "DRAFT" &&
+        workspace.status !== "CHANGES_REQUESTED" &&
+        workspace.status !== "CLIENT_CHANGES_REQUESTED"
       ) {
         throw new ApiError(
-          "العرض مقفل أثناء المراجعة أو بعد الاعتماد",
+          "العرض مقفل في حالته الحالية ولا يقبل إصدارًا جديدًا",
           409,
           "PROPOSAL_WORKSPACE_LOCKED",
         )
@@ -256,6 +257,14 @@ export async function PATCH(
           submittedAt: null,
           reviewedById: null,
           approvedAt: null,
+          sentVersion: null,
+          sentClientContentHash: null,
+          sentAt: null,
+          clientRespondedAt: null,
+          clientResponseName: null,
+          clientResponseEmail: null,
+          clientResponseTitle: null,
+          clientResponseNotes: null,
         },
       })
 

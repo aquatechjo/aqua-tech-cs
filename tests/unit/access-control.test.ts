@@ -267,6 +267,14 @@ test("proposal access separates visibility, authoring, and approval duties", () 
     canApproveProposal({ id: "owner", role: "OWNER" }, "owner"),
     true,
   )
+  assert.equal(
+    hasRole("SALES_MANAGER", ACCESS_ROLES.proposalDelivery),
+    true,
+  )
+  assert.equal(
+    hasRole("FINANCE_MANAGER", ACCESS_ROLES.proposalDelivery),
+    false,
+  )
 })
 
 test("sales access separates pipeline visibility from sales mutations", () => {

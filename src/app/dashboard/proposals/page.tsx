@@ -29,6 +29,10 @@ const workspaceStatuses: ProposalWorkspaceStatus[] = [
   "IN_REVIEW",
   "CHANGES_REQUESTED",
   "APPROVED",
+  "SENT",
+  "CLIENT_CHANGES_REQUESTED",
+  "ACCEPTED",
+  "REJECTED",
 ]
 type ProposalQueueStatus = ProposalWorkspaceStatus | "READY"
 
@@ -41,6 +45,13 @@ const statusDetails: Record<
   IN_REVIEW: { label: "قيد المراجعة", variant: "warning" },
   CHANGES_REQUESTED: { label: "تحتاج تعديلًا", variant: "danger" },
   APPROVED: { label: "معتمدة", variant: "success" },
+  SENT: { label: "مرسلة", variant: "blue" },
+  CLIENT_CHANGES_REQUESTED: {
+    label: "تعديل من العميل",
+    variant: "warning",
+  },
+  ACCEPTED: { label: "مقبولة", variant: "success" },
+  REJECTED: { label: "مرفوضة", variant: "danger" },
 }
 
 function parsePage(value?: string) {
@@ -151,6 +162,10 @@ export default async function ProposalQueuePage({
     inReviewCount,
     changesRequestedCount,
     approvedCount,
+    sentCount,
+    clientChangesCount,
+    acceptedCount,
+    rejectedCount,
   ] = await Promise.all([
     prisma.intakeSession.count({ where }),
     prisma.intakeSession.count({
@@ -183,6 +198,32 @@ export default async function ProposalQueuePage({
       where: {
         ...eligibleWhere,
         proposalWorkspace: { is: { status: "APPROVED" } },
+      },
+    }),
+    prisma.intakeSession.count({
+      where: {
+        ...eligibleWhere,
+        proposalWorkspace: { is: { status: "SENT" } },
+      },
+    }),
+    prisma.intakeSession.count({
+      where: {
+        ...eligibleWhere,
+        proposalWorkspace: {
+          is: { status: "CLIENT_CHANGES_REQUESTED" },
+        },
+      },
+    }),
+    prisma.intakeSession.count({
+      where: {
+        ...eligibleWhere,
+        proposalWorkspace: { is: { status: "ACCEPTED" } },
+      },
+    }),
+    prisma.intakeSession.count({
+      where: {
+        ...eligibleWhere,
+        proposalWorkspace: { is: { status: "REJECTED" } },
       },
     }),
   ])
@@ -270,14 +311,30 @@ export default async function ProposalQueuePage({
       value: approvedCount,
       variant: "success" as const,
     },
+    { label: "مرسلة", value: sentCount, variant: "blue" as const },
+    {
+      label: "تعديل من العميل",
+      value: clientChangesCount,
+      variant: "warning" as const,
+    },
+    {
+      label: "مقبولة",
+      value: acceptedCount,
+      variant: "success" as const,
+    },
+    {
+      label: "مرفوضة",
+      value: rejectedCount,
+      variant: "danger" as const,
+    },
   ]
 
   return (
     <div className="d-flex flex-column gap-4">
       <AquaPageHeader
-        badge="PROP-01"
+        badge="PROP-02"
         title="العروض المركزية"
-        description="حوّل التسعير المعتمد إلى عرض فني ومالي بإصدارات ومراجعة بشرية، قبل الإرسال أو القبول."
+        description="أنشئ العرض واعتمده، ثم أرسله كرابط آمن وتابع مشاهدة العميل وطلباته وقراره."
         brandValue="Proposals"
       />
 
