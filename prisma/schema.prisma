@@ -58,6 +58,20 @@ enum ProjectContractStatus {
   SIGNED
 }
 
+enum ProjectDeliverableStatus {
+  PLANNED
+  IN_PROGRESS
+  READY_FOR_REVIEW
+  CHANGES_REQUESTED
+  ACCEPTED
+  CANCELLED
+}
+
+enum ProjectDeliverableSource {
+  ACCEPTED_PROPOSAL
+  MANUAL
+}
+
 enum WorkflowApprovalGate {
   PHASE_START
   PHASE_COMPLETION
@@ -371,6 +385,10 @@ enum ActivityAction {
   PROJECT_READINESS_OVERRIDE_GRANTED
   PROJECT_READINESS_OVERRIDE_REVOKED
   PROJECT_STARTED
+  PROJECT_DELIVERABLE_CREATED
+  PROJECT_DELIVERABLE_UPDATED
+  PROJECT_DELIVERABLE_STATUS_CHANGED
+  PROJECT_DELIVERABLE_REMOVED
   PROJECT_ARCHIVED
   PROJECT_RESTORED
   PROJECT_COMPLETED
@@ -533,6 +551,7 @@ model Company {
   workflowTemplates       WorkflowTemplate[]
   projectWorkflows        ProjectWorkflow[]
   projectReadinessGates   ProjectReadiness[]
+  projectDeliverables     ProjectDeliverable[]
   workflowApprovals       ProjectWorkflowApproval[]
   workflowRules           ProjectWorkflowRule[]
   workflowEvents          WorkflowEvent[]
@@ -638,6 +657,9 @@ model User {
   configuredProjectPayments  ProjectReadiness[]       @relation("ProjectPaymentConfigurer")
   grantedReadinessOverrides  ProjectReadiness[]       @relation("ProjectReadinessOverrideGrantor")
   activatedProjects          ProjectReadiness[]       @relation("ProjectReadinessActivator")
+  createdProjectDeliverables ProjectDeliverable[]      @relation("ProjectDeliverableCreator")
+  updatedProjectDeliverables ProjectDeliverable[]      @relation("ProjectDeliverableUpdater")
+  decidedProjectDeliverables ProjectDeliverable[]      @relation("ProjectDeliverableDecider")
 
   @@index([companyId])
   @@index([role])
@@ -1043,6 +1065,7 @@ model Project {
   phases                    ProjectPhase[]
   workflow                  ProjectWorkflow?
   readiness                 ProjectReadiness?
+  deliverables              ProjectDeliverable[]
   invoices                  Invoice[]
   expenses                  Expense[]
   salesOpportunity          SalesOpportunity?
@@ -1103,6 +1126,58 @@ model ProjectReadiness {
   @@index([paymentConfiguredById])
   @@index([overrideGrantedById])
   @@index([activatedById])
+}
+
+model ProjectDeliverable {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  phaseId String?
+  phase   ProjectPhase? @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+
+  createdById String?
+  createdBy   User?   @relation("ProjectDeliverableCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  updatedById String?
+  updatedBy   User?   @relation("ProjectDeliverableUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  decidedById String?
+  decidedBy   User?   @relation("ProjectDeliverableDecider", fields: [decidedById], references: [id], onDelete: Restrict)
+
+  title              String
+  description        String?
+  acceptanceCriteria String?
+
+  status ProjectDeliverableStatus @default(PLANNED)
+  source ProjectDeliverableSource @default(MANUAL)
+
+  sourceRef String?
+  sortOrder Int @default(0)
+  dueDate   DateTime?
+
+  submittedAt         DateTime?
+  decidedAt           DateTime?
+  reviewNotes         String?
+  acceptanceReference String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, sourceRef])
+  @@index([companyId])
+  @@index([projectId])
+  @@index([phaseId])
+  @@index([status])
+  @@index([source])
+  @@index([dueDate])
+  @@index([createdById])
+  @@index([updatedById])
+  @@index([decidedById])
+  @@index([sortOrder])
 }
 
 model Task {
@@ -1212,6 +1287,7 @@ model ProjectPhase {
   completedAt DateTime?
 
   tasks             Task[]
+  deliverables      ProjectDeliverable[]
   workflowApprovals ProjectWorkflowApproval[]
 
   createdAt DateTime @default(now())

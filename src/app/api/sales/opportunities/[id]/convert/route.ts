@@ -17,6 +17,7 @@ import {
   acceptedProposalProjectDescription,
   resolveClientCandidateIds,
 } from "@/lib/project-conversion"
+import { acceptedProposalDeliverableSeeds } from "@/lib/project-deliverable"
 import { createProjectWithWorkflow } from "@/lib/project-workflow-server"
 import { proposalVersionContentSchema } from "@/lib/proposal"
 import {
@@ -586,6 +587,43 @@ export async function POST(
             proposalConvertedAt: convertedAt,
           },
         })
+        const deliverableSeeds = acceptedProposalDeliverableSeeds({
+          workspaceId: workspace.id,
+          version: version.version,
+          content: acceptedContent.data,
+        })
+        if (deliverableSeeds.length > 0) {
+          await tx.projectDeliverable.createMany({
+            data: deliverableSeeds.map((deliverable) => ({
+              companyId: user.companyId,
+              projectId: project.id,
+              createdById: user.id,
+              updatedById: user.id,
+              source: "ACCEPTED_PROPOSAL",
+              ...deliverable,
+            })),
+            skipDuplicates: true,
+          })
+          await logActivity({
+            db: tx,
+            companyId: user.companyId,
+            userId: user.id,
+            action: ActivityAction.PROJECT_DELIVERABLE_CREATED,
+            entityType: "Project",
+            entityId: project.id,
+            message: `تم إنشاء خط أساس التسليمات من العرض ${workspace.proposalNumber}`,
+            metadata: {
+              projectId: project.id,
+              proposalWorkspaceId: workspace.id,
+              proposalVersion: version.version,
+              deliverables: deliverableSeeds.map((deliverable) => ({
+                title: deliverable.title,
+                sourceRef: deliverable.sourceRef,
+              })),
+            },
+            ...meta,
+          })
+        }
 
         let leadId = opportunity.leadId
         if (opportunity.serviceRequestId) {
@@ -649,6 +687,7 @@ export async function POST(
             workflowTemplateId: created.template.id,
             proposalWorkspaceId: workspace.id,
             proposalVersion: version.version,
+            deliverableCount: deliverableSeeds.length,
           },
           ...meta,
         })

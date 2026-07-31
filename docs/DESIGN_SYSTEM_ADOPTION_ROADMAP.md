@@ -399,6 +399,34 @@ Status: **implemented**
   broader staffing, kickoff records, risks, deliverables, change requests,
   and n8n dispatch for later governed batches.
 
+## PROJ-03 — Delivery Baseline and Deliverables
+
+Status: **implemented**
+
+- Create a tenant-scoped deliverable register for every Project output instead
+  of leaving accepted scope only inside Proposal narrative or commercial JSON.
+- Copy only explicit client-visible `DELIVERABLE` items from the exact accepted
+  Proposal version, preserve deterministic source references, and backfill
+  existing converted Projects without duplicating records.
+- Keep Proposal-derived titles and descriptions immutable while allowing
+  Project managers to plan phases, due dates, ordering, and acceptance criteria.
+- Support manual operational deliverables without mixing them with accepted
+  Proposal provenance.
+- Enforce the governed state path from planning through execution, review,
+  requested changes, and acceptance, with documented cancellation.
+- Require Project activation before execution states, require meaningful notes
+  for changes or cancellation, and require an external acceptance reference
+  before final acceptance.
+- Make accepted and cancelled deliverables terminal in this batch and reserve
+  contractual scope changes for a later Change Request workflow.
+- Write durable Activity records for creation, updates, transitions, and
+  permitted removal while keeping all APIs tenant-scoped and row-locked.
+- Surface the register through a canonical Aqua Data Panel with responsive
+  modals, badges, alerts, and readiness-aware actions.
+- Keep delivery files, public client review links, risks, Change Requests,
+  automatic phase progression, notifications, n8n dispatch, milestone invoice
+  generation, closure, feedback, and follow-up for later governed batches.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.

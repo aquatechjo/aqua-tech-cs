@@ -106,6 +106,27 @@ export default async function ProjectExecutionPage({
       phases: {
         orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
       },
+      deliverables: {
+        orderBy: [
+          { sortOrder: "asc" },
+          { dueDate: "asc" },
+          { createdAt: "asc" },
+        ],
+        include: {
+          phase: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          decidedBy: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
       tasks: {
         where: {
           status: {
@@ -462,6 +483,24 @@ export default async function ProjectExecutionPage({
         employeeProfile: member.employeeProfile,
       }))}
       phases={phases}
+      deliverables={project.deliverables.map((deliverable) => ({
+        id: deliverable.id,
+        title: deliverable.title,
+        description: deliverable.description,
+        acceptanceCriteria: deliverable.acceptanceCriteria,
+        status: deliverable.status,
+        source: deliverable.source,
+        sortOrder: deliverable.sortOrder,
+        dueDate: deliverable.dueDate?.toISOString() ?? null,
+        submittedAt:
+          deliverable.submittedAt?.toISOString() ?? null,
+        decidedAt: deliverable.decidedAt?.toISOString() ?? null,
+        reviewNotes: deliverable.reviewNotes,
+        acceptanceReference: deliverable.acceptanceReference,
+        phaseId: deliverable.phaseId,
+        phase: deliverable.phase,
+        decidedBy: deliverable.decidedBy,
+      }))}
       tasks={tasks}
       employees={employees}
       canManage={canManage}

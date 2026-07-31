@@ -38,6 +38,9 @@ import {
 } from "@/components/aqua"
 import type { AquaBadgeVariant } from "@/design-system"
 
+import ProjectDeliverablesPanel, {
+  type ProjectDeliverableView,
+} from "./ProjectDeliverablesPanel"
 import styles from "./ProjectExecution.module.css"
 
 type Employee = {
@@ -300,6 +303,7 @@ export default function ProjectExecutionClient({
   scope,
   members,
   phases,
+  deliverables,
   tasks,
   employees,
   canManage,
@@ -345,6 +349,7 @@ export default function ProjectExecutionClient({
   }
   members: Member[]
   phases: Phase[]
+  deliverables: ProjectDeliverableView[]
   tasks: Task[]
   employees: Employee[]
   canManage: boolean
@@ -1077,6 +1082,17 @@ export default function ProjectExecutionClient({
           </div>
         </div>
       </AquaCard>
+
+      <ProjectDeliverablesPanel
+        projectId={project.id}
+        deliverables={deliverables}
+        phases={phases.map((phase) => ({
+          id: phase.id,
+          name: phase.name,
+        }))}
+        canManage={canManage}
+        executionActivated={executionActivated}
+      />
 
       <div className={styles.workspaceGrid}>
         <AquaDataPanel
