@@ -1,0 +1,244 @@
+.summaryBadges,
+.tabs,
+.itemHeader,
+.actions,
+.formActions {
+  display: flex;
+  align-items: center;
+}
+
+.summaryBadges,
+.actions,
+.formActions {
+  flex-wrap: wrap;
+  gap: var(--at-space-2);
+}
+
+.tabs {
+  gap: var(--at-space-2);
+  overflow-x: auto;
+  padding-block-end: var(--at-space-2);
+  scrollbar-width: thin;
+}
+
+.tab,
+.tabActive {
+  display: inline-flex;
+  min-block-size: 44px;
+  align-items: center;
+  gap: var(--at-space-2);
+  padding: var(--at-space-2) var(--at-space-4);
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-pill);
+  background: color-mix(in srgb, var(--at-product-surface-soft) 82%, transparent);
+  color: var(--at-product-muted);
+  font: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color var(--at-motion-fast) var(--at-ease-standard),
+    background-color var(--at-motion-fast) var(--at-ease-standard),
+    color var(--at-motion-fast) var(--at-ease-standard);
+}
+
+.tab:hover,
+.tabActive {
+  border-color: rgba(var(--at-product-accent-rgb), 0.45);
+  background: rgba(var(--at-product-accent-rgb), 0.12);
+  color: var(--at-product-text);
+}
+
+.tab:focus-visible,
+.tabActive:focus-visible {
+  outline: 3px solid rgba(var(--at-product-accent-rgb), 0.34);
+  outline-offset: 2px;
+}
+
+.tab svg,
+.tabActive svg,
+.empty svg {
+  inline-size: 1.1rem;
+  block-size: 1.1rem;
+}
+
+.tab bdi,
+.tabActive bdi {
+  color: var(--at-product-accent-soft);
+  font-family: var(--at-font-mono);
+  font-size: 0.78rem;
+}
+
+.kindDescription {
+  margin: var(--at-space-2) 0 var(--at-space-4);
+  color: var(--at-product-muted);
+  line-height: 1.7;
+}
+
+.grid,
+.form,
+.note,
+.empty {
+  display: grid;
+}
+
+.grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--at-space-4);
+}
+
+.itemCard {
+  display: grid;
+  align-content: start;
+  gap: var(--at-space-3);
+}
+
+.itemHeader {
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--at-space-3);
+}
+
+.itemHeader > div {
+  min-inline-size: 0;
+}
+
+.itemHeader h3 {
+  margin: var(--at-space-1) 0 0;
+  color: var(--at-product-text);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.itemCard > p {
+  margin: 0;
+  color: var(--at-product-muted);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.reference {
+  color: var(--at-product-accent-soft);
+  font-family: var(--at-font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--at-space-2) var(--at-space-4);
+  margin: 0;
+  padding-block: var(--at-space-3);
+  border-block: 1px solid var(--at-product-border);
+}
+
+.details div {
+  min-inline-size: 0;
+}
+
+.details dt {
+  color: var(--at-product-soft-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.details dd {
+  margin: var(--at-space-1) 0 0;
+  color: var(--at-product-text);
+  font-size: 0.84rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.note {
+  gap: var(--at-space-1);
+  padding: var(--at-space-3);
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-md);
+  background: color-mix(in srgb, var(--at-product-surface-soft) 80%, transparent);
+}
+
+.note strong {
+  color: var(--at-product-text);
+  font-size: 0.78rem;
+}
+
+.note span {
+  color: var(--at-product-muted);
+  font-size: 0.84rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.actions {
+  margin-block-start: auto;
+  padding-block-start: var(--at-space-2);
+}
+
+.empty {
+  justify-items: center;
+  gap: var(--at-space-2);
+  padding: var(--at-space-8);
+  border: 1px dashed var(--at-product-border);
+  border-radius: var(--at-radius-lg);
+  color: var(--at-product-muted);
+  text-align: center;
+}
+
+.empty svg {
+  color: var(--at-product-accent-soft);
+}
+
+.empty strong {
+  color: var(--at-product-text);
+}
+
+.form {
+  gap: var(--at-space-4);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--at-space-3);
+}
+
+.formActions {
+  justify-content: flex-end;
+  padding-block-start: var(--at-space-2);
+}
+
+@media (max-width: 992px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 576px) {
+  .summaryBadges,
+  .formGrid,
+  .details {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryBadges {
+    display: grid;
+  }
+
+  .itemHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions > * {
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab,
+  .tabActive {
+    transition: none;
+  }
+}

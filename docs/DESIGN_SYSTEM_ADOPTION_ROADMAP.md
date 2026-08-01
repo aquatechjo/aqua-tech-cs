@@ -451,6 +451,32 @@ Status: **implemented**
   public client approval links, risks, delivery files, notifications, n8n,
   closure, feedback, and follow-up for later governed batches.
 
+## PROJ-05 — Project Risks, Issues, and Decisions
+
+Status: **implemented**
+
+- Add one tenant-scoped Project governance register with database-enforced
+  contracts for Risks, Issues, and Decisions.
+- Number records with annual `RSK`, `ISS`, and `DEC` company sequences while
+  preserving Project and company ownership on every relation.
+- Track Risk probability, impact, exposure, owner, response plan, contingency
+  plan, trigger, review date, mitigation, closure, and reopening.
+- Convert a realized Risk into exactly one linked Issue inside a serializable
+  transaction instead of copying or losing its original context.
+- Track Issue severity, owner, due date, progress, durable resolution, closure,
+  and documented reopening.
+- Keep Decisions immutable after recording; changing direction creates a new
+  linked Decision and marks the prior record as superseded.
+- Require active Project membership for operational owners and reuse existing
+  Project execution-management permissions for all mutations.
+- Block governance mutation on completed, cancelled, or archived Projects and
+  write durable Activity events for every lifecycle action.
+- Surface the register through a canonical responsive Aqua Data Panel with
+  tabs, cards, modals, semantic states, confirmations, RTL/LTR logic, keyboard
+  focus, and reduced-motion coverage.
+- Keep automated inference, notifications, n8n, client visibility, delivery
+  files, closure, feedback, and follow-up for later governed batches.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.

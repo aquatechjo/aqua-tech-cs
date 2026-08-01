@@ -45,6 +45,18 @@ function actionLabel(action: ActivityAction) {
     PROJECT_CHANGE_REQUEST_REJECTED: "رفض طلب تغيير",
     PROJECT_CHANGE_REQUEST_APPLIED: "تطبيق طلب تغيير",
     PROJECT_CHANGE_REQUEST_CANCELLED: "إلغاء طلب تغيير",
+    PROJECT_RISK_CREATED: "تسجيل خطر مشروع",
+    PROJECT_RISK_UPDATED: "تحديث خطر مشروع",
+    PROJECT_RISK_MATERIALIZED: "تحول خطر إلى مشكلة",
+    PROJECT_RISK_CLOSED: "إغلاق خطر مشروع",
+    PROJECT_RISK_REOPENED: "إعادة فتح خطر مشروع",
+    PROJECT_ISSUE_CREATED: "تسجيل مشكلة مشروع",
+    PROJECT_ISSUE_UPDATED: "تحديث مشكلة مشروع",
+    PROJECT_ISSUE_RESOLVED: "حل مشكلة مشروع",
+    PROJECT_ISSUE_CLOSED: "إغلاق مشكلة مشروع",
+    PROJECT_ISSUE_REOPENED: "إعادة فتح مشكلة مشروع",
+    PROJECT_DECISION_RECORDED: "تسجيل قرار مشروع",
+    PROJECT_DECISION_SUPERSEDED: "استبدال قرار مشروع",
     PROJECT_PHASE_CREATED: "إضافة مرحلة مشروع",
     PROJECT_PHASE_UPDATED: "تعديل مرحلة مشروع",
     PROJECT_PHASE_REMOVED: "حذف مرحلة مشروع",
@@ -225,12 +237,18 @@ function actionBadgeClass(action: ActivityAction) {
     || action === "PROPOSAL_SENT"
     || action === "PROPOSAL_CLIENT_ACCEPTED"
     || action === "PROPOSAL_CONVERTED_TO_PROJECT"
+    || action === "PROJECT_RISK_CLOSED"
+    || action === "PROJECT_ISSUE_RESOLVED"
+    || action === "PROJECT_ISSUE_CLOSED"
+    || action === "PROJECT_DECISION_RECORDED"
   ) {
     return "text-bg-success";
   }
 
   if (
     action === "USER_DEACTIVATED" ||
+    action === "PROJECT_RISK_MATERIALIZED" ||
+    action === "PROJECT_DECISION_SUPERSEDED" ||
     action === "DISCOVERY_PUBLIC_LINK_REVOKED" ||
     action === "PROPOSAL_DELIVERY_FAILED" ||
     action === "PROPOSAL_LINK_REVOKED" ||

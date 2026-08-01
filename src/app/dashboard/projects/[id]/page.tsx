@@ -148,6 +148,27 @@ export default async function ProjectExecutionPage({
           },
         },
       },
+      governanceItems: {
+        orderBy: [{ createdAt: "desc" }],
+        include: {
+          ownerUser: { select: { id: true, name: true } },
+          createdBy: { select: { id: true, name: true } },
+          updatedBy: { select: { id: true, name: true } },
+          decidedBy: { select: { id: true, name: true } },
+          sourceRisk: {
+            select: { id: true, referenceNumber: true, title: true },
+          },
+          materializedIssue: {
+            select: { id: true, referenceNumber: true, title: true },
+          },
+          supersedesDecision: {
+            select: { id: true, referenceNumber: true, title: true },
+          },
+          supersededByDecision: {
+            select: { id: true, referenceNumber: true, title: true },
+          },
+        },
+      },
       tasks: {
         where: {
           status: {
@@ -565,6 +586,39 @@ export default async function ProjectExecutionPage({
           dueDate: item.dueDate?.toISOString() ?? null,
           sortOrder: item.sortOrder,
         })),
+      }))}
+      governanceItems={project.governanceItems.map((item) => ({
+        id: item.id,
+        referenceNumber: item.referenceNumber,
+        kind: item.kind,
+        status: item.status,
+        title: item.title,
+        description: item.description,
+        probability: item.probability,
+        impact: item.impact,
+        severity: item.severity,
+        responsePlan: item.responsePlan,
+        contingencyPlan: item.contingencyPlan,
+        trigger: item.trigger,
+        resolution: item.resolution,
+        closureNote: item.closureNote,
+        decision: item.decision,
+        rationale: item.rationale,
+        alternatives: item.alternatives,
+        impactSummary: item.impactSummary,
+        dueDate: item.dueDate?.toISOString() ?? null,
+        decidedAt: item.decidedAt?.toISOString() ?? null,
+        resolvedAt: item.resolvedAt?.toISOString() ?? null,
+        closedAt: item.closedAt?.toISOString() ?? null,
+        createdAt: item.createdAt.toISOString(),
+        ownerUser: item.ownerUser,
+        createdBy: item.createdBy,
+        updatedBy: item.updatedBy,
+        decidedBy: item.decidedBy,
+        sourceRisk: item.sourceRisk,
+        materializedIssue: item.materializedIssue,
+        supersedesDecision: item.supersedesDecision,
+        supersededByDecision: item.supersededByDecision,
       }))}
       tasks={tasks}
       employees={employees}

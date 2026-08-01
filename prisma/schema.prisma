@@ -95,6 +95,31 @@ enum ProjectChangeCommercialImpact {
   APPROVED
 }
 
+enum ProjectGovernanceKind {
+  RISK
+  ISSUE
+  DECISION
+}
+
+enum ProjectGovernanceStatus {
+  OPEN
+  MONITORING
+  MITIGATED
+  MATERIALIZED
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+  RECORDED
+  SUPERSEDED
+}
+
+enum ProjectGovernanceLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
 enum WorkflowApprovalGate {
   PHASE_START
   PHASE_COMPLETION
@@ -420,6 +445,18 @@ enum ActivityAction {
   PROJECT_CHANGE_REQUEST_REJECTED
   PROJECT_CHANGE_REQUEST_APPLIED
   PROJECT_CHANGE_REQUEST_CANCELLED
+  PROJECT_RISK_CREATED
+  PROJECT_RISK_UPDATED
+  PROJECT_RISK_MATERIALIZED
+  PROJECT_RISK_CLOSED
+  PROJECT_RISK_REOPENED
+  PROJECT_ISSUE_CREATED
+  PROJECT_ISSUE_UPDATED
+  PROJECT_ISSUE_RESOLVED
+  PROJECT_ISSUE_CLOSED
+  PROJECT_ISSUE_REOPENED
+  PROJECT_DECISION_RECORDED
+  PROJECT_DECISION_SUPERSEDED
   PROJECT_ARCHIVED
   PROJECT_RESTORED
   PROJECT_COMPLETED
@@ -585,6 +622,7 @@ model Company {
   projectDeliverables     ProjectDeliverable[]
   projectChangeRequests   ProjectChangeRequest[]
   projectChangeItems      ProjectChangeRequestItem[]
+  projectGovernanceItems  ProjectGovernanceItem[]
   workflowApprovals       ProjectWorkflowApproval[]
   workflowRules           ProjectWorkflowRule[]
   workflowEvents          WorkflowEvent[]
@@ -696,6 +734,10 @@ model User {
   createdProjectChangeRequests ProjectChangeRequest[]    @relation("ProjectChangeRequestCreator")
   reviewedProjectChangeRequests ProjectChangeRequest[]   @relation("ProjectChangeRequestReviewer")
   appliedProjectChangeRequests ProjectChangeRequest[]    @relation("ProjectChangeRequestApplier")
+  ownedProjectGovernanceItems ProjectGovernanceItem[]     @relation("ProjectGovernanceOwner")
+  createdProjectGovernanceItems ProjectGovernanceItem[]   @relation("ProjectGovernanceCreator")
+  updatedProjectGovernanceItems ProjectGovernanceItem[]   @relation("ProjectGovernanceUpdater")
+  decidedProjectGovernanceItems ProjectGovernanceItem[]   @relation("ProjectGovernanceDecider")
 
   @@index([companyId])
   @@index([role])
@@ -1104,6 +1146,7 @@ model Project {
   deliverables              ProjectDeliverable[]
   changeRequests            ProjectChangeRequest[]
   changeRequestItems        ProjectChangeRequestItem[]
+  governanceItems           ProjectGovernanceItem[]
   invoices                  Invoice[]
   expenses                  Expense[]
   salesOpportunity          SalesOpportunity?
@@ -1314,6 +1357,76 @@ model ProjectChangeRequestItem {
   @@index([phaseId])
   @@index([action])
   @@index([sortOrder])
+}
+
+model ProjectGovernanceItem {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  ownerUserId String?
+  ownerUser   User? @relation("ProjectGovernanceOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+
+  createdById String?
+  createdBy   User? @relation("ProjectGovernanceCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  updatedById String?
+  updatedBy   User? @relation("ProjectGovernanceUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  decidedById String?
+  decidedBy   User? @relation("ProjectGovernanceDecider", fields: [decidedById], references: [id], onDelete: Restrict)
+
+  sourceRiskId String? @unique
+  sourceRisk   ProjectGovernanceItem? @relation("ProjectRiskMaterialization", fields: [sourceRiskId], references: [id], onDelete: Restrict)
+  materializedIssue ProjectGovernanceItem? @relation("ProjectRiskMaterialization")
+
+  supersedesDecisionId String? @unique
+  supersedesDecision   ProjectGovernanceItem? @relation("ProjectDecisionSupersession", fields: [supersedesDecisionId], references: [id], onDelete: Restrict)
+  supersededByDecision ProjectGovernanceItem? @relation("ProjectDecisionSupersession")
+
+  referenceNumber String
+  kind            ProjectGovernanceKind
+  status          ProjectGovernanceStatus
+  title           String
+  description     String?
+
+  probability ProjectGovernanceLevel?
+  impact      ProjectGovernanceLevel?
+  severity    ProjectGovernanceLevel?
+
+  responsePlan    String?
+  contingencyPlan String?
+  trigger          String?
+  resolution       String?
+  closureNote      String?
+
+  decision      String?
+  rationale     String?
+  alternatives  String?
+  impactSummary String?
+
+  dueDate    DateTime?
+  decidedAt  DateTime?
+  resolvedAt DateTime?
+  closedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, referenceNumber])
+  @@index([companyId])
+  @@index([projectId])
+  @@index([kind])
+  @@index([status])
+  @@index([ownerUserId])
+  @@index([createdById])
+  @@index([updatedById])
+  @@index([decidedById])
+  @@index([dueDate])
+  @@index([createdAt])
 }
 
 model Task {

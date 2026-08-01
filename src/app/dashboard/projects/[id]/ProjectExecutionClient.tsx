@@ -44,6 +44,9 @@ import ProjectDeliverablesPanel, {
 import ProjectChangeRequestsPanel, {
   type ProjectChangeRequestView,
 } from "./ProjectChangeRequestsPanel"
+import ProjectGovernancePanel, {
+  type ProjectGovernanceView,
+} from "./ProjectGovernancePanel"
 import styles from "./ProjectExecution.module.css"
 
 type Employee = {
@@ -308,6 +311,7 @@ export default function ProjectExecutionClient({
   phases,
   deliverables,
   changeRequests,
+  governanceItems,
   tasks,
   employees,
   canManage,
@@ -355,6 +359,7 @@ export default function ProjectExecutionClient({
   phases: Phase[]
   deliverables: ProjectDeliverableView[]
   changeRequests: ProjectChangeRequestView[]
+  governanceItems: ProjectGovernanceView[]
   tasks: Task[]
   employees: Employee[]
   canManage: boolean
@@ -1115,6 +1120,21 @@ export default function ProjectExecutionClient({
         phases={phases.map((phase) => ({
           id: phase.id,
           name: phase.name,
+        }))}
+        canManage={canManage}
+        projectClosed={[
+          "COMPLETED",
+          "CANCELLED",
+          "ARCHIVED",
+        ].includes(project.status)}
+      />
+
+      <ProjectGovernancePanel
+        projectId={project.id}
+        items={governanceItems}
+        members={members.map((member) => ({
+          id: member.employeeProfile.user.id,
+          name: member.employeeProfile.user.name,
         }))}
         canManage={canManage}
         projectClosed={[
