@@ -41,6 +41,9 @@ import type { AquaBadgeVariant } from "@/design-system"
 import ProjectDeliverablesPanel, {
   type ProjectDeliverableView,
 } from "./ProjectDeliverablesPanel"
+import ProjectChangeRequestsPanel, {
+  type ProjectChangeRequestView,
+} from "./ProjectChangeRequestsPanel"
 import styles from "./ProjectExecution.module.css"
 
 type Employee = {
@@ -304,6 +307,7 @@ export default function ProjectExecutionClient({
   members,
   phases,
   deliverables,
+  changeRequests,
   tasks,
   employees,
   canManage,
@@ -350,6 +354,7 @@ export default function ProjectExecutionClient({
   members: Member[]
   phases: Phase[]
   deliverables: ProjectDeliverableView[]
+  changeRequests: ProjectChangeRequestView[]
   tasks: Task[]
   employees: Employee[]
   canManage: boolean
@@ -1092,6 +1097,31 @@ export default function ProjectExecutionClient({
         }))}
         canManage={canManage}
         executionActivated={executionActivated}
+      />
+
+      <ProjectChangeRequestsPanel
+        projectId={project.id}
+        changeRequests={changeRequests}
+        deliverables={deliverables.map((deliverable) => ({
+          id: deliverable.id,
+          title: deliverable.title,
+          description: deliverable.description,
+          acceptanceCriteria: deliverable.acceptanceCriteria,
+          phaseId: deliverable.phaseId,
+          dueDate: deliverable.dueDate,
+          sortOrder: deliverable.sortOrder,
+          status: deliverable.status,
+        }))}
+        phases={phases.map((phase) => ({
+          id: phase.id,
+          name: phase.name,
+        }))}
+        canManage={canManage}
+        projectClosed={[
+          "COMPLETED",
+          "CANCELLED",
+          "ARCHIVED",
+        ].includes(project.status)}
       />
 
       <div className={styles.workspaceGrid}>

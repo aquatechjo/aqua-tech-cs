@@ -30,6 +30,7 @@ export const ACCESS_ROLES = {
     "OPERATIONS_MANAGER",
   ],
   projectReadinessOverride: ["OWNER", "ADMIN"],
+  projectChangeApproval: ["OWNER", "ADMIN", "OPERATIONS_MANAGER"],
   serviceRequestManagement: [
     "OWNER",
     "ADMIN",
@@ -248,6 +249,36 @@ export function assertCanManageProjectExecution(
       "إدارة تنفيذ المشروع متاحة لإدارة العمليات أو قائد المشروع فقط",
       403,
       "PROJECT_EXECUTION_FORBIDDEN"
+    )
+  }
+}
+
+
+export function canApproveProjectChange(
+  reviewer: { id: string; role: AccessRole },
+  creatorUserId: string | null,
+) {
+  if (!hasRole(reviewer.role, ACCESS_ROLES.projectChangeApproval)) return false
+  return reviewer.role === "OWNER" || creatorUserId !== reviewer.id
+}
+
+export function assertCanApproveProjectChange(
+  reviewer: { id: string; role: AccessRole },
+  creatorUserId: string | null,
+) {
+  if (!hasRole(reviewer.role, ACCESS_ROLES.projectChangeApproval)) {
+    throw new ApiError(
+      "لا تملك صلاحية اعتماد طلبات تغيير المشاريع",
+      403,
+      "PROJECT_CHANGE_APPROVAL_FORBIDDEN",
+    )
+  }
+
+  if (reviewer.role !== "OWNER" && creatorUserId === reviewer.id) {
+    throw new ApiError(
+      "لا يمكن اعتماد طلب تغيير أنشأته بنفسك",
+      403,
+      "PROJECT_CHANGE_SELF_APPROVAL_FORBIDDEN",
     )
   }
 }

@@ -427,6 +427,30 @@ Status: **implemented**
   automatic phase progression, notifications, n8n dispatch, milestone invoice
   generation, closure, feedback, and follow-up for later governed batches.
 
+## PROJ-04 — Change Requests and Scope Control
+
+Status: **implemented**
+
+- Protect the PROJ-03 delivery baseline by moving every governed addition,
+  modification, or cancellation through a tenant-scoped Change Request.
+- Generate annual `CR-YYYY-NNNN` document numbers and record business reason,
+  schedule impact, commercial impact state, client-approval requirement, and
+  durable review evidence.
+- Separate authoring from approval: scoped Project execution managers may
+  author and apply, while Owner, Admin, or Operations Manager reviews under a
+  four-eyes rule with an explicit Owner exception for small-company operation.
+- Store the exact target deliverable update timestamp in every modification or
+  cancellation item and reject stale application instead of overwriting newer
+  work.
+- Apply all approved items under one serializable transaction with request and
+  deliverable row locks, deterministic references, result links, and complete
+  Activity logging.
+- Add `CHANGE_REQUEST` deliverable provenance and keep Proposal-derived and
+  Change-Request-derived scope immutable through ordinary deliverable editing.
+- Keep contract amendments, automatic budget changes, invoice generation,
+  public client approval links, risks, delivery files, notifications, n8n,
+  closure, feedback, and follow-up for later governed batches.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.

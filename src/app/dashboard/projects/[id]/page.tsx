@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 
 import {
   ACCESS_ROLES,
+  canApproveProjectChange,
   canAssignTaskOwner,
   canEditTask,
   canManageProjectExecution,
@@ -123,6 +124,26 @@ export default async function ProjectExecutionPage({
             select: {
               id: true,
               name: true,
+            },
+          },
+        },
+      },
+      changeRequests: {
+        orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+        include: {
+          createdBy: { select: { id: true, name: true } },
+          reviewedBy: { select: { id: true, name: true } },
+          appliedBy: { select: { id: true, name: true } },
+          items: {
+            orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+            include: {
+              phase: { select: { id: true, name: true } },
+              targetDeliverable: {
+                select: { id: true, title: true },
+              },
+              resultDeliverable: {
+                select: { id: true, title: true },
+              },
             },
           },
         },
@@ -500,6 +521,50 @@ export default async function ProjectExecutionPage({
         phaseId: deliverable.phaseId,
         phase: deliverable.phase,
         decidedBy: deliverable.decidedBy,
+      }))}
+      changeRequests={project.changeRequests.map((request) => ({
+        id: request.id,
+        requestNumber: request.requestNumber,
+        title: request.title,
+        businessReason: request.businessReason,
+        status: request.status,
+        scheduleImpactDays: request.scheduleImpactDays,
+        commercialImpact: request.commercialImpact,
+        commercialReference: request.commercialReference,
+        clientApprovalRequired: request.clientApprovalRequired,
+        clientApprovalReference: request.clientApprovalReference,
+        reviewNotes: request.reviewNotes,
+        submittedAt: request.submittedAt?.toISOString() ?? null,
+        changesRequestedAt:
+          request.changesRequestedAt?.toISOString() ?? null,
+        approvedAt: request.approvedAt?.toISOString() ?? null,
+        rejectedAt: request.rejectedAt?.toISOString() ?? null,
+        appliedAt: request.appliedAt?.toISOString() ?? null,
+        cancelledAt: request.cancelledAt?.toISOString() ?? null,
+        createdAt: request.createdAt.toISOString(),
+        createdBy: request.createdBy,
+        reviewedBy: request.reviewedBy,
+        appliedBy: request.appliedBy,
+        canReview: canApproveProjectChange(
+          user,
+          request.createdById,
+        ),
+        items: request.items.map((item) => ({
+          id: item.id,
+          action: item.action,
+          targetDeliverableId: item.targetDeliverableId,
+          resultDeliverableId: item.resultDeliverableId,
+          title: item.title,
+          description: item.description,
+          acceptanceCriteria: item.acceptanceCriteria,
+          reason: item.reason,
+          phaseId: item.phaseId,
+          phase: item.phase,
+          targetDeliverable: item.targetDeliverable,
+          resultDeliverable: item.resultDeliverable,
+          dueDate: item.dueDate?.toISOString() ?? null,
+          sortOrder: item.sortOrder,
+        })),
       }))}
       tasks={tasks}
       employees={employees}

@@ -43,7 +43,7 @@ export type ProjectDeliverableView = {
     | "CHANGES_REQUESTED"
     | "ACCEPTED"
     | "CANCELLED"
-  source: "ACCEPTED_PROPOSAL" | "MANUAL"
+  source: "ACCEPTED_PROPOSAL" | "CHANGE_REQUEST" | "MANUAL"
   sortOrder: number
   dueDate: string | null
   submittedAt: string | null
@@ -132,22 +132,28 @@ function dateOnly(value: string | null) {
 }
 
 function transitionsFor(
-  status: ProjectDeliverableView["status"],
+  deliverable: ProjectDeliverableView,
 ): TransitionTarget[] {
-  if (status === "PLANNED") return ["IN_PROGRESS", "CANCELLED"]
-  if (status === "IN_PROGRESS") {
-    return ["READY_FOR_REVIEW", "PLANNED", "CANCELLED"]
+  const cancellable = deliverable.source === "MANUAL"
+    ? (["CANCELLED"] as const)
+    : []
+
+  if (deliverable.status === "PLANNED") {
+    return ["IN_PROGRESS", ...cancellable]
   }
-  if (status === "READY_FOR_REVIEW") {
+  if (deliverable.status === "IN_PROGRESS") {
+    return ["READY_FOR_REVIEW", "PLANNED", ...cancellable]
+  }
+  if (deliverable.status === "READY_FOR_REVIEW") {
     return [
       "ACCEPTED",
       "CHANGES_REQUESTED",
       "IN_PROGRESS",
-      "CANCELLED",
+      ...cancellable,
     ]
   }
-  if (status === "CHANGES_REQUESTED") {
-    return ["IN_PROGRESS", "CANCELLED"]
+  if (deliverable.status === "CHANGES_REQUESTED") {
+    return ["IN_PROGRESS", ...cancellable]
   }
   return []
 }
@@ -275,12 +281,8 @@ export default function ProjectDeliverablesPanel({
         method: "PATCH",
         body: JSON.stringify({
           action: "UPDATE_DETAILS",
-          ...(editDeliverable.source === "MANUAL"
-            ? {
-                title: form.get("title"),
-                description: form.get("description") || null,
-              }
-            : {}),
+          title: form.get("title"),
+          description: form.get("description") || null,
           acceptanceCriteria:
             form.get("acceptanceCriteria") || null,
           phaseId: form.get("phaseId") || null,
@@ -361,8 +363,8 @@ export default function ProjectDeliverablesPanel({
       >
         {!executionActivated && deliverables.length > 0 ? (
           <AquaAlert variant="info" icon={<PackageCheck />}>
-            يمكنك ترتيب التسليمات ومعايير القبول أثناء التخطيط، لكن بدء
-            التنفيذ والمراجعة يحتاج تفعيل المشروع أولًا.
+            يمكن ترتيب التسليمات اليدوية أثناء التخطيط، بينما تعديل النطاق
+            المعتمد يحتاج طلب تغيير. بدء التنفيذ والمراجعة يحتاج تفعيل المشروع أولًا.
           </AquaAlert>
         ) : null}
 
@@ -381,7 +383,7 @@ export default function ProjectDeliverablesPanel({
           <div className={styles.list}>
             {deliverables.map((deliverable) => {
               const status = statusCopy[deliverable.status]
-              const actions = transitionsFor(deliverable.status)
+              const actions = transitionsFor(deliverable)
 
               return (
                 <article key={deliverable.id} className={styles.item}>
@@ -395,13 +397,17 @@ export default function ProjectDeliverablesPanel({
                           variant={
                             deliverable.source === "ACCEPTED_PROPOSAL"
                               ? "aqua"
-                              : "muted"
+                              : deliverable.source === "CHANGE_REQUEST"
+                                ? "blue"
+                                : "muted"
                           }
                           size="sm"
                         >
                           {deliverable.source === "ACCEPTED_PROPOSAL"
                             ? "من العرض المقبول"
-                            : "يدوي"}
+                            : deliverable.source === "CHANGE_REQUEST"
+                              ? "من طلب تغيير"
+                              : "يدوي"}
                         </AquaBadge>
                       </div>
                       <h3>{deliverable.title}</h3>
@@ -411,6 +417,7 @@ export default function ProjectDeliverablesPanel({
                     </div>
 
                     {canManage &&
+                    deliverable.source === "MANUAL" &&
                     deliverable.status !== "ACCEPTED" &&
                     deliverable.status !== "CANCELLED" ? (
                       <div className={styles.headerActions}>
@@ -424,8 +431,7 @@ export default function ProjectDeliverablesPanel({
                         >
                           تعديل
                         </AquaButton>
-                        {deliverable.source === "MANUAL" &&
-                        deliverable.status === "PLANNED" ? (
+                        {deliverable.status === "PLANNED" ? (
                           <AquaButton
                             variant="ghost"
                             size="sm"
@@ -605,7 +611,7 @@ export default function ProjectDeliverablesPanel({
         onClose={() => setEditDeliverable(null)}
         title="تعديل التسليم"
         description={
-          editDeliverable?.source === "ACCEPTED_PROPOSAL"
+          editDeliverable?.source !== "MANUAL"
             ? "عنوان ووصف نطاق العرض ثابتان؛ يمكن ضبط المرحلة والموعد ومعايير القبول."
             : "حدّث تفاصيل التسليم المخطط."
         }
@@ -636,29 +642,20 @@ export default function ProjectDeliverablesPanel({
             className={styles.formGrid}
             onSubmit={updateDeliverable}
           >
-            {editDeliverable.source === "ACCEPTED_PROPOSAL" ? (
-              <AquaAlert variant="info">
-                تعديل النطاق المتفق عليه يحتاج لاحقًا طلب تغيير موثق؛ لا
-                يمكن تغيير العنوان أو الوصف مباشرة.
-              </AquaAlert>
-            ) : (
-              <>
-                <AquaInput
-                  name="title"
-                  label="العنوان"
-                  defaultValue={editDeliverable.title}
-                  required
-                  span={12}
-                />
-                <AquaTextarea
-                  name="description"
-                  label="الوصف"
-                  defaultValue={editDeliverable.description ?? ""}
-                  rows={4}
-                  span={12}
-                />
-              </>
-            )}
+            <AquaInput
+              name="title"
+              label="العنوان"
+              defaultValue={editDeliverable.title}
+              required
+              span={12}
+            />
+            <AquaTextarea
+              name="description"
+              label="الوصف"
+              defaultValue={editDeliverable.description ?? ""}
+              rows={4}
+              span={12}
+            />
             <AquaTextarea
               name="acceptanceCriteria"
               label="معايير القبول"

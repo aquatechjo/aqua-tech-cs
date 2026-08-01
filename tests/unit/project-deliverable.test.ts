@@ -218,8 +218,8 @@ test("deliverable APIs are tenant-scoped, locked, and readiness-aware", () => {
   assert.match(createRoute, /companyId: user\.companyId/)
   assert.match(itemRoute, /FROM "ProjectDeliverable"[\s\S]+FOR UPDATE/)
   assert.match(itemRoute, /assertProjectExecutionActivated/)
-  assert.match(itemRoute, /PROPOSAL_DELIVERABLE_SCOPE_IMMUTABLE/)
-  assert.match(itemRoute, /PROPOSAL_DELIVERABLE_DELETE_BLOCKED/)
+  assert.match(itemRoute, /GOVERNED_DELIVERABLE_SCOPE_IMMUTABLE/)
+  assert.match(itemRoute, /GOVERNED_DELIVERABLE_DELETE_BLOCKED/)
   assert.match(itemRoute, /reviewNotes: saved\.reviewNotes/)
   assert.doesNotMatch(
     itemRoute,

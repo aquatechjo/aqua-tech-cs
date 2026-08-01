@@ -77,18 +77,11 @@ async function updateProjectDeliverable(
         )
       }
 
-      if (
-        existing.source === "ACCEPTED_PROPOSAL" &&
-        ((parsed.data.title !== undefined &&
-          parsed.data.title !== existing.title) ||
-          (parsed.data.description !== undefined &&
-            nullableText(parsed.data.description) !==
-              existing.description))
-      ) {
+      if (existing.source !== "MANUAL") {
         throw new ApiError(
-          "عنوان ووصف التسليم المنسوخ من العرض ثابتان؛ استخدم طلب تغيير لتعديل النطاق",
+          "تفاصيل التسليم المرتبط بنطاق معتمد ثابتة؛ استخدم طلب تغيير جديد لتعديلها",
           409,
-          "PROPOSAL_DELIVERABLE_SCOPE_IMMUTABLE",
+          "GOVERNED_DELIVERABLE_SCOPE_IMMUTABLE",
         )
       }
 
@@ -168,6 +161,17 @@ async function updateProjectDeliverable(
       })
 
       return saved
+    }
+
+    if (
+      existing.source !== "MANUAL" &&
+      parsed.data.status === "CANCELLED"
+    ) {
+      throw new ApiError(
+        "إلغاء تسليم مرتبط بنطاق معتمد يحتاج طلب تغيير موثقًا",
+        409,
+        "GOVERNED_DELIVERABLE_CANCELLATION_REQUIRES_CHANGE_REQUEST",
+      )
     }
 
     const issues = projectDeliverableTransitionIssues({
@@ -284,11 +288,31 @@ async function deleteProjectDeliverable(
     }
     if (existing.source !== "MANUAL") {
       throw new ApiError(
-        "التسليم المنسوخ من العرض لا يُحذف؛ ألغِه بسبب موثق أو أنشئ طلب تغيير",
+        "التسليم المرتبط بنطاق معتمد لا يُحذف؛ استخدم طلب تغيير موثقًا لإلغائه",
         409,
-        "PROPOSAL_DELIVERABLE_DELETE_BLOCKED",
+        "GOVERNED_DELIVERABLE_DELETE_BLOCKED",
       )
     }
+
+    const changeReferenceCount =
+      await tx.projectChangeRequestItem.count({
+        where: {
+          companyId: user.companyId,
+          projectId,
+          OR: [
+            { targetDeliverableId: existing.id },
+            { resultDeliverableId: existing.id },
+          ],
+        },
+      })
+    if (changeReferenceCount > 0) {
+      throw new ApiError(
+        "لا يمكن حذف تسليم مرتبط بطلب تغيير؛ ألغِ طلب التغيير أو استخدم طلبًا جديدًا",
+        409,
+        "PROJECT_DELIVERABLE_CHANGE_REFERENCE_BLOCKED",
+      )
+    }
+
     if (existing.status !== "PLANNED") {
       throw new ApiError(
         "يمكن حذف التسليم اليدوي قبل بدء العمل عليه فقط",

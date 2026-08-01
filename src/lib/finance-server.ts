@@ -52,7 +52,7 @@ export async function assertOperationalCurrency(
 export async function nextDocumentNumber(
   db: DatabaseClient,
   companyId: string,
-  prefix: "INV" | "EXP" | "PROP",
+  prefix: "INV" | "EXP" | "PROP" | "CR",
   date = new Date(),
   timeZone = "Asia/Amman",
 ) {
