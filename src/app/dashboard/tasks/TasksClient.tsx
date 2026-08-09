@@ -170,6 +170,7 @@ function taskSourceLabel(source: TaskSource) {
     WEBSITE_REQUEST: "طلب من الموقع",
     WORKFLOW: "سير عمل",
     AI_GENERATED: "مولدة بالذكاء الاصطناعي",
+    PROJECT_FEEDBACK: "متابعة تقييم العميل",
   }
 
   return labels[source]

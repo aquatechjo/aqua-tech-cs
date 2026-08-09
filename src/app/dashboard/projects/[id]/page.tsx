@@ -170,7 +170,13 @@ export default async function ProjectExecutionPage({
         },
       },
       closure: true,
-      feedback: true,
+      feedback: {
+        include: {
+          followUpTask: {
+            select: { id: true, title: true, status: true },
+          },
+        },
+      },
       tasks: {
         where: {
           status: {
@@ -652,6 +658,7 @@ export default async function ProjectExecutionPage({
         followUpDueAt: project.feedback.followUpDueAt?.toISOString() ?? null,
         ownerId: project.feedback.ownerId,
         resolutionNote: project.feedback.resolutionNote,
+        followUpTask: project.feedback.followUpTask,
       } : null}
       tasks={tasks}
       employees={employees}

@@ -62,6 +62,7 @@ function actionLabel(action: ActivityAction) {
     PROJECT_CLOSURE_COMPLETED: "اعتماد إغلاق مشروع",
     PROJECT_CLOSURE_ARCHIVED: "أرشفة مشروع مغلق",
     PROJECT_FEEDBACK_RECORDED: "تسجيل تقييم العميل",
+    PROJECT_FEEDBACK_TASK_CREATED: "إنشاء مهمة متابعة التقييم",
     PROJECT_FEEDBACK_RESOLVED: "إغلاق متابعة تقييم العميل",
     PROJECT_FEEDBACK_WAIVED: "إعفاء تقييم العميل",
     PROJECT_PHASE_CREATED: "إضافة مرحلة مشروع",

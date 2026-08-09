@@ -483,6 +483,7 @@ enum ActivityAction {
   PROJECT_CLOSURE_COMPLETED
   PROJECT_CLOSURE_ARCHIVED
   PROJECT_FEEDBACK_RECORDED
+  PROJECT_FEEDBACK_TASK_CREATED
   PROJECT_FEEDBACK_RESOLVED
   PROJECT_FEEDBACK_WAIVED
   PROJECT_ARCHIVED
@@ -1251,6 +1252,9 @@ model ProjectFeedback {
   resolvedById String?
   resolvedBy   User? @relation("ProjectFeedbackResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
 
+  followUpTaskId String? @unique
+  followUpTask   Task?   @relation("ProjectFeedbackTask", fields: [followUpTaskId], references: [id], onDelete: SetNull)
+
   status              ProjectFeedbackStatus @default(PENDING)
   npsScore            Int?
   satisfactionScore   Int?
@@ -1585,6 +1589,7 @@ model Task {
   blockers          TaskBlocker[]
   workflowApprovals ProjectWorkflowApproval[]
   timeEntries       TimeEntry[]
+  projectFeedback   ProjectFeedback? @relation("ProjectFeedbackTask")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3069,6 +3074,7 @@ enum TaskSource {
   WEBSITE_REQUEST
   WORKFLOW
   AI_GENERATED
+  PROJECT_FEEDBACK
 }
 
 enum ServiceRequestStatus {

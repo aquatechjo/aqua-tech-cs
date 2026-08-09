@@ -2,7 +2,7 @@ import { ActivityAction } from "@/generated/prisma/enums"
 import { logActivity } from "@/lib/activity"
 import { ApiError, ok, withApiHandler } from "@/lib/api-response"
 import { getRequestMeta, requireAuth } from "@/lib/auth"
-import { assertFeedbackTransition, feedbackStatus, projectFeedbackMutationSchema } from "@/lib/project-feedback"
+import { assertFeedbackTransition, feedbackStatus, feedbackTaskPriority, projectFeedbackMutationSchema } from "@/lib/project-feedback"
 import { requireProjectExecutionManager } from "@/lib/project-execution-server"
 import { prisma } from "@/lib/prisma"
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
@@ -21,7 +21,7 @@ async function mutate(request: Request, context: { params: Promise<{ id: string 
 
   const result = await prisma.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT "id" FROM "Project" WHERE "id" = ${projectId} AND "companyId" = ${user.companyId} FOR UPDATE`
-    const current = await tx.project.findFirst({ where: { id: projectId, companyId: user.companyId }, include: { closure: true, feedback: true } })
+    const current = await tx.project.findFirst({ where: { id: projectId, companyId: user.companyId }, include: { closure: true, feedback: { include: { followUpTask: true } } } })
     if (!current) throw new ApiError("المشروع غير موجود", 404, "PROJECT_NOT_FOUND")
     if (!current.closure || !["COMPLETED", "ARCHIVED"].includes(current.closure.status)) throw new ApiError("لا يسجل تقييم العميل قبل اعتماد إغلاق المشروع", 409, "PROJECT_FEEDBACK_REQUIRES_CLOSURE")
     assertFeedbackTransition(current.feedback?.status ?? null, input.action)
@@ -32,11 +32,29 @@ async function mutate(request: Request, context: { params: Promise<{ id: string 
         if (!owner) throw new ApiError("مالك المتابعة ليس عضوًا نشطًا في المشروع", 400, "INVALID_FEEDBACK_OWNER")
       }
       const status = feedbackStatus(input)
+      if (status !== "ACTION_REQUIRED" && current.feedback?.followUpTask && !["DONE", "CANCELLED", "ARCHIVED"].includes(current.feedback.followUpTask.status)) {
+        throw new ApiError("أكمل أو ألغِ مهمة المتابعة الحالية قبل إزالة الإجراء المطلوب", 409, "ACTIVE_FEEDBACK_TASK_EXISTS")
+      }
       const feedback = await tx.projectFeedback.upsert({ where: { projectId }, create: { companyId: user.companyId, projectId, recordedById: user.id, ownerId: input.ownerId || null, status, npsScore: input.npsScore, satisfactionScore: input.satisfactionScore, feedbackSummary: input.feedbackSummary, improvementNotes: nullable(input.improvementNotes), testimonial: nullable(input.testimonial), testimonialApproved: input.testimonialApproved, followUpRequired: input.followUpRequired, followUpAction: nullable(input.followUpAction), followUpDueAt: input.followUpDueAt ? new Date(input.followUpDueAt) : null, receivedAt: new Date() }, update: { recordedById: user.id, ownerId: input.ownerId || null, status, npsScore: input.npsScore, satisfactionScore: input.satisfactionScore, feedbackSummary: input.feedbackSummary, improvementNotes: nullable(input.improvementNotes), testimonial: nullable(input.testimonial), testimonialApproved: input.testimonialApproved, followUpRequired: input.followUpRequired, followUpAction: nullable(input.followUpAction), followUpDueAt: input.followUpDueAt ? new Date(input.followUpDueAt) : null, resolutionNote: null, resolvedById: null, resolvedAt: null, waivedAt: null, receivedAt: new Date() } })
+      if (status === "ACTION_REQUIRED") {
+        const taskData = { assignedToId: input.ownerId!, title: "متابعة تقييم العميل — " + project.name, description: input.followUpAction!, priority: feedbackTaskPriority(input), dueDate: new Date(input.followUpDueAt!), clientId: current.clientId, projectId, source: "PROJECT_FEEDBACK" as const, sourceRef: feedback.id }
+        const activeTask = current.feedback?.followUpTask && !["DONE", "CANCELLED", "ARCHIVED"].includes(current.feedback.followUpTask.status) ? current.feedback.followUpTask : null
+        const task = activeTask
+          ? await tx.task.update({ where: { id: activeTask.id }, data: taskData })
+          : await tx.task.create({ data: { companyId: user.companyId, createdById: user.id, status: "TODO", progress: 0, ...taskData } })
+        if (feedback.followUpTaskId !== task.id) await tx.projectFeedback.update({ where: { id: feedback.id }, data: { followUpTaskId: task.id } })
+        await logActivity({ db: tx, companyId: user.companyId, userId: user.id, action: ActivityAction.PROJECT_FEEDBACK_TASK_CREATED, entityType: "Task", entityId: task.id, message: "تم إنشاء مهمة متابعة تقييم مشروع " + project.name, metadata: { projectId, feedbackId: feedback.id, taskId: task.id, ownerId: input.ownerId }, ...meta })
+      }
       await logActivity({ db: tx, companyId: user.companyId, userId: user.id, action: ActivityAction.PROJECT_FEEDBACK_RECORDED, entityType: "ProjectFeedback", entityId: feedback.id, message: `تم توثيق تقييم عميل مشروع ${project.name}`, metadata: { projectId, status, npsScore: input.npsScore }, ...meta })
       return feedback
     }
 
+    if (input.action === "RESOLVE" && current.feedback?.followUpTask && !["DONE", "CANCELLED", "ARCHIVED"].includes(current.feedback.followUpTask.status)) {
+      throw new ApiError("أكمل مهمة المتابعة أولًا قبل إغلاق سجل التقييم", 409, "FEEDBACK_TASK_NOT_COMPLETED")
+    }
+    if (input.action === "WAIVE" && current.feedback?.followUpTask && !["DONE", "CANCELLED", "ARCHIVED"].includes(current.feedback.followUpTask.status)) {
+      await tx.task.update({ where: { id: current.feedback.followUpTask.id }, data: { status: "CANCELLED", progress: 0 } })
+    }
     const feedback = await tx.projectFeedback.update({ where: { projectId }, data: input.action === "RESOLVE" ? { status: "RESOLVED", resolutionNote: input.resolutionNote, resolvedById: user.id, resolvedAt: new Date() } : { status: "WAIVED", resolutionNote: input.resolutionNote, resolvedById: user.id, waivedAt: new Date() } })
     await logActivity({ db: tx, companyId: user.companyId, userId: user.id, action: input.action === "RESOLVE" ? ActivityAction.PROJECT_FEEDBACK_RESOLVED : ActivityAction.PROJECT_FEEDBACK_WAIVED, entityType: "ProjectFeedback", entityId: feedback.id, message: `تم إغلاق متابعة تقييم مشروع ${project.name}`, metadata: { projectId, status: feedback.status }, ...meta })
     return feedback

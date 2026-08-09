@@ -14,7 +14,8 @@ const record = z.object({
   ownerId: z.string().trim().optional().nullable(),
 }).superRefine((value, context) => {
   if (value.testimonialApproved && !value.testimonial?.trim()) context.addIssue({ code: "custom", path: ["testimonial"], message: "نص الشهادة مطلوب قبل توثيق موافقة النشر" })
-  if (value.followUpRequired && (!value.followUpAction?.trim() || !value.followUpDueAt || !value.ownerId)) context.addIssue({ code: "custom", path: ["followUpAction"], message: "إجراء المتابعة ومالكه وموعده مطلوبة" })
+  const actionRequired = value.followUpRequired || value.npsScore <= 6 || value.satisfactionScore <= 2
+  if (actionRequired && (!value.followUpAction?.trim() || !value.followUpDueAt || !value.ownerId)) context.addIssue({ code: "custom", path: ["followUpAction"], message: "إجراء المتابعة ومالكه وموعده مطلوبة عند انخفاض التقييم" })
 })
 
 export const projectFeedbackMutationSchema = z.union([
@@ -25,6 +26,10 @@ export const projectFeedbackMutationSchema = z.union([
 
 export function feedbackStatus(input: { npsScore: number; satisfactionScore: number; followUpRequired: boolean }) {
   return input.followUpRequired || input.npsScore <= 6 || input.satisfactionScore <= 2 ? "ACTION_REQUIRED" as const : "RECEIVED" as const
+}
+
+export function feedbackTaskPriority(input: { npsScore: number; satisfactionScore: number }) {
+  return input.npsScore <= 3 || input.satisfactionScore === 1 ? "URGENT" as const : "HIGH" as const
 }
 
 export function assertFeedbackTransition(status: string | null, action: string) {

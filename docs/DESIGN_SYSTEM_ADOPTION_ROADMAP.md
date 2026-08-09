@@ -498,6 +498,16 @@ Status: **implemented**
 - Resolve or waive follow-up only with a durable management note, actor, timestamp, locking, and Activity audit.
 - Keep public survey delivery, automation, Task generation, publishing, and aggregate dashboards for later batches.
 
+## PROJ-08 — Feedback Action Handoff
+
+Status: **implemented**
+
+- Convert every required feedback follow-up into one owned Project Task inside the existing My Day and Tasks workflow.
+- Derive urgent or high priority from the recorded score, and preserve the feedback record as the task source.
+- Reuse and update the active linked Task on feedback edits instead of creating duplicates.
+- Require completion or cancellation of the linked Task before resolving the feedback record; a documented waiver cancels active work atomically.
+- Keep public survey delivery, channel automation, testimonial publishing, and aggregate customer-success dashboards for later batches.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.
