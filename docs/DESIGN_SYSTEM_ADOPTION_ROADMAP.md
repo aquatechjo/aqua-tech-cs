@@ -543,3 +543,14 @@ Status: **implemented**
 - Require an explicit verified recipient and preserve attempt, provider, success, and failure evidence.
 - Revoke failed-attempt tokens and write durable prepared, sent, and failed Activity events.
 - Keep manual copy/revoke as a separate channel; defer WhatsApp, reminders, automatic retries, and n8n dispatch.
+
+## PROJ-11 — Governed Feedback Reminders
+
+Status: **implemented**
+
+- Send a manual audited reminder only for an active delivered feedback request.
+- Require 72 hours between successful contacts and stop after three successful reminders.
+- Prepare a new server-side token hash while preserving the current active link during provider delivery.
+- Rotate to the new 14-day link only after provider acceptance; preserve the previous link on failure.
+- Block concurrent reminders and all reminders after feedback receipt.
+- Keep automatic scheduling, WhatsApp, retries, and n8n outside this batch.

@@ -70,6 +70,8 @@ function actionLabel(action: ActivityAction) {
     PROJECT_FEEDBACK_DELIVERY_PREPARED: "تجهيز دعوة تقييم العميل",
     PROJECT_FEEDBACK_DELIVERY_FAILED: "فشل إرسال دعوة التقييم",
     PROJECT_FEEDBACK_SENT: "إرسال دعوة تقييم العميل",
+    PROJECT_FEEDBACK_REMINDER_SENT: "إرسال تذكير تقييم العميل",
+    PROJECT_FEEDBACK_REMINDER_FAILED: "فشل إرسال تذكير التقييم",
     PROJECT_FEEDBACK_RESOLVED: "إغلاق متابعة تقييم العميل",
     PROJECT_FEEDBACK_WAIVED: "إعفاء تقييم العميل",
     PROJECT_PHASE_CREATED: "إضافة مرحلة مشروع",

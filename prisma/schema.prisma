@@ -491,6 +491,8 @@ enum ActivityAction {
   PROJECT_FEEDBACK_DELIVERY_PREPARED
   PROJECT_FEEDBACK_DELIVERY_FAILED
   PROJECT_FEEDBACK_SENT
+  PROJECT_FEEDBACK_REMINDER_SENT
+  PROJECT_FEEDBACK_REMINDER_FAILED
   PROJECT_FEEDBACK_RESOLVED
   PROJECT_FEEDBACK_WAIVED
   PROJECT_ARCHIVED
@@ -1279,6 +1281,15 @@ model ProjectFeedback {
   deliveryFailedAt       DateTime?
   deliveryFailureReason  String?
   deliveryAttemptCount   Int       @default(0)
+  reminderProviderId     String?
+  reminderPreparedAt     DateTime?
+  reminderSentAt         DateTime?
+  reminderFailedAt       DateTime?
+  reminderFailureReason  String?
+  reminderAttemptCount   Int       @default(0)
+  reminderCount          Int       @default(0)
+  reminderPendingTokenHash String?  @unique
+  reminderPendingExpiresAt DateTime?
 
   status              ProjectFeedbackStatus @default(PENDING)
   npsScore            Int?

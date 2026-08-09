@@ -3,6 +3,7 @@ import "server-only"
 import {
   buildPasswordResetEmail,
   buildProjectFeedbackInvitationEmail,
+  buildProjectFeedbackReminderEmail,
   buildProposalDeliveryEmail,
 } from "@/lib/email-templates"
 
@@ -129,5 +130,11 @@ export async function sendProjectFeedbackInvitationEmail({
 }) {
   const from = requiredEmailEnv("FEEDBACK_FROM")
   const email = buildProjectFeedbackInvitationEmail({ recipientName, projectName, feedbackUrl, validUntilLabel })
+  return sendTransactionalEmail({ from, to, ...email })
+}
+
+export async function sendProjectFeedbackReminderEmail({ to, recipientName, projectName, feedbackUrl, validUntilLabel }: { to: string; recipientName: string; projectName: string; feedbackUrl: string; validUntilLabel: string }) {
+  const from = requiredEmailEnv("FEEDBACK_FROM")
+  const email = buildProjectFeedbackReminderEmail({ recipientName, projectName, feedbackUrl, validUntilLabel })
   return sendTransactionalEmail({ from, to, ...email })
 }

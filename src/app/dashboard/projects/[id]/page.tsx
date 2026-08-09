@@ -668,6 +668,10 @@ export default async function ProjectExecutionPage({
         deliverySentAt: project.feedback.deliverySentAt?.toISOString() ?? null,
         deliveryFailedAt: project.feedback.deliveryFailedAt?.toISOString() ?? null,
         deliveryAttemptCount: project.feedback.deliveryAttemptCount,
+        reminderSentAt: project.feedback.reminderSentAt?.toISOString() ?? null,
+        reminderFailedAt: project.feedback.reminderFailedAt?.toISOString() ?? null,
+        reminderCount: project.feedback.reminderCount,
+        reminderAttemptCount: project.feedback.reminderAttemptCount,
         followUpTask: project.feedback.followUpTask,
       } : null}
       tasks={tasks}
