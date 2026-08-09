@@ -526,3 +526,11 @@ Status: **implemented**
 - Mobile review
 - Contrast review
 - No unapproved hard-coded product colors in shared primitives
+## PROJ-09 — Secure Client Feedback Collection
+
+Status: **implemented**
+
+- Issue, rotate, copy, and revoke a finite client feedback link after project closure.
+- Store only an opaque token hash and expose a minimal no-index public form.
+- Enforce one transactional submission with rate limiting, audit events, and automatic PROJ-08 follow-up handoff for low scores.
+- Keep automatic email and WhatsApp delivery outside this batch.

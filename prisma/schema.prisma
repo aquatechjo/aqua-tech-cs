@@ -484,6 +484,10 @@ enum ActivityAction {
   PROJECT_CLOSURE_ARCHIVED
   PROJECT_FEEDBACK_RECORDED
   PROJECT_FEEDBACK_TASK_CREATED
+  PROJECT_FEEDBACK_LINK_ISSUED
+  PROJECT_FEEDBACK_LINK_REVOKED
+  PROJECT_FEEDBACK_LINK_VIEWED
+  PROJECT_FEEDBACK_CLIENT_SUBMITTED
   PROJECT_FEEDBACK_RESOLVED
   PROJECT_FEEDBACK_WAIVED
   PROJECT_ARCHIVED
@@ -1255,6 +1259,15 @@ model ProjectFeedback {
   followUpTaskId String? @unique
   followUpTask   Task?   @relation("ProjectFeedbackTask", fields: [followUpTaskId], references: [id], onDelete: SetNull)
 
+  publicTokenHash      String?   @unique
+  publicExpiresAt      DateTime?
+  publicRevokedAt      DateTime?
+  publicIssuedAt       DateTime?
+  publicFirstViewedAt  DateTime?
+  publicLastViewedAt   DateTime?
+  publicViewCount      Int       @default(0)
+  publicSubmittedAt    DateTime?
+
   status              ProjectFeedbackStatus @default(PENDING)
   npsScore            Int?
   satisfactionScore   Int?
@@ -1276,6 +1289,7 @@ model ProjectFeedback {
   @@index([status])
   @@index([ownerId])
   @@index([followUpDueAt])
+  @@index([publicExpiresAt])
 }
 
 model ProjectReadiness {

@@ -658,6 +658,10 @@ export default async function ProjectExecutionPage({
         followUpDueAt: project.feedback.followUpDueAt?.toISOString() ?? null,
         ownerId: project.feedback.ownerId,
         resolutionNote: project.feedback.resolutionNote,
+        receivedAt: project.feedback.receivedAt?.toISOString() ?? null,
+        publicExpiresAt: project.feedback.publicExpiresAt?.toISOString() ?? null,
+        publicRevokedAt: project.feedback.publicRevokedAt?.toISOString() ?? null,
+        publicSubmittedAt: project.feedback.publicSubmittedAt?.toISOString() ?? null,
         followUpTask: project.feedback.followUpTask,
       } : null}
       tasks={tasks}

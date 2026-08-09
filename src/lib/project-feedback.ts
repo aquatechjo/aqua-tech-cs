@@ -1,5 +1,33 @@
 import { z } from "zod"
 
+export const FEEDBACK_PUBLIC_TOKEN_BYTES = 32
+export const FEEDBACK_PUBLIC_LINK_DAYS = 14
+
+export const publicFeedbackSubmissionSchema = z.object({
+  action: z.literal("SUBMIT"),
+  npsScore: z.coerce.number().int().min(0).max(10),
+  satisfactionScore: z.coerce.number().int().min(1).max(5),
+  feedbackSummary: z.string().trim().min(10).max(6000),
+  testimonial: z.string().trim().max(3000).optional().nullable(),
+  testimonialApproved: z.boolean().default(false),
+}).superRefine((value, context) => {
+  if (value.testimonialApproved && !value.testimonial?.trim()) {
+    context.addIssue({ code: "custom", path: ["testimonial"], message: "اكتب نص الشهادة قبل الموافقة على نشرها" })
+  }
+})
+
+export function isValidFeedbackPublicToken(token: string) {
+  return /^[A-Za-z0-9_-]{40,80}$/.test(token)
+}
+
+export function publicFeedbackPath(token: string) {
+  return `/feedback/${encodeURIComponent(token)}`
+}
+
+export function feedbackPublicExpiry(now = new Date(), days = FEEDBACK_PUBLIC_LINK_DAYS) {
+  return new Date(now.getTime() + days * 24 * 60 * 60 * 1000)
+}
+
 const record = z.object({
   action: z.literal("RECORD"),
   npsScore: z.coerce.number().int().min(0).max(10),
