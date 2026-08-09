@@ -169,6 +169,7 @@ export default async function ProjectExecutionPage({
           },
         },
       },
+      closure: true,
       tasks: {
         where: {
           status: {
@@ -620,6 +621,23 @@ export default async function ProjectExecutionPage({
         supersedesDecision: item.supersedesDecision,
         supersededByDecision: item.supersededByDecision,
       }))}
+      closure={project.closure ? {
+        status: project.closure.status,
+        outcome: project.closure.outcome,
+        summary: project.closure.summary,
+        lessonsLearned: project.closure.lessonsLearned,
+        followUpActions: project.closure.followUpActions,
+        clientHandoverRef: project.closure.clientHandoverRef,
+        internalArchiveRef: project.closure.internalArchiveRef,
+        exceptionReason: project.closure.exceptionReason,
+      } : null}
+      closureBlockers={{
+        incompleteDeliverables: project.deliverables.filter((item) => !["ACCEPTED", "CANCELLED"].includes(item.status)).length,
+        openChangeRequests: project.changeRequests.filter((item) => ["DRAFT", "IN_REVIEW", "CHANGES_REQUESTED", "APPROVED"].includes(item.status)).length,
+        openRisks: project.governanceItems.filter((item) => item.kind === "RISK" && ["OPEN", "MONITORING", "MITIGATED"].includes(item.status)).length,
+        openIssues: project.governanceItems.filter((item) => item.kind === "ISSUE" && ["OPEN", "IN_PROGRESS", "RESOLVED"].includes(item.status)).length,
+        incompleteTasks: project.tasks.filter((item) => !["DONE", "CANCELLED", "ARCHIVED"].includes(item.status)).length,
+      }}
       tasks={tasks}
       employees={employees}
       canManage={canManage}
