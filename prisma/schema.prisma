@@ -493,6 +493,10 @@ enum ActivityAction {
   PROJECT_FEEDBACK_SENT
   PROJECT_FEEDBACK_REMINDER_SENT
   PROJECT_FEEDBACK_REMINDER_FAILED
+  PROJECT_FEEDBACK_SCHEDULE_ENABLED
+  PROJECT_FEEDBACK_SCHEDULE_DISABLED
+  PROJECT_FEEDBACK_SCHEDULED_REMINDER_SENT
+  PROJECT_FEEDBACK_SCHEDULED_REMINDER_FAILED
   PROJECT_FEEDBACK_RESOLVED
   PROJECT_FEEDBACK_WAIVED
   PROJECT_ARCHIVED
@@ -1290,6 +1294,9 @@ model ProjectFeedback {
   reminderCount          Int       @default(0)
   reminderPendingTokenHash String?  @unique
   reminderPendingExpiresAt DateTime?
+  reminderScheduleEnabled  Boolean  @default(false)
+  reminderNextAt           DateTime?
+  reminderScheduleUpdatedAt DateTime?
 
   status              ProjectFeedbackStatus @default(PENDING)
   npsScore            Int?
@@ -1313,6 +1320,7 @@ model ProjectFeedback {
   @@index([ownerId])
   @@index([followUpDueAt])
   @@index([publicExpiresAt])
+  @@index([reminderScheduleEnabled, reminderNextAt])
 }
 
 model ProjectReadiness {

@@ -37,7 +37,7 @@ async function manage(request: Request, context: { params: Promise<{ id: string 
       await logActivity({ db: tx, companyId: user.companyId, userId: user.id, action: ActivityAction.PROJECT_FEEDBACK_LINK_ISSUED, entityType: "ProjectFeedback", entityId: feedback.id, message: `تم إصدار رابط تقييم مشروع ${project.name}`, metadata: { projectId, expiresAt: access.expiresAt.toISOString(), rotated: Boolean(current.feedback?.publicTokenHash) }, ...meta })
       return { active: true, path: publicFeedbackPath(access.token), expiresAt: access.expiresAt.toISOString() }
     }
-    if (current.feedback) await tx.projectFeedback.update({ where: { id: current.feedback.id }, data: { publicTokenHash: null, publicExpiresAt: null, publicRevokedAt: now } })
+    if (current.feedback) await tx.projectFeedback.update({ where: { id: current.feedback.id }, data: { publicTokenHash: null, publicExpiresAt: null, publicRevokedAt: now, reminderScheduleEnabled: false, reminderNextAt: null, reminderScheduleUpdatedAt: now } })
     await logActivity({ db: tx, companyId: user.companyId, userId: user.id, action: ActivityAction.PROJECT_FEEDBACK_LINK_REVOKED, entityType: "ProjectFeedback", entityId: current.feedback?.id, message: `تم إلغاء رابط تقييم مشروع ${project.name}`, metadata: { projectId }, ...meta })
     return { active: false, path: null, expiresAt: null }
   }, { isolationLevel: "Serializable" })

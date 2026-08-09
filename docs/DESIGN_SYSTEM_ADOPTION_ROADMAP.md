@@ -554,3 +554,14 @@ Status: **implemented**
 - Rotate to the new 14-day link only after provider acceptance; preserve the previous link on failure.
 - Block concurrent reminders and all reminders after feedback receipt.
 - Keep automatic scheduling, WhatsApp, retries, and n8n outside this batch.
+
+## PROJ-12 — Scheduled Feedback Reminder Operations
+
+Status: **implemented**
+
+- Add explicit per-project opt-in and stop controls for scheduled feedback reminders.
+- Compute eligibility from the last successful contact while preserving the 72-hour cooldown and three-reminder cap.
+- Reuse PROJ-11 locking, provider-acceptance token rotation, and active-link preservation.
+- Protect a bounded 20-item worker with `CRON_SECRET` and durable Activity events.
+- Stop scheduling on feedback receipt, manual recording, link revocation, a new invitation, reminder cap, or provider failure.
+- Keep automatic retries, WhatsApp, and n8n outside this batch.

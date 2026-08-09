@@ -11,10 +11,11 @@ test("PROJ-11 builds a safe reminder email", () => {
 })
 
 test("PROJ-11 enforces cooldown and reminder cap", () => {
-  const route = readFileSync("src/app/api/projects/[id]/feedback/reminder/route.ts", "utf8")
-  assert.match(route, /72 \* 60 \* 60 \* 1000/)
-  assert.match(route, /MAX_REMINDERS = 3/)
-  assert.match(route, /PROJECT_FEEDBACK_ALREADY_RECEIVED/)
+  const rules = readFileSync("src/lib/project-feedback-reminder.ts", "utf8")
+  const server = readFileSync("src/lib/project-feedback-reminder-server.ts", "utf8")
+  assert.match(rules, /72 \* 60 \* 60 \* 1000/)
+  assert.match(rules, /FEEDBACK_REMINDER_MAX_COUNT = 3/)
+  assert.match(server, /PROJECT_FEEDBACK_ALREADY_RECEIVED/)
 })
 
 test("PROJ-11 records reminder lifecycle", () => {
@@ -27,12 +28,12 @@ test("PROJ-11 records reminder lifecycle", () => {
 })
 
 test("PROJ-11 rotates only after provider acceptance and preserves the active link on failure", () => {
-  const route = readFileSync("src/app/api/projects/[id]/feedback/reminder/route.ts", "utf8")
-  const sendIndex = route.indexOf("sendProjectFeedbackReminderEmail")
-  const rotateIndex = route.indexOf("publicTokenHash: access.tokenHash", sendIndex)
+  const server = readFileSync("src/lib/project-feedback-reminder-server.ts", "utf8")
+  const sendIndex = server.indexOf("sendProjectFeedbackReminderEmail")
+  const rotateIndex = server.indexOf("publicTokenHash: access.tokenHash", sendIndex)
   assert.ok(sendIndex >= 0 && rotateIndex > sendIndex)
-  assert.match(route, /reminderPendingTokenHash: access\.tokenHash/)
-  assert.match(route, /activeLinkPreserved: true/)
-  assert.doesNotMatch(route, /x-feedback-token/)
-  assert.match(route, /PROJECT_FEEDBACK_REMINDER_FAILED/)
+  assert.match(server, /reminderPendingTokenHash: access\.tokenHash/)
+  assert.match(server, /activeLinkPreserved: true/)
+  assert.doesNotMatch(server, /x-feedback-token/)
+  assert.match(server, /PROJECT_FEEDBACK_REMINDER_FAILED/)
 })

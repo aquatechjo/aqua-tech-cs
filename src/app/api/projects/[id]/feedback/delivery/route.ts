@@ -67,11 +67,13 @@ async function deliver(request: Request, context: { params: Promise<{ id: string
         publicTokenHash: access.tokenHash, publicExpiresAt: access.expiresAt, publicIssuedAt: now,
         deliveryRecipientName: parsed.data.recipientName, deliveryRecipientEmail: parsed.data.recipientEmail,
         deliveryPreparedAt: now, deliveryFailedAt: null, deliveryFailureReason: null, deliveryAttemptCount: 1,
+        reminderScheduleEnabled: false, reminderNextAt: null, reminderScheduleUpdatedAt: now,
       },
       update: {
         ownerId, publicTokenHash: access.tokenHash, publicExpiresAt: access.expiresAt, publicRevokedAt: null, publicIssuedAt: now,
         deliveryRecipientName: parsed.data.recipientName, deliveryRecipientEmail: parsed.data.recipientEmail,
         deliveryPreparedAt: now, deliveryFailedAt: null, deliveryFailureReason: null, deliveryAttemptCount: { increment: 1 },
+        reminderScheduleEnabled: false, reminderNextAt: null, reminderScheduleUpdatedAt: now,
       },
     })
     await logActivity({ db: tx, companyId: user.companyId, userId: user.id, action: ActivityAction.PROJECT_FEEDBACK_DELIVERY_PREPARED, entityType: "ProjectFeedback", entityId: feedback.id, message: `تم تجهيز دعوة تقييم مشروع ${project.name}`, metadata: { projectId, recipientEmail: parsed.data.recipientEmail, expiresAt: access.expiresAt.toISOString() }, ...meta })
