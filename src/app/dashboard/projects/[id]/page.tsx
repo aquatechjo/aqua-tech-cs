@@ -54,6 +54,7 @@ export default async function ProjectExecutionPage({
         select: {
           id: true,
           name: true,
+          email: true,
         },
       },
       workflow: {
@@ -662,6 +663,11 @@ export default async function ProjectExecutionPage({
         publicExpiresAt: project.feedback.publicExpiresAt?.toISOString() ?? null,
         publicRevokedAt: project.feedback.publicRevokedAt?.toISOString() ?? null,
         publicSubmittedAt: project.feedback.publicSubmittedAt?.toISOString() ?? null,
+        deliveryRecipientName: project.feedback.deliveryRecipientName,
+        deliveryRecipientEmail: project.feedback.deliveryRecipientEmail,
+        deliverySentAt: project.feedback.deliverySentAt?.toISOString() ?? null,
+        deliveryFailedAt: project.feedback.deliveryFailedAt?.toISOString() ?? null,
+        deliveryAttemptCount: project.feedback.deliveryAttemptCount,
         followUpTask: project.feedback.followUpTask,
       } : null}
       tasks={tasks}

@@ -331,7 +331,7 @@ export default function ProjectExecutionClient({
     description: string | null
     status: string
     priority: string
-    client: { id: string; name: string } | null
+    client: { id: string; name: string; email: string | null } | null
     startDate: string | null
     dueDate: string | null
     originProposalWorkspaceId: string | null
@@ -1158,6 +1158,7 @@ export default function ProjectExecutionClient({
         projectId={project.id}
         closureStatus={closure?.status ?? null}
         feedback={feedback}
+        client={project.client}
         members={members.map((member) => ({ id: member.employeeProfile.user.id, name: member.employeeProfile.user.name }))}
         canManage={canManage}
       />

@@ -534,3 +534,12 @@ Status: **implemented**
 - Store only an opaque token hash and expose a minimal no-index public form.
 - Enforce one transactional submission with rate limiting, audit events, and automatic PROJ-08 follow-up handoff for low scores.
 - Keep automatic email and WhatsApp delivery outside this batch.
+
+## PROJ-10 — Governed Feedback Invitation Delivery
+
+Status: **implemented**
+
+- Send a freshly rotated 14-day feedback link through the existing transactional email provider.
+- Require an explicit verified recipient and preserve attempt, provider, success, and failure evidence.
+- Revoke failed-attempt tokens and write durable prepared, sent, and failed Activity events.
+- Keep manual copy/revoke as a separate channel; defer WhatsApp, reminders, automatic retries, and n8n dispatch.

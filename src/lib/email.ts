@@ -2,11 +2,12 @@ import "server-only"
 
 import {
   buildPasswordResetEmail,
+  buildProjectFeedbackInvitationEmail,
   buildProposalDeliveryEmail,
 } from "@/lib/email-templates"
 
 function requiredEmailEnv(
-  name: "RESEND_API_KEY" | "PASSWORD_RESET_FROM" | "PROPOSAL_FROM",
+  name: "RESEND_API_KEY" | "PASSWORD_RESET_FROM" | "PROPOSAL_FROM" | "FEEDBACK_FROM",
 ) {
   const value = process.env[name]?.trim()
 
@@ -111,4 +112,22 @@ export async function sendProposalDeliveryEmail({
     to,
     ...email,
   })
+}
+
+export async function sendProjectFeedbackInvitationEmail({
+  to,
+  recipientName,
+  projectName,
+  feedbackUrl,
+  validUntilLabel,
+}: {
+  to: string
+  recipientName: string
+  projectName: string
+  feedbackUrl: string
+  validUntilLabel: string
+}) {
+  const from = requiredEmailEnv("FEEDBACK_FROM")
+  const email = buildProjectFeedbackInvitationEmail({ recipientName, projectName, feedbackUrl, validUntilLabel })
+  return sendTransactionalEmail({ from, to, ...email })
 }

@@ -488,6 +488,9 @@ enum ActivityAction {
   PROJECT_FEEDBACK_LINK_REVOKED
   PROJECT_FEEDBACK_LINK_VIEWED
   PROJECT_FEEDBACK_CLIENT_SUBMITTED
+  PROJECT_FEEDBACK_DELIVERY_PREPARED
+  PROJECT_FEEDBACK_DELIVERY_FAILED
+  PROJECT_FEEDBACK_SENT
   PROJECT_FEEDBACK_RESOLVED
   PROJECT_FEEDBACK_WAIVED
   PROJECT_ARCHIVED
@@ -1267,6 +1270,15 @@ model ProjectFeedback {
   publicLastViewedAt   DateTime?
   publicViewCount      Int       @default(0)
   publicSubmittedAt    DateTime?
+
+  deliveryRecipientName  String?
+  deliveryRecipientEmail String?
+  deliveryProviderId     String?
+  deliveryPreparedAt     DateTime?
+  deliverySentAt         DateTime?
+  deliveryFailedAt       DateTime?
+  deliveryFailureReason  String?
+  deliveryAttemptCount   Int       @default(0)
 
   status              ProjectFeedbackStatus @default(PENDING)
   npsScore            Int?

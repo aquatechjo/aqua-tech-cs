@@ -249,3 +249,27 @@ export function buildProposalDeliveryEmail({
 </html>`,
   }
 }
+
+export function buildProjectFeedbackInvitationEmail({
+  recipientName,
+  projectName,
+  feedbackUrl,
+  validUntilLabel,
+}: {
+  recipientName: string
+  projectName: string
+  feedbackUrl: string
+  validUntilLabel: string
+}): TransactionalEmail {
+  const normalizedUrl = requireSafeWebUrl(feedbackUrl)
+  const safeName = escapeHtml(recipientName)
+  const safeProject = escapeHtml(projectName)
+  const safeUrl = escapeHtml(normalizedUrl)
+  const safeExpiry = escapeHtml(validUntilLabel)
+  const subject = `نود سماع رأيك حول ${projectName}`
+  return {
+    subject,
+    text: [`مرحبًا ${recipientName}،`, "", `شكرًا لتعاونك معنا في مشروع ${projectName}.`, "نقدّر مشاركتك تقييمًا مختصرًا يساعدنا على تحسين تجربتك.", "", normalizedUrl, "", `الرابط صالح حتى ${validUntilLabel} ويقبل إرسالًا واحدًا فقط.`, "", `Aqua.Tech — ${aquaTechCsTheme.productName}`].join("\n"),
+    html: `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${escapeHtml(subject)}</title></head><body style="margin:0;padding:0;background:#f1f5f9;color:#0f172a;font-family:Arial,'Segoe UI',Tahoma,sans-serif"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center" style="padding:32px 14px"><table role="presentation" width="620" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:620px;border:1px solid #dbe4ee;border-radius:24px;background:#fff;overflow:hidden"><tr><td style="height:5px;background:linear-gradient(90deg,#06b6d4,#2563eb)"></td></tr><tr><td style="padding:30px 34px"><div style="font-size:20px;font-weight:900">Aqua Tech</div><h1 style="margin:28px 0 14px;font-size:26px">رأيك يصنع تجربة أفضل</h1><p style="font-size:16px;line-height:1.9">مرحبًا ${safeName}،</p><p style="font-size:15px;line-height:1.9">شكرًا لتعاونك معنا في مشروع <strong>${safeProject}</strong>. نرجو تخصيص دقيقة لمشاركة تقييمك.</p><p style="margin:26px 0"><a href="${safeUrl}" style="display:inline-block;border-radius:14px;background:#0e7490;color:#fff;padding:14px 24px;font-weight:900;text-decoration:none">إرسال التقييم</a></p><p style="color:#64748b;font-size:12px;line-height:1.8">الرابط صالح حتى ${safeExpiry} ويقبل إرسالًا واحدًا فقط. لا تشاركه مع الآخرين.</p><p style="direction:ltr;text-align:left;word-break:break-all;color:#0369a1;font-size:11px">${safeUrl}</p></td></tr></table></td></tr></table></body></html>`,
+  }
+}
