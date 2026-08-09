@@ -48,6 +48,7 @@ import ProjectGovernancePanel, {
   type ProjectGovernanceView,
 } from "./ProjectGovernancePanel"
 import ProjectClosurePanel, { type ProjectClosureView } from "./ProjectClosurePanel"
+import ProjectFeedbackPanel, { type ProjectFeedbackView } from "./ProjectFeedbackPanel"
 import styles from "./ProjectExecution.module.css"
 
 type Employee = {
@@ -315,6 +316,7 @@ export default function ProjectExecutionClient({
   governanceItems,
   closure,
   closureBlockers,
+  feedback,
   tasks,
   employees,
   canManage,
@@ -365,6 +367,7 @@ export default function ProjectExecutionClient({
   governanceItems: ProjectGovernanceView[]
   closure: ProjectClosureView
   closureBlockers: { incompleteDeliverables: number; openChangeRequests: number; openRisks: number; openIssues: number; incompleteTasks: number }
+  feedback: ProjectFeedbackView
   tasks: Task[]
   employees: Employee[]
   canManage: boolean
@@ -1150,6 +1153,14 @@ export default function ProjectExecutionClient({
       />
 
       <ProjectClosurePanel projectId={project.id} closure={closure} blockers={closureBlockers} canManage={canManage} />
+
+      <ProjectFeedbackPanel
+        projectId={project.id}
+        closureStatus={closure?.status ?? null}
+        feedback={feedback}
+        members={members.map((member) => ({ id: member.employeeProfile.user.id, name: member.employeeProfile.user.name }))}
+        canManage={canManage}
+      />
 
       <div className={styles.workspaceGrid}>
         <AquaDataPanel

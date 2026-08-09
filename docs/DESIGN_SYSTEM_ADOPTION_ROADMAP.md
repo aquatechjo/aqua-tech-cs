@@ -477,6 +477,27 @@ Status: **implemented**
 - Keep automated inference, notifications, n8n, client visibility, delivery
   files, closure, feedback, and follow-up for later governed batches.
 
+## PROJ-06 — Project Closure & Post-Project Review
+
+Status: **implemented**
+
+- Replace direct completion with an evidence-backed closure record and review lifecycle.
+- Count incomplete deliverables, active Change Requests, open Risks, unresolved Issues, and incomplete Tasks server-side.
+- Require outcome, summary, lessons learned, client handover evidence, and internal archive reference.
+- Preserve documented exceptions, approval, completion, archive timestamps, and Activity events.
+- Move the Project to `COMPLETED` and `ARCHIVED` only through the governed closure transitions.
+
+## PROJ-07 — Client Feedback & Governed Follow-up
+
+Status: **implemented**
+
+- Record one tenant-scoped post-project feedback record only after governed closure.
+- Preserve NPS, satisfaction, customer feedback, internal improvement notes, and testimonial publication consent.
+- Automatically flag low scores and explicit follow-up promises as `ACTION_REQUIRED`.
+- Require an active Project member, due date, and explicit action for every follow-up.
+- Resolve or waive follow-up only with a durable management note, actor, timestamp, locking, and Activity audit.
+- Keep public survey delivery, automation, Task generation, publishing, and aggregate dashboards for later batches.
+
 ## DS-07 — Viresto Adoption
 
 - Map Viresto tokens to the shared contract.

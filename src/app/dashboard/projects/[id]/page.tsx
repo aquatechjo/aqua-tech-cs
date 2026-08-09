@@ -170,6 +170,7 @@ export default async function ProjectExecutionPage({
         },
       },
       closure: true,
+      feedback: true,
       tasks: {
         where: {
           status: {
@@ -638,6 +639,20 @@ export default async function ProjectExecutionPage({
         openIssues: project.governanceItems.filter((item) => item.kind === "ISSUE" && ["OPEN", "IN_PROGRESS", "RESOLVED"].includes(item.status)).length,
         incompleteTasks: project.tasks.filter((item) => !["DONE", "CANCELLED", "ARCHIVED"].includes(item.status)).length,
       }}
+      feedback={project.feedback ? {
+        status: project.feedback.status,
+        npsScore: project.feedback.npsScore,
+        satisfactionScore: project.feedback.satisfactionScore,
+        feedbackSummary: project.feedback.feedbackSummary,
+        improvementNotes: project.feedback.improvementNotes,
+        testimonial: project.feedback.testimonial,
+        testimonialApproved: project.feedback.testimonialApproved,
+        followUpRequired: project.feedback.followUpRequired,
+        followUpAction: project.feedback.followUpAction,
+        followUpDueAt: project.feedback.followUpDueAt?.toISOString() ?? null,
+        ownerId: project.feedback.ownerId,
+        resolutionNote: project.feedback.resolutionNote,
+      } : null}
       tasks={tasks}
       employees={employees}
       canManage={canManage}
