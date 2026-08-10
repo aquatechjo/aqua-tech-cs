@@ -102,6 +102,15 @@ enum ProjectChangeFinancialApprovalStatus {
   REJECTED
 }
 
+enum ProjectContractAmendmentStatus {
+  DRAFT
+  READY_FOR_REVIEW
+  INTERNALLY_APPROVED
+  SENT
+  ACCEPTED
+  REJECTED
+}
+
 enum ProjectGovernanceKind {
   RISK
   ISSUE
@@ -475,6 +484,12 @@ enum ActivityAction {
   PROJECT_CHANGE_REQUEST_CANCELLED
   PROJECT_CHANGE_FINANCE_APPROVED
   PROJECT_CHANGE_FINANCE_REJECTED
+  PROJECT_AMENDMENT_CREATED
+  PROJECT_AMENDMENT_READY_FOR_REVIEW
+  PROJECT_AMENDMENT_INTERNALLY_APPROVED
+  PROJECT_AMENDMENT_SENT
+  PROJECT_AMENDMENT_ACCEPTED
+  PROJECT_AMENDMENT_REJECTED
   PROJECT_RISK_CREATED
   PROJECT_RISK_UPDATED
   PROJECT_RISK_MATERIALIZED
@@ -673,6 +688,7 @@ model Company {
   projectDeliverables     ProjectDeliverable[]
   projectChangeRequests   ProjectChangeRequest[]
   projectChangeItems      ProjectChangeRequestItem[]
+  projectContractAmendments ProjectContractAmendment[]
   projectGovernanceItems  ProjectGovernanceItem[]
   projectClosures         ProjectClosure[]
   projectFeedback         ProjectFeedback[]
@@ -788,6 +804,10 @@ model User {
   reviewedProjectChangeRequests            ProjectChangeRequest[]   @relation("ProjectChangeRequestReviewer")
   appliedProjectChangeRequests             ProjectChangeRequest[]   @relation("ProjectChangeRequestApplier")
   financiallyApprovedProjectChangeRequests ProjectChangeRequest[]   @relation("ProjectChangeRequestFinancialApprover")
+  createdProjectContractAmendments          ProjectContractAmendment[] @relation("ProjectContractAmendmentCreator")
+  approvedProjectContractAmendments         ProjectContractAmendment[] @relation("ProjectContractAmendmentApprover")
+  sentProjectContractAmendments             ProjectContractAmendment[] @relation("ProjectContractAmendmentSender")
+  decidedProjectContractAmendments          ProjectContractAmendment[] @relation("ProjectContractAmendmentDecider")
   ownedProjectGovernanceItems              ProjectGovernanceItem[]  @relation("ProjectGovernanceOwner")
   createdProjectGovernanceItems            ProjectGovernanceItem[]  @relation("ProjectGovernanceCreator")
   updatedProjectGovernanceItems            ProjectGovernanceItem[]  @relation("ProjectGovernanceUpdater")
@@ -1205,6 +1225,7 @@ model Project {
   deliverables              ProjectDeliverable[]
   changeRequests            ProjectChangeRequest[]
   changeRequestItems        ProjectChangeRequestItem[]
+  contractAmendments        ProjectContractAmendment[]
   governanceItems           ProjectGovernanceItem[]
   closure                   ProjectClosure?
   feedback                  ProjectFeedback?
@@ -1481,6 +1502,7 @@ model ProjectChangeRequest {
   cancelledAt        DateTime?
 
   items ProjectChangeRequestItem[]
+  contractAmendment ProjectContractAmendment?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1496,6 +1518,57 @@ model ProjectChangeRequest {
   @@index([status])
   @@index([submittedAt])
   @@index([updatedAt])
+}
+
+model ProjectContractAmendment {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  changeRequestId String @unique
+  changeRequest   ProjectChangeRequest @relation(fields: [changeRequestId], references: [id], onDelete: Restrict)
+
+  createdById String?
+  createdBy   User? @relation("ProjectContractAmendmentCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  approvedById String?
+  approvedBy   User? @relation("ProjectContractAmendmentApprover", fields: [approvedById], references: [id], onDelete: Restrict)
+  sentById String?
+  sentBy   User? @relation("ProjectContractAmendmentSender", fields: [sentById], references: [id], onDelete: Restrict)
+  decidedById String?
+  decidedBy   User? @relation("ProjectContractAmendmentDecider", fields: [decidedById], references: [id], onDelete: Restrict)
+
+  amendmentNumber String
+  status          ProjectContractAmendmentStatus @default(DRAFT)
+  titleSnapshot   String
+  reasonSnapshot  String
+  itemsSnapshot   Json
+  scheduleImpactDaysSnapshot Int
+  financialAmountSnapshot    Decimal @db.Decimal(14, 2)
+  financialCurrencySnapshot  String  @db.VarChar(3)
+  commercialReferenceSnapshot String?
+  internalNotes String?
+  approvalReference String?
+  deliveryReference String?
+  clientDecisionReference String?
+  clientDecisionNotes String?
+  readyAt DateTime?
+  internallyApprovedAt DateTime?
+  sentAt DateTime?
+  decidedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, amendmentNumber])
+  @@index([companyId])
+  @@index([projectId])
+  @@index([status])
+  @@index([createdById])
+  @@index([approvedById])
+  @@index([sentById])
+  @@index([decidedById])
 }
 
 model ProjectChangeRequestItem {

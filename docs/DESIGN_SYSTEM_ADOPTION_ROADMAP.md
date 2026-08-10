@@ -218,6 +218,17 @@ Status: **implemented**
 - Preserve the old seed marker when detecting an existing welcome notification so reseeding does not create duplicates.
 - Treat the local folder, future repository, deployment project, and integration names as `aqua-tech-cs`; database table names and historical batch records are unchanged.
 
+## PROJ-14 — Governed Contract Amendments
+
+Status: **implemented**
+
+- Create one frozen contract amendment from an administratively and financially approved commercial Change Request.
+- Move the amendment through draft, internal review, internal approval, client delivery, and recorded client acceptance or rejection.
+- Separate amendment authoring from internal approval, except for the Owner role.
+- Require durable references for internal approval, delivery, and client decision, with tenant-scoped locking and Activity evidence.
+- Block commercial scope application until the amendment is accepted by the client.
+- Keep budget changes, invoice creation, external signatures, and automated delivery outside this batch.
+
 ## CRM-02 — Leads Management Adoption
 
 Status: **implemented**

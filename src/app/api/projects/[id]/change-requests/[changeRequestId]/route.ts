@@ -77,6 +77,7 @@ async function updateProjectChangeRequest(
           items: {
             orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
           },
+          contractAmendment: { select: { status: true } },
         },
       })
       if (!existing) {
@@ -227,6 +228,7 @@ async function updateProjectChangeRequest(
         commercialImpact: existing.commercialImpact,
         commercialReference: existing.commercialReference,
         financialApprovalStatus: existing.financialApprovalStatus,
+        contractAmendmentStatus: existing.contractAmendment?.status,
       })
       if (issues.length > 0) {
         throw new ApiError(

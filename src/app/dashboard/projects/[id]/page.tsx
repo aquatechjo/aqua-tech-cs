@@ -136,6 +136,14 @@ export default async function ProjectExecutionPage({
           reviewedBy: { select: { id: true, name: true } },
           appliedBy: { select: { id: true, name: true } },
           financialApprovedBy: { select: { id: true, name: true } },
+          contractAmendment: {
+            include: {
+              createdBy: { select: { id: true, name: true } },
+              approvedBy: { select: { id: true, name: true } },
+              sentBy: { select: { id: true, name: true } },
+              decidedBy: { select: { id: true, name: true } },
+            },
+          },
           items: {
             orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
             include: {
@@ -572,6 +580,24 @@ export default async function ProjectExecutionPage({
         canApproveFinance:
           hasRole(user.role, ACCESS_ROLES.financeManagement) &&
           (user.role === "OWNER" || request.createdById !== user.id),
+        contractAmendment: request.contractAmendment
+          ? {
+              ...request.contractAmendment,
+              financialAmountSnapshot:
+                request.contractAmendment.financialAmountSnapshot.toString(),
+              readyAt: request.contractAmendment.readyAt?.toISOString() ?? null,
+              internallyApprovedAt:
+                request.contractAmendment.internallyApprovedAt?.toISOString() ?? null,
+              sentAt: request.contractAmendment.sentAt?.toISOString() ?? null,
+              decidedAt: request.contractAmendment.decidedAt?.toISOString() ?? null,
+              createdAt: request.contractAmendment.createdAt.toISOString(),
+              updatedAt: request.contractAmendment.updatedAt.toISOString(),
+              canInternallyApprove:
+                hasRole(user.role, ACCESS_ROLES.projectChangeApproval) &&
+                (user.role === "OWNER" ||
+                  request.contractAmendment.createdById !== user.id),
+            }
+          : null,
         clientApprovalRequired: request.clientApprovalRequired,
         clientApprovalReference: request.clientApprovalReference,
         reviewNotes: request.reviewNotes,

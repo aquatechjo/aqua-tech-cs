@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   CircleDollarSign,
   FileDiff,
+  FileSignature,
   Pencil,
   Plus,
   RotateCcw,
@@ -42,6 +43,8 @@ type ChangeStatus =
 
 type CommercialImpact = "NONE" | "REQUIRES_QUOTE" | "APPROVED"
 type FinancialApprovalStatus = "NOT_REQUIRED" | "PENDING" | "APPROVED" | "REJECTED"
+type AmendmentStatus = "DRAFT" | "READY_FOR_REVIEW" | "INTERNALLY_APPROVED" | "SENT" | "ACCEPTED" | "REJECTED"
+type AmendmentAction = "INTERNALLY_APPROVE" | "MARK_SENT" | "ACCEPT" | "REJECT"
 type ItemAction =
   | "ADD_DELIVERABLE"
   | "MODIFY_DELIVERABLE"
@@ -64,6 +67,24 @@ export type ProjectChangeRequestView = {
   financialApprovedAt: string | null
   financialApprovedBy: { id: string; name: string } | null
   canApproveFinance: boolean
+  contractAmendment: {
+    id: string
+    amendmentNumber: string
+    status: AmendmentStatus
+    financialAmountSnapshot: string
+    financialCurrencySnapshot: string
+    scheduleImpactDaysSnapshot: number
+    approvalReference: string | null
+    deliveryReference: string | null
+    clientDecisionReference: string | null
+    clientDecisionNotes: string | null
+    createdById: string | null
+    createdBy: { id: string; name: string } | null
+    approvedBy: { id: string; name: string } | null
+    sentBy: { id: string; name: string } | null
+    decidedBy: { id: string; name: string } | null
+    canInternallyApprove: boolean
+  } | null
   clientApprovalRequired: boolean
   clientApprovalReference: string | null
   reviewNotes: string | null
@@ -157,6 +178,15 @@ const commercialLabels: Record<CommercialImpact, string> = {
   NONE: "دون أثر تجاري",
   REQUIRES_QUOTE: "يحتاج تسعيرًا",
   APPROVED: "أثر تجاري معتمد",
+}
+
+const amendmentLabels: Record<AmendmentStatus, string> = {
+  DRAFT: "مسودة ملحق",
+  READY_FOR_REVIEW: "جاهز للمراجعة",
+  INTERNALLY_APPROVED: "معتمد داخليًا",
+  SENT: "مرسل للعميل",
+  ACCEPTED: "مقبول من العميل",
+  REJECTED: "مرفوض من العميل",
 }
 
 const actionLabels: Record<ItemAction, string> = {
@@ -285,6 +315,12 @@ export default function ProjectChangeRequestsPanel({
   const [financeAction, setFinanceAction] = useState<"APPROVE" | "REJECT">("APPROVE")
   const [financeReference, setFinanceReference] = useState("")
   const [financeNotes, setFinanceNotes] = useState("")
+  const [amendmentDecision, setAmendmentDecision] = useState<{
+    request: ProjectChangeRequestView
+    action: AmendmentAction
+  } | null>(null)
+  const [amendmentReference, setAmendmentReference] = useState("")
+  const [amendmentNotes, setAmendmentNotes] = useState("")
 
   const editableDeliverables = useMemo(
     () =>
@@ -494,6 +530,52 @@ export default function ProjectChangeRequestsPanel({
     if (saved) setFinanceDecision(null)
   }
 
+  async function mutateAmendment(
+    request: ProjectChangeRequestView,
+    action: "CREATE" | "READY_FOR_REVIEW" | AmendmentAction,
+    reference?: string,
+    notes?: string,
+  ) {
+    return mutate(
+      `change-amendment-${action.toLowerCase()}-${request.id}`,
+      `/api/projects/${projectId}/change-requests/${request.id}/contract-amendment`,
+      action === "CREATE" ? "POST" : "PATCH",
+      {
+        action,
+        ...(reference ? { reference } : {}),
+        ...(notes ? { notes } : {}),
+      },
+      action === "CREATE"
+        ? "تم إنشاء ملحق العقد"
+        : "تم تحديث مسار ملحق العقد",
+    )
+  }
+
+  async function submitAmendmentDecision(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!amendmentDecision) return
+    const saved = await mutateAmendment(
+      amendmentDecision.request,
+      amendmentDecision.action,
+      amendmentReference,
+      amendmentNotes,
+    )
+    if (saved) {
+      setAmendmentDecision(null)
+      setAmendmentReference("")
+      setAmendmentNotes("")
+    }
+  }
+
+  function openAmendmentDecision(
+    request: ProjectChangeRequestView,
+    action: AmendmentAction,
+  ) {
+    setAmendmentDecision({ request, action })
+    setAmendmentReference("")
+    setAmendmentNotes("")
+  }
+
   function openDecision(
     request: ProjectChangeRequestView,
     action: DecisionAction,
@@ -638,7 +720,73 @@ export default function ProjectChangeRequestsPanel({
                         قرار مالي
                       </AquaButton>
                     ) : null}
-                    {canManage && request.status === "APPROVED" ? (
+                    {canManage &&
+                    request.status === "APPROVED" &&
+                    request.commercialImpact !== "NONE" &&
+                    request.financialApprovalStatus === "APPROVED" &&
+                    !request.contractAmendment ? (
+                      <AquaButton
+                        variant="ghost"
+                        size="sm"
+                        leadingIcon={<FileSignature />}
+                        onClick={() => void mutateAmendment(request, "CREATE")}
+                      >
+                        إنشاء ملحق
+                      </AquaButton>
+                    ) : null}
+                    {canManage && request.contractAmendment?.status === "DRAFT" ? (
+                      <AquaButton
+                        variant="ghost"
+                        size="sm"
+                        leadingIcon={<Send />}
+                        onClick={() => void mutateAmendment(request, "READY_FOR_REVIEW")}
+                      >
+                        إرسال الملحق للمراجعة
+                      </AquaButton>
+                    ) : null}
+                    {request.contractAmendment?.status === "READY_FOR_REVIEW" &&
+                    request.contractAmendment.canInternallyApprove ? (
+                      <AquaButton
+                        size="sm"
+                        leadingIcon={<ShieldCheck />}
+                        onClick={() => openAmendmentDecision(request, "INTERNALLY_APPROVE")}
+                      >
+                        اعتماد الملحق
+                      </AquaButton>
+                    ) : null}
+                    {canManage && request.contractAmendment?.status === "INTERNALLY_APPROVED" ? (
+                      <AquaButton
+                        variant="ghost"
+                        size="sm"
+                        leadingIcon={<Send />}
+                        onClick={() => openAmendmentDecision(request, "MARK_SENT")}
+                      >
+                        تسجيل الإرسال
+                      </AquaButton>
+                    ) : null}
+                    {canManage && request.contractAmendment?.status === "SENT" ? (
+                      <>
+                        <AquaButton
+                          size="sm"
+                          leadingIcon={<CheckCircle2 />}
+                          onClick={() => openAmendmentDecision(request, "ACCEPT")}
+                        >
+                          تسجيل القبول
+                        </AquaButton>
+                        <AquaButton
+                          variant="danger"
+                          size="sm"
+                          leadingIcon={<XCircle />}
+                          onClick={() => openAmendmentDecision(request, "REJECT")}
+                        >
+                          تسجيل الرفض
+                        </AquaButton>
+                      </>
+                    ) : null}
+                    {canManage &&
+                    request.status === "APPROVED" &&
+                    (request.commercialImpact === "NONE" ||
+                      request.contractAmendment?.status === "ACCEPTED") ? (
                       <AquaButton
                         size="sm"
                         leadingIcon={<CheckCircle2 />}
@@ -649,6 +797,22 @@ export default function ProjectChangeRequestsPanel({
                     ) : null}
                   </div>
                 </div>
+
+                {request.contractAmendment ? (
+                  <AquaAlert
+                    variant={
+                      request.contractAmendment.status === "ACCEPTED"
+                        ? "success"
+                        : request.contractAmendment.status === "REJECTED"
+                          ? "danger"
+                          : "info"
+                    }
+                    title={`${amendmentLabels[request.contractAmendment.status]} · ${request.contractAmendment.amendmentNumber}`}
+                  >
+                    نسخة مجمدة بقيمة {request.contractAmendment.financialAmountSnapshot}{" "}
+                    {request.contractAmendment.financialCurrencySnapshot} وأثر زمني {request.contractAmendment.scheduleImpactDaysSnapshot} يوم.
+                  </AquaAlert>
+                ) : null}
 
                 <div className={styles.impactGrid}>
                   <span>
@@ -1075,6 +1239,55 @@ export default function ProjectChangeRequestsPanel({
             <AquaInput label="مرجع الاعتماد المالي" value={financeReference} onChange={(event) => setFinanceReference(event.target.value)} required />
           ) : null}
           <AquaTextarea label={financeAction === "APPROVE" ? "ملاحظات" : "سبب الرفض"} value={financeNotes} onChange={(event) => setFinanceNotes(event.target.value)} rows={4} required={financeAction === "REJECT"} />
+        </form>
+      </AquaModal>
+
+      <AquaModal
+        open={Boolean(amendmentDecision)}
+        onClose={() => setAmendmentDecision(null)}
+        title="توثيق انتقال ملحق العقد"
+        footer={
+          <>
+            <AquaButton variant="ghost" onClick={() => setAmendmentDecision(null)}>
+              إلغاء
+            </AquaButton>
+            <AquaButton
+              type="submit"
+              form="project-contract-amendment-decision"
+              variant={amendmentDecision?.action === "REJECT" ? "danger" : "primary"}
+              loading={Boolean(busyKey)}
+            >
+              تأكيد
+            </AquaButton>
+          </>
+        }
+      >
+        <form
+          id="project-contract-amendment-decision"
+          className={styles.decisionForm}
+          onSubmit={submitAmendmentDecision}
+        >
+          <AquaInput
+            label={
+              amendmentDecision?.action === "INTERNALLY_APPROVE"
+                ? "مرجع الاعتماد الداخلي"
+                : amendmentDecision?.action === "MARK_SENT"
+                  ? "مرجع الإرسال"
+                  : "مرجع قرار العميل"
+            }
+            value={amendmentReference}
+            onChange={(event) => setAmendmentReference(event.target.value)}
+            required
+          />
+          {amendmentDecision?.action === "ACCEPT" ||
+          amendmentDecision?.action === "REJECT" ? (
+            <AquaTextarea
+              label="ملاحظات قرار العميل"
+              value={amendmentNotes}
+              onChange={(event) => setAmendmentNotes(event.target.value)}
+              rows={4}
+            />
+          ) : null}
         </form>
       </AquaModal>
 

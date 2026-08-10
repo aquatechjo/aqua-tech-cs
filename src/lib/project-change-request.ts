@@ -180,6 +180,7 @@ export function projectChangeActionIssues({
   commercialImpact,
   commercialReference,
   financialApprovalStatus,
+  contractAmendmentStatus,
 }: {
   status: ProjectChangeRequestStatus
   action: Exclude<ProjectChangeMutation["action"], "UPDATE_DRAFT">
@@ -189,6 +190,7 @@ export function projectChangeActionIssues({
   commercialImpact: ProjectChangeCommercialImpact
   commercialReference?: string | null
   financialApprovalStatus?: "NOT_REQUIRED" | "PENDING" | "APPROVED" | "REJECTED"
+  contractAmendmentStatus?: "DRAFT" | "READY_FOR_REVIEW" | "INTERNALLY_APPROVED" | "SENT" | "ACCEPTED" | "REJECTED" | null
 }) {
   const issues: string[] = []
 
@@ -209,6 +211,14 @@ export function projectChangeActionIssues({
   }
   if (action === "APPROVE" && commercialImpact !== "NONE" && financialApprovalStatus !== "APPROVED") {
     issues.push("يلزم اعتماد الأثر المالي قبل اعتماد طلب التغيير")
+  }
+
+  if (
+    action === "APPLY" &&
+    commercialImpact !== "NONE" &&
+    contractAmendmentStatus !== "ACCEPTED"
+  ) {
+    issues.push("يلزم قبول ملحق العقد من العميل قبل تطبيق التغيير التجاري")
   }
 
   if (
