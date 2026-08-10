@@ -565,3 +565,13 @@ Status: **implemented**
 - Protect a bounded 20-item worker with `CRON_SECRET` and durable Activity events.
 - Stop scheduling on feedback receipt, manual recording, link revocation, a new invitation, reminder cap, or provider failure.
 - Keep automatic retries, WhatsApp, and n8n outside this batch.
+
+## PROJ-13 — Governed Change Financial Approval
+
+Status: **implemented**
+
+- Require a positive amount and ISO currency for new commercially impacted Change Requests.
+- Separate scope review from a tenant-scoped finance decision with four-eyes protection.
+- Preserve the finance actor, timestamp, reference, notes, and Activity evidence under a row lock.
+- Reset financial approval when the draft changes and block management approval until finance approves.
+- Keep Project budgets, invoices, payments, contract amendments, notifications, WhatsApp, and n8n unchanged.

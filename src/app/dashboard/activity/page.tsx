@@ -45,6 +45,8 @@ function actionLabel(action: ActivityAction) {
     PROJECT_CHANGE_REQUEST_REJECTED: "رفض طلب تغيير",
     PROJECT_CHANGE_REQUEST_APPLIED: "تطبيق طلب تغيير",
     PROJECT_CHANGE_REQUEST_CANCELLED: "إلغاء طلب تغيير",
+    PROJECT_CHANGE_FINANCE_APPROVED: "اعتماد أثر مالي",
+    PROJECT_CHANGE_FINANCE_REJECTED: "رفض أثر مالي",
     PROJECT_RISK_CREATED: "تسجيل خطر مشروع",
     PROJECT_RISK_UPDATED: "تحديث خطر مشروع",
     PROJECT_RISK_MATERIALIZED: "تحول خطر إلى مشكلة",

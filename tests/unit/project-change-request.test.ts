@@ -18,6 +18,8 @@ test("PROJ-04 validates multi-item scope changes and duplicate targets", () => {
     scheduleImpactDays: 7,
     commercialImpact: "REQUIRES_QUOTE" as const,
     commercialReference: null,
+    financialAmount: 250,
+    financialCurrency: "JOD",
     clientApprovalRequired: true,
     clientApprovalReference: null,
     items: [
@@ -105,6 +107,7 @@ test("change request lifecycle requires evidence and preserves terminal states",
       clientApprovalReference: "ملحق عقد CR-2026-0001",
       commercialImpact: "APPROVED",
       commercialReference: "Q-2026-018",
+      financialApprovalStatus: "APPROVED",
     }),
     [],
   )

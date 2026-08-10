@@ -95,6 +95,13 @@ enum ProjectChangeCommercialImpact {
   APPROVED
 }
 
+enum ProjectChangeFinancialApprovalStatus {
+  NOT_REQUIRED
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum ProjectGovernanceKind {
   RISK
   ISSUE
@@ -466,6 +473,8 @@ enum ActivityAction {
   PROJECT_CHANGE_REQUEST_REJECTED
   PROJECT_CHANGE_REQUEST_APPLIED
   PROJECT_CHANGE_REQUEST_CANCELLED
+  PROJECT_CHANGE_FINANCE_APPROVED
+  PROJECT_CHANGE_FINANCE_REJECTED
   PROJECT_RISK_CREATED
   PROJECT_RISK_UPDATED
   PROJECT_RISK_MATERIALIZED
@@ -727,66 +736,67 @@ model User {
   notifications       Notification[]
   uploadedFiles       File[]
 
-  createdAt                     DateTime                 @default(now())
-  updatedAt                     DateTime                 @updatedAt
-  assignedTasks                 Task[]                   @relation("TaskAssignee")
-  createdTasks                  Task[]                   @relation("TaskCreator")
-  assignedServiceRequests       ServiceRequest[]         @relation("ServiceRequestAssignee")
-  employeeProfile               EmployeeProfile?
-  reportedTaskBlockers          TaskBlocker[]            @relation("TaskBlockerReporter")
-  resolvedTaskBlockers          TaskBlocker[]            @relation("TaskBlockerResolver")
-  createdInvoices               Invoice[]                @relation("InvoiceCreator")
-  recordedPayments              Payment[]                @relation("PaymentRecorder")
-  reversedPayments              Payment[]                @relation("PaymentReverser")
-  createdExpenses               Expense[]                @relation("ExpenseCreator")
-  approvedExpenses              Expense[]                @relation("ExpenseApprover")
-  ownedSalesOpportunities       SalesOpportunity[]       @relation("SalesOpportunityOwner")
-  ownedLeads                    Lead[]                   @relation("LeadOwner")
-  ownedIntakeSessions           IntakeSession[]          @relation("IntakeSessionOwner")
-  createdIntakeSessions         IntakeSession[]          @relation("IntakeSessionCreator")
-  updatedIntakeSessions         IntakeSession[]          @relation("IntakeSessionUpdater")
-  capturedIntakeAnswers         IntakeAnswer[]           @relation("IntakeAnswerCapture")
-  resolvedRequirementGaps       RequirementGap[]         @relation("RequirementGapResolver")
-  createdDiscoveryReports       DiscoveryReport[]        @relation("DiscoveryReportCreator")
-  authorizedDiscoveryAi         DiscoveryReport[]        @relation("DiscoveryReportAiAuthorizer")
-  reviewedDiscoveryReports      DiscoveryReport[]        @relation("DiscoveryReportReviewer")
-  createdReportVersions         DiscoveryReportVersion[] @relation("DiscoveryReportVersionCreator")
-  createdPricingWorkspaces      PricingWorkspace[]       @relation("PricingWorkspaceCreator")
-  reviewedPricingWorkspaces     PricingWorkspace[]       @relation("PricingWorkspaceReviewer")
-  createdPricingVersions        PricingVersion[]         @relation("PricingVersionCreator")
-  createdProposalWorkspaces     ProposalWorkspace[]      @relation("ProposalWorkspaceCreator")
-  reviewedProposalWorkspaces    ProposalWorkspace[]      @relation("ProposalWorkspaceReviewer")
-  createdProposalVersions       ProposalVersion[]        @relation("ProposalVersionCreator")
-  createdProposalDeliveries     ProposalDelivery[]       @relation("ProposalDeliveryCreator")
-  createdSalesActivities        SalesActivity[]          @relation("SalesActivityCreator")
-  createdSalesProposals         SalesProposal[]          @relation("SalesProposalCreator")
-  timeEntries                   TimeEntry[]              @relation("TimeEntryOwner")
-  timesheets                    Timesheet[]              @relation("TimesheetOwner")
-  approvedTimesheets            Timesheet[]              @relation("TimesheetApprover")
-  attendanceRecords             AttendanceRecord[]       @relation("AttendanceOwner")
-  updatedAttendanceRecords      AttendanceRecord[]       @relation("AttendanceUpdater")
-  leaveBalances                 LeaveBalance[]           @relation("LeaveBalanceOwner")
-  leaveRequests                 LeaveRequest[]           @relation("LeaveRequester")
-  reviewedLeaveRequests         LeaveRequest[]           @relation("LeaveReviewer")
-  verifiedProjectContracts      ProjectReadiness[]       @relation("ProjectContractVerifier")
-  configuredProjectPayments     ProjectReadiness[]       @relation("ProjectPaymentConfigurer")
-  grantedReadinessOverrides     ProjectReadiness[]       @relation("ProjectReadinessOverrideGrantor")
-  activatedProjects             ProjectReadiness[]       @relation("ProjectReadinessActivator")
-  createdProjectDeliverables    ProjectDeliverable[]     @relation("ProjectDeliverableCreator")
-  updatedProjectDeliverables    ProjectDeliverable[]     @relation("ProjectDeliverableUpdater")
-  decidedProjectDeliverables    ProjectDeliverable[]     @relation("ProjectDeliverableDecider")
-  createdProjectChangeRequests  ProjectChangeRequest[]   @relation("ProjectChangeRequestCreator")
-  reviewedProjectChangeRequests ProjectChangeRequest[]   @relation("ProjectChangeRequestReviewer")
-  appliedProjectChangeRequests  ProjectChangeRequest[]   @relation("ProjectChangeRequestApplier")
-  ownedProjectGovernanceItems   ProjectGovernanceItem[]  @relation("ProjectGovernanceOwner")
-  createdProjectGovernanceItems ProjectGovernanceItem[]  @relation("ProjectGovernanceCreator")
-  updatedProjectGovernanceItems ProjectGovernanceItem[]  @relation("ProjectGovernanceUpdater")
-  decidedProjectGovernanceItems ProjectGovernanceItem[]  @relation("ProjectGovernanceDecider")
-  preparedProjectClosures       ProjectClosure[]         @relation("ProjectClosurePreparer")
-  approvedProjectClosures       ProjectClosure[]         @relation("ProjectClosureApprover")
-  ownedProjectFeedback          ProjectFeedback[]        @relation("ProjectFeedbackOwner")
-  recordedProjectFeedback       ProjectFeedback[]        @relation("ProjectFeedbackRecorder")
-  resolvedProjectFeedback       ProjectFeedback[]        @relation("ProjectFeedbackResolver")
+  createdAt                                DateTime                 @default(now())
+  updatedAt                                DateTime                 @updatedAt
+  assignedTasks                            Task[]                   @relation("TaskAssignee")
+  createdTasks                             Task[]                   @relation("TaskCreator")
+  assignedServiceRequests                  ServiceRequest[]         @relation("ServiceRequestAssignee")
+  employeeProfile                          EmployeeProfile?
+  reportedTaskBlockers                     TaskBlocker[]            @relation("TaskBlockerReporter")
+  resolvedTaskBlockers                     TaskBlocker[]            @relation("TaskBlockerResolver")
+  createdInvoices                          Invoice[]                @relation("InvoiceCreator")
+  recordedPayments                         Payment[]                @relation("PaymentRecorder")
+  reversedPayments                         Payment[]                @relation("PaymentReverser")
+  createdExpenses                          Expense[]                @relation("ExpenseCreator")
+  approvedExpenses                         Expense[]                @relation("ExpenseApprover")
+  ownedSalesOpportunities                  SalesOpportunity[]       @relation("SalesOpportunityOwner")
+  ownedLeads                               Lead[]                   @relation("LeadOwner")
+  ownedIntakeSessions                      IntakeSession[]          @relation("IntakeSessionOwner")
+  createdIntakeSessions                    IntakeSession[]          @relation("IntakeSessionCreator")
+  updatedIntakeSessions                    IntakeSession[]          @relation("IntakeSessionUpdater")
+  capturedIntakeAnswers                    IntakeAnswer[]           @relation("IntakeAnswerCapture")
+  resolvedRequirementGaps                  RequirementGap[]         @relation("RequirementGapResolver")
+  createdDiscoveryReports                  DiscoveryReport[]        @relation("DiscoveryReportCreator")
+  authorizedDiscoveryAi                    DiscoveryReport[]        @relation("DiscoveryReportAiAuthorizer")
+  reviewedDiscoveryReports                 DiscoveryReport[]        @relation("DiscoveryReportReviewer")
+  createdReportVersions                    DiscoveryReportVersion[] @relation("DiscoveryReportVersionCreator")
+  createdPricingWorkspaces                 PricingWorkspace[]       @relation("PricingWorkspaceCreator")
+  reviewedPricingWorkspaces                PricingWorkspace[]       @relation("PricingWorkspaceReviewer")
+  createdPricingVersions                   PricingVersion[]         @relation("PricingVersionCreator")
+  createdProposalWorkspaces                ProposalWorkspace[]      @relation("ProposalWorkspaceCreator")
+  reviewedProposalWorkspaces               ProposalWorkspace[]      @relation("ProposalWorkspaceReviewer")
+  createdProposalVersions                  ProposalVersion[]        @relation("ProposalVersionCreator")
+  createdProposalDeliveries                ProposalDelivery[]       @relation("ProposalDeliveryCreator")
+  createdSalesActivities                   SalesActivity[]          @relation("SalesActivityCreator")
+  createdSalesProposals                    SalesProposal[]          @relation("SalesProposalCreator")
+  timeEntries                              TimeEntry[]              @relation("TimeEntryOwner")
+  timesheets                               Timesheet[]              @relation("TimesheetOwner")
+  approvedTimesheets                       Timesheet[]              @relation("TimesheetApprover")
+  attendanceRecords                        AttendanceRecord[]       @relation("AttendanceOwner")
+  updatedAttendanceRecords                 AttendanceRecord[]       @relation("AttendanceUpdater")
+  leaveBalances                            LeaveBalance[]           @relation("LeaveBalanceOwner")
+  leaveRequests                            LeaveRequest[]           @relation("LeaveRequester")
+  reviewedLeaveRequests                    LeaveRequest[]           @relation("LeaveReviewer")
+  verifiedProjectContracts                 ProjectReadiness[]       @relation("ProjectContractVerifier")
+  configuredProjectPayments                ProjectReadiness[]       @relation("ProjectPaymentConfigurer")
+  grantedReadinessOverrides                ProjectReadiness[]       @relation("ProjectReadinessOverrideGrantor")
+  activatedProjects                        ProjectReadiness[]       @relation("ProjectReadinessActivator")
+  createdProjectDeliverables               ProjectDeliverable[]     @relation("ProjectDeliverableCreator")
+  updatedProjectDeliverables               ProjectDeliverable[]     @relation("ProjectDeliverableUpdater")
+  decidedProjectDeliverables               ProjectDeliverable[]     @relation("ProjectDeliverableDecider")
+  createdProjectChangeRequests             ProjectChangeRequest[]   @relation("ProjectChangeRequestCreator")
+  reviewedProjectChangeRequests            ProjectChangeRequest[]   @relation("ProjectChangeRequestReviewer")
+  appliedProjectChangeRequests             ProjectChangeRequest[]   @relation("ProjectChangeRequestApplier")
+  financiallyApprovedProjectChangeRequests ProjectChangeRequest[]   @relation("ProjectChangeRequestFinancialApprover")
+  ownedProjectGovernanceItems              ProjectGovernanceItem[]  @relation("ProjectGovernanceOwner")
+  createdProjectGovernanceItems            ProjectGovernanceItem[]  @relation("ProjectGovernanceCreator")
+  updatedProjectGovernanceItems            ProjectGovernanceItem[]  @relation("ProjectGovernanceUpdater")
+  decidedProjectGovernanceItems            ProjectGovernanceItem[]  @relation("ProjectGovernanceDecider")
+  preparedProjectClosures                  ProjectClosure[]         @relation("ProjectClosurePreparer")
+  approvedProjectClosures                  ProjectClosure[]         @relation("ProjectClosureApprover")
+  ownedProjectFeedback                     ProjectFeedback[]        @relation("ProjectFeedbackOwner")
+  recordedProjectFeedback                  ProjectFeedback[]        @relation("ProjectFeedbackRecorder")
+  resolvedProjectFeedback                  ProjectFeedback[]        @relation("ProjectFeedbackResolver")
 
   @@index([companyId])
   @@index([role])
@@ -1258,44 +1268,44 @@ model ProjectFeedback {
   projectId String  @unique
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  ownerId String?
-  owner   User? @relation("ProjectFeedbackOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  ownerId      String?
+  owner        User?   @relation("ProjectFeedbackOwner", fields: [ownerId], references: [id], onDelete: SetNull)
   recordedById String?
-  recordedBy   User? @relation("ProjectFeedbackRecorder", fields: [recordedById], references: [id], onDelete: SetNull)
+  recordedBy   User?   @relation("ProjectFeedbackRecorder", fields: [recordedById], references: [id], onDelete: SetNull)
   resolvedById String?
-  resolvedBy   User? @relation("ProjectFeedbackResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+  resolvedBy   User?   @relation("ProjectFeedbackResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
 
   followUpTaskId String? @unique
   followUpTask   Task?   @relation("ProjectFeedbackTask", fields: [followUpTaskId], references: [id], onDelete: SetNull)
 
-  publicTokenHash      String?   @unique
-  publicExpiresAt      DateTime?
-  publicRevokedAt      DateTime?
-  publicIssuedAt       DateTime?
-  publicFirstViewedAt  DateTime?
-  publicLastViewedAt   DateTime?
-  publicViewCount      Int       @default(0)
-  publicSubmittedAt    DateTime?
+  publicTokenHash     String?   @unique
+  publicExpiresAt     DateTime?
+  publicRevokedAt     DateTime?
+  publicIssuedAt      DateTime?
+  publicFirstViewedAt DateTime?
+  publicLastViewedAt  DateTime?
+  publicViewCount     Int       @default(0)
+  publicSubmittedAt   DateTime?
 
-  deliveryRecipientName  String?
-  deliveryRecipientEmail String?
-  deliveryProviderId     String?
-  deliveryPreparedAt     DateTime?
-  deliverySentAt         DateTime?
-  deliveryFailedAt       DateTime?
-  deliveryFailureReason  String?
-  deliveryAttemptCount   Int       @default(0)
-  reminderProviderId     String?
-  reminderPreparedAt     DateTime?
-  reminderSentAt         DateTime?
-  reminderFailedAt       DateTime?
-  reminderFailureReason  String?
-  reminderAttemptCount   Int       @default(0)
-  reminderCount          Int       @default(0)
-  reminderPendingTokenHash String?  @unique
-  reminderPendingExpiresAt DateTime?
-  reminderScheduleEnabled  Boolean  @default(false)
-  reminderNextAt           DateTime?
+  deliveryRecipientName     String?
+  deliveryRecipientEmail    String?
+  deliveryProviderId        String?
+  deliveryPreparedAt        DateTime?
+  deliverySentAt            DateTime?
+  deliveryFailedAt          DateTime?
+  deliveryFailureReason     String?
+  deliveryAttemptCount      Int       @default(0)
+  reminderProviderId        String?
+  reminderPreparedAt        DateTime?
+  reminderSentAt            DateTime?
+  reminderFailedAt          DateTime?
+  reminderFailureReason     String?
+  reminderAttemptCount      Int       @default(0)
+  reminderCount             Int       @default(0)
+  reminderPendingTokenHash  String?   @unique
+  reminderPendingExpiresAt  DateTime?
+  reminderScheduleEnabled   Boolean   @default(false)
+  reminderNextAt            DateTime?
   reminderScheduleUpdatedAt DateTime?
 
   status              ProjectFeedbackStatus @default(PENDING)
@@ -1312,8 +1322,8 @@ model ProjectFeedback {
   receivedAt          DateTime?
   resolvedAt          DateTime?
   waivedAt            DateTime?
-  createdAt           DateTime               @default(now())
-  updatedAt           DateTime               @updatedAt
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
 
   @@index([companyId])
   @@index([status])
@@ -1450,6 +1460,15 @@ model ProjectChangeRequest {
   commercialImpact    ProjectChangeCommercialImpact @default(NONE)
   commercialReference String?
 
+  financialAmount            Decimal?                             @db.Decimal(14, 2)
+  financialCurrency          String?                              @db.VarChar(3)
+  financialApprovalStatus    ProjectChangeFinancialApprovalStatus @default(NOT_REQUIRED)
+  financialApprovalReference String?
+  financialApprovalNotes     String?
+  financialApprovedById      String?
+  financialApprovedBy        User?                                @relation("ProjectChangeRequestFinancialApprover", fields: [financialApprovedById], references: [id], onDelete: Restrict)
+  financialApprovedAt        DateTime?
+
   clientApprovalRequired  Boolean @default(true)
   clientApprovalReference String?
   reviewNotes             String?
@@ -1472,6 +1491,8 @@ model ProjectChangeRequest {
   @@index([createdById])
   @@index([reviewedById])
   @@index([appliedById])
+  @@index([financialApprovedById])
+  @@index([financialApprovalStatus])
   @@index([status])
   @@index([submittedAt])
   @@index([updatedAt])
@@ -1634,7 +1655,7 @@ model Task {
   blockers          TaskBlocker[]
   workflowApprovals ProjectWorkflowApproval[]
   timeEntries       TimeEntry[]
-  projectFeedback   ProjectFeedback? @relation("ProjectFeedbackTask")
+  projectFeedback   ProjectFeedback?          @relation("ProjectFeedbackTask")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

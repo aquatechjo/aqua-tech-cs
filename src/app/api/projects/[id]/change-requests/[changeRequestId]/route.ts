@@ -132,6 +132,22 @@ async function updateProjectChangeRequest(
                     parsed.data.commercialReference,
                   )
                 : null,
+            financialAmount:
+              parsed.data.commercialImpact === "NONE"
+                ? null
+                : parsed.data.financialAmount,
+            financialCurrency:
+              parsed.data.commercialImpact === "NONE"
+                ? null
+                : parsed.data.financialCurrency,
+            financialApprovalStatus:
+              parsed.data.commercialImpact === "NONE"
+                ? "NOT_REQUIRED"
+                : "PENDING",
+            financialApprovalReference: null,
+            financialApprovalNotes: null,
+            financialApprovedById: null,
+            financialApprovedAt: null,
             clientApprovalRequired: parsed.data.clientApprovalRequired,
             clientApprovalReference: parsed.data.clientApprovalRequired
               ? nullableProjectChangeText(
@@ -210,6 +226,7 @@ async function updateProjectChangeRequest(
         clientApprovalReference,
         commercialImpact: existing.commercialImpact,
         commercialReference: existing.commercialReference,
+        financialApprovalStatus: existing.financialApprovalStatus,
       })
       if (issues.length > 0) {
         throw new ApiError(

@@ -97,6 +97,18 @@ async function createProjectChangeRequest(
                   parsed.data.commercialReference,
                 )
               : null,
+          financialAmount:
+            parsed.data.commercialImpact === "NONE"
+              ? null
+              : parsed.data.financialAmount,
+          financialCurrency:
+            parsed.data.commercialImpact === "NONE"
+              ? null
+              : parsed.data.financialCurrency,
+          financialApprovalStatus:
+            parsed.data.commercialImpact === "NONE"
+              ? "NOT_REQUIRED"
+              : "PENDING",
           clientApprovalRequired: parsed.data.clientApprovalRequired,
           clientApprovalReference: parsed.data.clientApprovalRequired
             ? nullableProjectChangeText(

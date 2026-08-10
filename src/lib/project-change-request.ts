@@ -74,6 +74,8 @@ const projectChangeDraftObject = z.object({
   scheduleImpactDays: z.number().int().min(-3650).max(3650),
   commercialImpact: z.enum(PROJECT_CHANGE_COMMERCIAL_IMPACTS),
   commercialReference: optionalText(500),
+  financialAmount: z.number().positive().max(999999999999).optional().nullable(),
+  financialCurrency: z.string().trim().regex(/^[A-Z]{3}$/).optional().nullable(),
   clientApprovalRequired: z.boolean(),
   clientApprovalReference: optionalText(500),
   items: z.array(projectChangeItemInputSchema).min(1).max(50),
@@ -112,6 +114,12 @@ function validateProjectChangeDraft(
       path: ["commercialReference"],
       message: "أدخل مرجع الأثر التجاري المعتمد",
     })
+  }
+  if (value.commercialImpact !== "NONE" && (!value.financialAmount || !value.financialCurrency)) {
+    context.addIssue({ code: "custom", path: ["financialAmount"], message: "أدخل قيمة الأثر المالي وعملته" })
+  }
+  if (value.commercialImpact === "NONE" && (value.financialAmount || value.financialCurrency)) {
+    context.addIssue({ code: "custom", path: ["financialAmount"], message: "لا تقبل قيمة مالية عندما لا يوجد أثر تجاري" })
   }
 }
 
@@ -171,6 +179,7 @@ export function projectChangeActionIssues({
   clientApprovalReference,
   commercialImpact,
   commercialReference,
+  financialApprovalStatus,
 }: {
   status: ProjectChangeRequestStatus
   action: Exclude<ProjectChangeMutation["action"], "UPDATE_DRAFT">
@@ -179,6 +188,7 @@ export function projectChangeActionIssues({
   clientApprovalReference?: string | null
   commercialImpact: ProjectChangeCommercialImpact
   commercialReference?: string | null
+  financialApprovalStatus?: "NOT_REQUIRED" | "PENDING" | "APPROVED" | "REJECTED"
 }) {
   const issues: string[] = []
 
@@ -196,6 +206,9 @@ export function projectChangeActionIssues({
     (clientApprovalReference?.trim().length ?? 0) < 3
   ) {
     issues.push("يتطلب الاعتماد مرجع موافقة العميل")
+  }
+  if (action === "APPROVE" && commercialImpact !== "NONE" && financialApprovalStatus !== "APPROVED") {
+    issues.push("يلزم اعتماد الأثر المالي قبل اعتماد طلب التغيير")
   }
 
   if (

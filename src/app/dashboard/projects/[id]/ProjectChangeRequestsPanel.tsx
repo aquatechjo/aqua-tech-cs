@@ -41,6 +41,7 @@ type ChangeStatus =
   | "CANCELLED"
 
 type CommercialImpact = "NONE" | "REQUIRES_QUOTE" | "APPROVED"
+type FinancialApprovalStatus = "NOT_REQUIRED" | "PENDING" | "APPROVED" | "REJECTED"
 type ItemAction =
   | "ADD_DELIVERABLE"
   | "MODIFY_DELIVERABLE"
@@ -55,6 +56,14 @@ export type ProjectChangeRequestView = {
   scheduleImpactDays: number
   commercialImpact: CommercialImpact
   commercialReference: string | null
+  financialAmount: string | null
+  financialCurrency: string | null
+  financialApprovalStatus: FinancialApprovalStatus
+  financialApprovalReference: string | null
+  financialApprovalNotes: string | null
+  financialApprovedAt: string | null
+  financialApprovedBy: { id: string; name: string } | null
+  canApproveFinance: boolean
   clientApprovalRequired: boolean
   clientApprovalReference: string | null
   reviewNotes: string | null
@@ -119,6 +128,8 @@ type EditorDraft = {
   scheduleImpactDays: number
   commercialImpact: CommercialImpact
   commercialReference: string
+  financialAmount: string
+  financialCurrency: string
   clientApprovalRequired: boolean
   clientApprovalReference: string
   items: DraftItem[]
@@ -202,6 +213,8 @@ function blankDraft(): EditorDraft {
     scheduleImpactDays: 0,
     commercialImpact: "NONE",
     commercialReference: "",
+    financialAmount: "",
+    financialCurrency: "JOD",
     clientApprovalRequired: true,
     clientApprovalReference: "",
     items: [blankItem()],
@@ -215,6 +228,8 @@ function requestToDraft(request: ProjectChangeRequestView): EditorDraft {
     scheduleImpactDays: request.scheduleImpactDays,
     commercialImpact: request.commercialImpact,
     commercialReference: request.commercialReference ?? "",
+    financialAmount: request.financialAmount ?? "",
+    financialCurrency: request.financialCurrency ?? "JOD",
     clientApprovalRequired: request.clientApprovalRequired,
     clientApprovalReference: request.clientApprovalReference ?? "",
     items: request.items.map((item, index) => ({
@@ -266,6 +281,10 @@ export default function ProjectChangeRequestsPanel({
     request: ProjectChangeRequestView
     action: ConfirmAction
   } | null>(null)
+  const [financeDecision, setFinanceDecision] = useState<ProjectChangeRequestView | null>(null)
+  const [financeAction, setFinanceAction] = useState<"APPROVE" | "REJECT">("APPROVE")
+  const [financeReference, setFinanceReference] = useState("")
+  const [financeNotes, setFinanceNotes] = useState("")
 
   const editableDeliverables = useMemo(
     () =>
@@ -362,6 +381,14 @@ export default function ProjectChangeRequestsPanel({
       scheduleImpactDays: Number(draft.scheduleImpactDays || 0),
       commercialImpact: draft.commercialImpact,
       commercialReference: draft.commercialReference || null,
+      financialAmount:
+        draft.commercialImpact === "NONE"
+          ? null
+          : Number(draft.financialAmount),
+      financialCurrency:
+        draft.commercialImpact === "NONE"
+          ? null
+          : draft.financialCurrency.toUpperCase(),
       clientApprovalRequired: draft.clientApprovalRequired,
       clientApprovalReference: draft.clientApprovalReference || null,
       items: draft.items.map((item) => {
@@ -452,6 +479,19 @@ export default function ProjectChangeRequestsPanel({
       setDecisionNotes("")
       setDecisionClientReference("")
     }
+  }
+
+  async function submitFinanceDecision(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!financeDecision) return
+    const saved = await mutate(
+      `change-finance-${financeDecision.id}`,
+      `/api/projects/${projectId}/change-requests/${financeDecision.id}/financial-approval`,
+      "PATCH",
+      { action: financeAction, reference: financeReference, notes: financeNotes },
+      financeAction === "APPROVE" ? "تم اعتماد الأثر المالي" : "تم رفض الأثر المالي",
+    )
+    if (saved) setFinanceDecision(null)
   }
 
   function openDecision(
@@ -583,6 +623,21 @@ export default function ProjectChangeRequestsPanel({
                         </AquaButton>
                       </>
                     ) : null}
+                    {request.financialApprovalStatus === "PENDING" && request.canApproveFinance ? (
+                      <AquaButton
+                        variant="ghost"
+                        size="sm"
+                        leadingIcon={<CircleDollarSign />}
+                        onClick={() => {
+                          setFinanceDecision(request)
+                          setFinanceAction("APPROVE")
+                          setFinanceReference("")
+                          setFinanceNotes("")
+                        }}
+                      >
+                        قرار مالي
+                      </AquaButton>
+                    ) : null}
                     {canManage && request.status === "APPROVED" ? (
                       <AquaButton
                         size="sm"
@@ -608,6 +663,12 @@ export default function ProjectChangeRequestsPanel({
                     <CircleDollarSign aria-hidden="true" />
                     {commercialLabels[request.commercialImpact]}
                   </span>
+                  {request.financialAmount ? (
+                    <span>
+                      <bdi dir="ltr">{request.financialAmount} {request.financialCurrency}</bdi>
+                      {request.financialApprovalStatus === "APPROVED" ? " · معتمد ماليًا" : request.financialApprovalStatus === "REJECTED" ? " · مرفوض ماليًا" : " · بانتظار المالية"}
+                    </span>
+                  ) : null}
                   <span>
                     أنشأه {request.createdBy?.name ?? "مستخدم سابق"}
                   </span>
@@ -767,6 +828,26 @@ export default function ProjectChangeRequestsPanel({
               }
               required={draft.commercialImpact === "APPROVED"}
             />
+            {draft.commercialImpact !== "NONE" ? (
+              <>
+                <AquaInput
+                  label="قيمة الأثر المالي"
+                  type="number"
+                  min={0.01}
+                  step="0.01"
+                  value={draft.financialAmount}
+                  onChange={(event) => setDraft((current) => ({ ...current, financialAmount: event.target.value }))}
+                  required
+                />
+                <AquaInput
+                  label="العملة"
+                  value={draft.financialCurrency}
+                  maxLength={3}
+                  onChange={(event) => setDraft((current) => ({ ...current, financialCurrency: event.target.value.toUpperCase() }))}
+                  required
+                />
+              </>
+            ) : null}
             <AquaSelect
               label="هل موافقة العميل مطلوبة؟"
               value={draft.clientApprovalRequired ? "true" : "false"}
@@ -970,6 +1051,30 @@ export default function ProjectChangeRequestsPanel({
               </AquaCard>
             ))}
           </div>
+        </form>
+      </AquaModal>
+
+      <AquaModal
+        open={Boolean(financeDecision)}
+        onClose={() => setFinanceDecision(null)}
+        title="قرار الأثر المالي"
+        size="md"
+        footer={
+          <div className="aqua-modal__action-row">
+            <AquaButton variant="ghost" onClick={() => setFinanceDecision(null)}>رجوع</AquaButton>
+            <AquaButton type="submit" form="project-change-finance-decision" variant={financeAction === "REJECT" ? "danger" : "primary"} loading={Boolean(busyKey)}>تأكيد</AquaButton>
+          </div>
+        }
+      >
+        <form id="project-change-finance-decision" className={styles.decisionForm} onSubmit={submitFinanceDecision}>
+          <AquaSelect label="القرار" value={financeAction} onChange={(event) => setFinanceAction(event.target.value as "APPROVE" | "REJECT")}>
+            <option value="APPROVE">اعتماد</option>
+            <option value="REJECT">رفض</option>
+          </AquaSelect>
+          {financeAction === "APPROVE" ? (
+            <AquaInput label="مرجع الاعتماد المالي" value={financeReference} onChange={(event) => setFinanceReference(event.target.value)} required />
+          ) : null}
+          <AquaTextarea label={financeAction === "APPROVE" ? "ملاحظات" : "سبب الرفض"} value={financeNotes} onChange={(event) => setFinanceNotes(event.target.value)} rows={4} required={financeAction === "REJECT"} />
         </form>
       </AquaModal>
 

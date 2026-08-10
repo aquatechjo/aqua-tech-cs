@@ -135,6 +135,7 @@ export default async function ProjectExecutionPage({
           createdBy: { select: { id: true, name: true } },
           reviewedBy: { select: { id: true, name: true } },
           appliedBy: { select: { id: true, name: true } },
+          financialApprovedBy: { select: { id: true, name: true } },
           items: {
             orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
             include: {
@@ -561,6 +562,16 @@ export default async function ProjectExecutionPage({
         scheduleImpactDays: request.scheduleImpactDays,
         commercialImpact: request.commercialImpact,
         commercialReference: request.commercialReference,
+        financialAmount: request.financialAmount?.toString() ?? null,
+        financialCurrency: request.financialCurrency,
+        financialApprovalStatus: request.financialApprovalStatus,
+        financialApprovalReference: request.financialApprovalReference,
+        financialApprovalNotes: request.financialApprovalNotes,
+        financialApprovedAt: request.financialApprovedAt?.toISOString() ?? null,
+        financialApprovedBy: request.financialApprovedBy,
+        canApproveFinance:
+          hasRole(user.role, ACCESS_ROLES.financeManagement) &&
+          (user.role === "OWNER" || request.createdById !== user.id),
         clientApprovalRequired: request.clientApprovalRequired,
         clientApprovalReference: request.clientApprovalReference,
         reviewNotes: request.reviewNotes,
