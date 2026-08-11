@@ -4,6 +4,8 @@ import { logActivity } from "@/lib/activity"
 import { ApiError, ok, withApiHandler } from "@/lib/api-response"
 import { getRequestMeta, requireAuth } from "@/lib/auth"
 import {
+  amendmentImpactIssues,
+  applyAmendmentImpact,
   contractAmendmentActionIssues,
   projectContractAmendmentMutationSchema,
 } from "@/lib/project-contract-amendment"
@@ -138,6 +140,73 @@ async function mutateContractAmendment(request: Request, context: Context) {
       throw new ApiError(issues[0], 409, "PROJECT_AMENDMENT_TRANSITION_BLOCKED")
     }
     const now = new Date()
+    if (parsed.data.action === "APPLY_IMPACT") {
+      await tx.$queryRaw`
+        SELECT "id" FROM "Project"
+        WHERE "id" = ${projectId} AND "companyId" = ${user.companyId}
+        FOR UPDATE
+      `
+      const currentProject = await tx.project.findFirst({
+        where: { id: projectId, companyId: user.companyId },
+        select: { budget: true, currency: true, dueDate: true },
+      })
+      if (!currentProject) {
+        throw new ApiError("المشروع غير موجود", 404, "PROJECT_NOT_FOUND")
+      }
+      const impactIssues = amendmentImpactIssues({
+        impactAppliedAt: current.impactAppliedAt,
+        projectBudget: currentProject.budget?.toString() ?? null,
+        projectCurrency: currentProject.currency,
+        amendmentCurrency: current.financialCurrencySnapshot,
+        scheduleImpactDays: current.scheduleImpactDaysSnapshot,
+        projectDueDate: currentProject.dueDate,
+      })
+      if (impactIssues.length) {
+        throw new ApiError(impactIssues[0], 409, "PROJECT_AMENDMENT_IMPACT_BLOCKED")
+      }
+      const impact = applyAmendmentImpact({
+        projectBudget: currentProject.budget!.toString(),
+        amendmentAmount: current.financialAmountSnapshot.toString(),
+        projectDueDate: currentProject.dueDate,
+        scheduleImpactDays: current.scheduleImpactDaysSnapshot,
+      })
+      await tx.project.update({
+        where: { id: projectId },
+        data: { budget: impact.budgetAfter, dueDate: impact.dueDateAfter },
+      })
+      const updated = await tx.projectContractAmendment.update({
+        where: { id: current.id },
+        data: {
+          impactAppliedById: user.id,
+          impactAppliedAt: now,
+          impactApplicationReference: parsed.data.reference,
+          budgetBeforeSnapshot: currentProject.budget,
+          budgetAfterSnapshot: impact.budgetAfter,
+          dueDateBeforeSnapshot: currentProject.dueDate,
+          dueDateAfterSnapshot: impact.dueDateAfter,
+        },
+      })
+      await logActivity({
+        db: tx,
+        companyId: user.companyId,
+        userId: user.id,
+        action: ActivityAction.PROJECT_AMENDMENT_IMPACT_APPLIED,
+        entityType: "ProjectContractAmendment",
+        entityId: updated.id,
+        message: `تم تطبيق أثر الملحق ${updated.amendmentNumber} على ميزانية وموعد مشروع ${project.name}`,
+        metadata: {
+          projectId,
+          changeRequestId,
+          reference: parsed.data.reference,
+          budgetBefore: currentProject.budget!.toString(),
+          budgetAfter: impact.budgetAfter,
+          dueDateBefore: currentProject.dueDate?.toISOString() ?? null,
+          dueDateAfter: impact.dueDateAfter?.toISOString() ?? null,
+        },
+        ...meta,
+      })
+      return updated
+    }
     const transition = {
       READY_FOR_REVIEW: {
         status: "READY_FOR_REVIEW" as const,

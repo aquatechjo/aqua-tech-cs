@@ -33,6 +33,10 @@ export const projectContractAmendmentMutationSchema = z.discriminatedUnion(
       reference: z.string().trim().min(3).max(500),
       notes: z.string().trim().max(4000).optional().nullable(),
     }),
+    z.object({
+      action: z.literal("APPLY_IMPACT"),
+      reference: z.string().trim().min(3).max(500),
+    }),
   ],
 )
 
@@ -49,6 +53,60 @@ const allowedFrom: Record<
   MARK_SENT: ["INTERNALLY_APPROVED"],
   ACCEPT: ["SENT"],
   REJECT: ["SENT"],
+  APPLY_IMPACT: ["ACCEPTED"],
+}
+
+export function amendmentImpactIssues({
+  impactAppliedAt,
+  projectBudget,
+  projectCurrency,
+  amendmentCurrency,
+  scheduleImpactDays,
+  projectDueDate,
+}: {
+  impactAppliedAt?: Date | string | null
+  projectBudget?: string | number | null
+  projectCurrency: string
+  amendmentCurrency: string
+  scheduleImpactDays: number
+  projectDueDate?: Date | string | null
+}) {
+  const issues: string[] = []
+  if (impactAppliedAt) issues.push("تم تطبيق أثر هذا الملحق مسبقًا")
+  if (projectBudget === null || projectBudget === undefined) {
+    issues.push("يجب تثبيت ميزانية أساس للمشروع قبل تطبيق الملحق")
+  }
+  if (projectCurrency !== amendmentCurrency) {
+    issues.push("عملة الملحق لا تطابق عملة ميزانية المشروع")
+  }
+  if (scheduleImpactDays !== 0 && !projectDueDate) {
+    issues.push("يجب تثبيت تاريخ استحقاق للمشروع قبل تطبيق الأثر الزمني")
+  }
+  return issues
+}
+
+export function applyAmendmentImpact({
+  projectBudget,
+  amendmentAmount,
+  projectDueDate,
+  scheduleImpactDays,
+}: {
+  projectBudget: string | number
+  amendmentAmount: string | number
+  projectDueDate?: Date | string | null
+  scheduleImpactDays: number
+}) {
+  const toMinor = (value: string | number) => {
+    const normalized = String(value)
+    const match = /^(\d+)(?:\.(\d{1,2}))?$/.exec(normalized)
+    if (!match) throw new Error("Invalid monetary snapshot")
+    return BigInt(match[1]) * BigInt(100) + BigInt((match[2] ?? "").padEnd(2, "0"))
+  }
+  const minor = toMinor(projectBudget) + toMinor(amendmentAmount)
+  const budgetAfter = `${minor / BigInt(100)}.${String(minor % BigInt(100)).padStart(2, "0")}`
+  const dueDateAfter = projectDueDate ? new Date(projectDueDate) : null
+  if (dueDateAfter) dueDateAfter.setUTCDate(dueDateAfter.getUTCDate() + scheduleImpactDays)
+  return { budgetAfter, dueDateAfter }
 }
 
 export function contractAmendmentActionIssues({

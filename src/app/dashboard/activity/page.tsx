@@ -53,6 +53,7 @@ function actionLabel(action: ActivityAction) {
     PROJECT_AMENDMENT_SENT: "إرسال ملحق للعميل",
     PROJECT_AMENDMENT_ACCEPTED: "قبول ملحق العقد",
     PROJECT_AMENDMENT_REJECTED: "رفض ملحق العقد",
+    PROJECT_AMENDMENT_IMPACT_APPLIED: "تطبيق أثر ملحق العقد",
     PROJECT_RISK_CREATED: "تسجيل خطر مشروع",
     PROJECT_RISK_UPDATED: "تحديث خطر مشروع",
     PROJECT_RISK_MATERIALIZED: "تحول خطر إلى مشكلة",

@@ -44,7 +44,7 @@ type ChangeStatus =
 type CommercialImpact = "NONE" | "REQUIRES_QUOTE" | "APPROVED"
 type FinancialApprovalStatus = "NOT_REQUIRED" | "PENDING" | "APPROVED" | "REJECTED"
 type AmendmentStatus = "DRAFT" | "READY_FOR_REVIEW" | "INTERNALLY_APPROVED" | "SENT" | "ACCEPTED" | "REJECTED"
-type AmendmentAction = "INTERNALLY_APPROVE" | "MARK_SENT" | "ACCEPT" | "REJECT"
+type AmendmentAction = "INTERNALLY_APPROVE" | "MARK_SENT" | "ACCEPT" | "REJECT" | "APPLY_IMPACT"
 type ItemAction =
   | "ADD_DELIVERABLE"
   | "MODIFY_DELIVERABLE"
@@ -83,6 +83,13 @@ export type ProjectChangeRequestView = {
     approvedBy: { id: string; name: string } | null
     sentBy: { id: string; name: string } | null
     decidedBy: { id: string; name: string } | null
+    impactAppliedBy: { id: string; name: string } | null
+    impactAppliedAt: string | null
+    impactApplicationReference: string | null
+    budgetBeforeSnapshot: string | null
+    budgetAfterSnapshot: string | null
+    dueDateBeforeSnapshot: string | null
+    dueDateAfterSnapshot: string | null
     canInternallyApprove: boolean
   } | null
   clientApprovalRequired: boolean
@@ -784,6 +791,18 @@ export default function ProjectChangeRequestsPanel({
                       </>
                     ) : null}
                     {canManage &&
+                    request.contractAmendment?.status === "ACCEPTED" &&
+                    !request.contractAmendment.impactAppliedAt ? (
+                      <AquaButton
+                        variant="ghost"
+                        size="sm"
+                        leadingIcon={<CircleDollarSign />}
+                        onClick={() => openAmendmentDecision(request, "APPLY_IMPACT")}
+                      >
+                        تطبيق أثر الملحق
+                      </AquaButton>
+                    ) : null}
+                    {canManage &&
                     request.status === "APPROVED" &&
                     (request.commercialImpact === "NONE" ||
                       request.contractAmendment?.status === "ACCEPTED") ? (
@@ -811,6 +830,9 @@ export default function ProjectChangeRequestsPanel({
                   >
                     نسخة مجمدة بقيمة {request.contractAmendment.financialAmountSnapshot}{" "}
                     {request.contractAmendment.financialCurrencySnapshot} وأثر زمني {request.contractAmendment.scheduleImpactDaysSnapshot} يوم.
+                    {request.contractAmendment.impactAppliedAt ? (
+                      <> تم تطبيقها على الميزانية والموعد بمرجع {request.contractAmendment.impactApplicationReference}.</>
+                    ) : null}
                   </AquaAlert>
                 ) : null}
 
@@ -1273,6 +1295,8 @@ export default function ProjectChangeRequestsPanel({
                 ? "مرجع الاعتماد الداخلي"
                 : amendmentDecision?.action === "MARK_SENT"
                   ? "مرجع الإرسال"
+                  : amendmentDecision?.action === "APPLY_IMPACT"
+                    ? "مرجع تطبيق الأثر"
                   : "مرجع قرار العميل"
             }
             value={amendmentReference}

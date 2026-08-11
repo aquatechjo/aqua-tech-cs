@@ -586,3 +586,20 @@ Status: **implemented**
 - Preserve the finance actor, timestamp, reference, notes, and Activity evidence under a row lock.
 - Reset financial approval when the draft changes and block management approval until finance approves.
 - Keep Project budgets, invoices, payments, contract amendments, notifications, WhatsApp, and n8n unchanged.
+
+## PROJ-14 — Governed Contract Amendments
+
+Status: **implemented**
+
+- Freeze approved commercial scope, value, currency, and schedule impact in a governed amendment.
+- Preserve internal approval, delivery, and client decision evidence with ordered transitions.
+- Block commercial Change Request application until the client accepts the amendment.
+
+## PROJ-15 — Apply Accepted Amendment Impact
+
+Status: **implemented**
+
+- Apply the accepted amendment value and schedule delta to the Project through one explicit, audited action.
+- Preserve immutable before/after budget and due-date snapshots under row locks.
+- Block missing baselines, currency mismatch, and duplicate application.
+- Keep invoices, payments, notifications, WhatsApp, and n8n unchanged.

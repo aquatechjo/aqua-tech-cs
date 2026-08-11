@@ -142,6 +142,7 @@ export default async function ProjectExecutionPage({
               approvedBy: { select: { id: true, name: true } },
               sentBy: { select: { id: true, name: true } },
               decidedBy: { select: { id: true, name: true } },
+              impactAppliedBy: { select: { id: true, name: true } },
             },
           },
           items: {
@@ -585,6 +586,16 @@ export default async function ProjectExecutionPage({
               ...request.contractAmendment,
               financialAmountSnapshot:
                 request.contractAmendment.financialAmountSnapshot.toString(),
+              budgetBeforeSnapshot:
+                request.contractAmendment.budgetBeforeSnapshot?.toString() ?? null,
+              budgetAfterSnapshot:
+                request.contractAmendment.budgetAfterSnapshot?.toString() ?? null,
+              dueDateBeforeSnapshot:
+                request.contractAmendment.dueDateBeforeSnapshot?.toISOString() ?? null,
+              dueDateAfterSnapshot:
+                request.contractAmendment.dueDateAfterSnapshot?.toISOString() ?? null,
+              impactAppliedAt:
+                request.contractAmendment.impactAppliedAt?.toISOString() ?? null,
               readyAt: request.contractAmendment.readyAt?.toISOString() ?? null,
               internallyApprovedAt:
                 request.contractAmendment.internallyApprovedAt?.toISOString() ?? null,

@@ -490,6 +490,7 @@ enum ActivityAction {
   PROJECT_AMENDMENT_SENT
   PROJECT_AMENDMENT_ACCEPTED
   PROJECT_AMENDMENT_REJECTED
+  PROJECT_AMENDMENT_IMPACT_APPLIED
   PROJECT_RISK_CREATED
   PROJECT_RISK_UPDATED
   PROJECT_RISK_MATERIALIZED
@@ -808,6 +809,7 @@ model User {
   approvedProjectContractAmendments         ProjectContractAmendment[] @relation("ProjectContractAmendmentApprover")
   sentProjectContractAmendments             ProjectContractAmendment[] @relation("ProjectContractAmendmentSender")
   decidedProjectContractAmendments          ProjectContractAmendment[] @relation("ProjectContractAmendmentDecider")
+  appliedProjectContractAmendmentImpacts     ProjectContractAmendment[] @relation("ProjectContractAmendmentImpactApplier")
   ownedProjectGovernanceItems              ProjectGovernanceItem[]  @relation("ProjectGovernanceOwner")
   createdProjectGovernanceItems            ProjectGovernanceItem[]  @relation("ProjectGovernanceCreator")
   updatedProjectGovernanceItems            ProjectGovernanceItem[]  @relation("ProjectGovernanceUpdater")
@@ -1539,6 +1541,8 @@ model ProjectContractAmendment {
   sentBy   User? @relation("ProjectContractAmendmentSender", fields: [sentById], references: [id], onDelete: Restrict)
   decidedById String?
   decidedBy   User? @relation("ProjectContractAmendmentDecider", fields: [decidedById], references: [id], onDelete: Restrict)
+  impactAppliedById String?
+  impactAppliedBy   User? @relation("ProjectContractAmendmentImpactApplier", fields: [impactAppliedById], references: [id], onDelete: Restrict)
 
   amendmentNumber String
   status          ProjectContractAmendmentStatus @default(DRAFT)
@@ -1558,6 +1562,12 @@ model ProjectContractAmendment {
   internallyApprovedAt DateTime?
   sentAt DateTime?
   decidedAt DateTime?
+  impactApplicationReference String?
+  budgetBeforeSnapshot Decimal? @db.Decimal(14, 2)
+  budgetAfterSnapshot Decimal? @db.Decimal(14, 2)
+  dueDateBeforeSnapshot DateTime?
+  dueDateAfterSnapshot DateTime?
+  impactAppliedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1569,6 +1579,7 @@ model ProjectContractAmendment {
   @@index([approvedById])
   @@index([sentById])
   @@index([decidedById])
+  @@index([impactAppliedById])
 }
 
 model ProjectChangeRequestItem {
