@@ -603,3 +603,12 @@ Status: **implemented**
 - Preserve immutable before/after budget and due-date snapshots under row locks.
 - Block missing baselines, currency mismatch, and duplicate application.
 - Keep invoices, payments, notifications, WhatsApp, and n8n unchanged.
+
+## PROJ-16 — Amendment Invoice Handoff
+
+Status: **implemented**
+
+- Create one finance-owned draft invoice only after the accepted amendment impact is applied.
+- Preserve a unique amendment-to-invoice link, actor, timestamp, amount, currency, and Activity evidence.
+- Require a Project client and matching operational, Project, and amendment currencies.
+- Keep issuance, tax and due-date confirmation, delivery, payments, notifications, WhatsApp, and n8n manual and unchanged.

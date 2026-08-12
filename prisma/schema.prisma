@@ -491,6 +491,7 @@ enum ActivityAction {
   PROJECT_AMENDMENT_ACCEPTED
   PROJECT_AMENDMENT_REJECTED
   PROJECT_AMENDMENT_IMPACT_APPLIED
+  PROJECT_AMENDMENT_INVOICE_CREATED
   PROJECT_RISK_CREATED
   PROJECT_RISK_UPDATED
   PROJECT_RISK_MATERIALIZED
@@ -810,6 +811,7 @@ model User {
   sentProjectContractAmendments             ProjectContractAmendment[] @relation("ProjectContractAmendmentSender")
   decidedProjectContractAmendments          ProjectContractAmendment[] @relation("ProjectContractAmendmentDecider")
   appliedProjectContractAmendmentImpacts     ProjectContractAmendment[] @relation("ProjectContractAmendmentImpactApplier")
+  invoicedProjectContractAmendments          ProjectContractAmendment[] @relation("ProjectContractAmendmentInvoiceCreator")
   ownedProjectGovernanceItems              ProjectGovernanceItem[]  @relation("ProjectGovernanceOwner")
   createdProjectGovernanceItems            ProjectGovernanceItem[]  @relation("ProjectGovernanceCreator")
   updatedProjectGovernanceItems            ProjectGovernanceItem[]  @relation("ProjectGovernanceUpdater")
@@ -1543,6 +1545,11 @@ model ProjectContractAmendment {
   decidedBy   User? @relation("ProjectContractAmendmentDecider", fields: [decidedById], references: [id], onDelete: Restrict)
   impactAppliedById String?
   impactAppliedBy   User? @relation("ProjectContractAmendmentImpactApplier", fields: [impactAppliedById], references: [id], onDelete: Restrict)
+  invoiceCreatedById String?
+  invoiceCreatedBy   User? @relation("ProjectContractAmendmentInvoiceCreator", fields: [invoiceCreatedById], references: [id], onDelete: Restrict)
+
+  invoiceId String? @unique
+  invoice   Invoice? @relation("ProjectContractAmendmentInvoice", fields: [invoiceId], references: [id], onDelete: Restrict)
 
   amendmentNumber String
   status          ProjectContractAmendmentStatus @default(DRAFT)
@@ -1568,6 +1575,7 @@ model ProjectContractAmendment {
   dueDateBeforeSnapshot DateTime?
   dueDateAfterSnapshot DateTime?
   impactAppliedAt DateTime?
+  invoiceCreatedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1580,6 +1588,7 @@ model ProjectContractAmendment {
   @@index([sentById])
   @@index([decidedById])
   @@index([impactAppliedById])
+  @@index([invoiceCreatedById])
 }
 
 model ProjectChangeRequestItem {
@@ -2332,6 +2341,7 @@ model Invoice {
 
   items    InvoiceItem[]
   payments Payment[]
+  contractAmendment ProjectContractAmendment? @relation("ProjectContractAmendmentInvoice")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

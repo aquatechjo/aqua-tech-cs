@@ -320,6 +320,7 @@ export default function ProjectExecutionClient({
   tasks,
   employees,
   canManage,
+  canManageFinance,
   canManageLeadership,
   readinessPermissions,
   summary,
@@ -371,6 +372,7 @@ export default function ProjectExecutionClient({
   tasks: Task[]
   employees: Employee[]
   canManage: boolean
+  canManageFinance: boolean
   canManageLeadership: boolean
   readinessPermissions: {
     canManageContract: boolean
@@ -1130,6 +1132,7 @@ export default function ProjectExecutionClient({
           name: phase.name,
         }))}
         canManage={canManage}
+        canManageFinance={canManageFinance}
         projectClosed={[
           "COMPLETED",
           "CANCELLED",

@@ -86,6 +86,9 @@ export type ProjectChangeRequestView = {
     impactAppliedBy: { id: string; name: string } | null
     impactAppliedAt: string | null
     impactApplicationReference: string | null
+    invoiceCreatedAt: string | null
+    invoiceCreatedBy: { id: string; name: string } | null
+    invoice: { id: string; invoiceNumber: string; status: string } | null
     budgetBeforeSnapshot: string | null
     budgetAfterSnapshot: string | null
     dueDateBeforeSnapshot: string | null
@@ -290,6 +293,7 @@ export default function ProjectChangeRequestsPanel({
   deliverables,
   phases,
   canManage,
+  canManageFinance,
   projectClosed,
 }: {
   projectId: string
@@ -297,6 +301,7 @@ export default function ProjectChangeRequestsPanel({
   deliverables: DeliverableOption[]
   phases: PhaseOption[]
   canManage: boolean
+  canManageFinance: boolean
   projectClosed: boolean
 }) {
   const router = useRouter()
@@ -558,6 +563,18 @@ export default function ProjectChangeRequestsPanel({
     )
   }
 
+  async function createAmendmentInvoice(request: ProjectChangeRequestView) {
+    const amendment = request.contractAmendment
+    if (!amendment) return
+    await mutate(
+      `change-amendment-invoice-${request.id}`,
+      `/api/finance/project-amendments/${amendment.id}/invoice`,
+      "POST",
+      {},
+      "تم إنشاء مسودة فاتورة الملحق",
+    )
+  }
+
   async function submitAmendmentDecision(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!amendmentDecision) return
@@ -802,6 +819,19 @@ export default function ProjectChangeRequestsPanel({
                         تطبيق أثر الملحق
                       </AquaButton>
                     ) : null}
+                    {canManageFinance &&
+                    request.contractAmendment?.impactAppliedAt &&
+                    !request.contractAmendment.invoice ? (
+                      <AquaButton
+                        variant="ghost"
+                        size="sm"
+                        leadingIcon={<CircleDollarSign />}
+                        loading={busyKey === `change-amendment-invoice-${request.id}`}
+                        onClick={() => void createAmendmentInvoice(request)}
+                      >
+                        إنشاء مسودة فاتورة
+                      </AquaButton>
+                    ) : null}
                     {canManage &&
                     request.status === "APPROVED" &&
                     (request.commercialImpact === "NONE" ||
@@ -832,6 +862,11 @@ export default function ProjectChangeRequestsPanel({
                     {request.contractAmendment.financialCurrencySnapshot} وأثر زمني {request.contractAmendment.scheduleImpactDaysSnapshot} يوم.
                     {request.contractAmendment.impactAppliedAt ? (
                       <> تم تطبيقها على الميزانية والموعد بمرجع {request.contractAmendment.impactApplicationReference}.</>
+                    ) : null}
+                    {request.contractAmendment.invoice ? (
+                      <>
+                        {" "}مسودة الفاتورة المرتبطة: {request.contractAmendment.invoice.invoiceNumber}.
+                      </>
                     ) : null}
                   </AquaAlert>
                 ) : null}

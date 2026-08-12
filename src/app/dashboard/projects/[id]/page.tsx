@@ -143,6 +143,8 @@ export default async function ProjectExecutionPage({
               sentBy: { select: { id: true, name: true } },
               decidedBy: { select: { id: true, name: true } },
               impactAppliedBy: { select: { id: true, name: true } },
+              invoiceCreatedBy: { select: { id: true, name: true } },
+              invoice: { select: { id: true, invoiceNumber: true, status: true } },
             },
           },
           items: {
@@ -596,6 +598,8 @@ export default async function ProjectExecutionPage({
                 request.contractAmendment.dueDateAfterSnapshot?.toISOString() ?? null,
               impactAppliedAt:
                 request.contractAmendment.impactAppliedAt?.toISOString() ?? null,
+              invoiceCreatedAt:
+                request.contractAmendment.invoiceCreatedAt?.toISOString() ?? null,
               readyAt: request.contractAmendment.readyAt?.toISOString() ?? null,
               internallyApprovedAt:
                 request.contractAmendment.internallyApprovedAt?.toISOString() ?? null,
@@ -727,6 +731,7 @@ export default async function ProjectExecutionPage({
       tasks={tasks}
       employees={employees}
       canManage={canManage}
+      canManageFinance={hasRole(user.role, ACCESS_ROLES.financeManagement)}
       canManageLeadership={canManageProjectLeadership(
         user,
         currentMembership?.role
