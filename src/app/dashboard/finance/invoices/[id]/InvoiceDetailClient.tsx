@@ -32,6 +32,12 @@ type Invoice = {
     invoiceIssuedAt: string | null
     invoiceIssueReference: string | null
     invoiceTaxDecision: "TAX_APPLIED" | "TAX_EXEMPT" | null
+    invoiceDeliveryRecipientName: string | null
+    invoiceDeliveryRecipientEmail: string | null
+    invoiceDeliveryReference: string | null
+    invoiceDeliverySentAt: string | null
+    invoiceDeliveryFailedAt: string | null
+    invoiceDeliveryAttemptCount: number
   } | null
   items: Array<{
     id: string
@@ -108,6 +114,16 @@ export default function InvoiceDetailClient({
     Number(invoice.taxAmount) > 0 ? "TAX_APPLIED" : "TAX_EXEMPT",
   )
   const [issueConfirmOpen, setIssueConfirmOpen] = useState(false)
+  const [deliveryRecipientName, setDeliveryRecipientName] = useState(
+    invoice.contractAmendment?.invoiceDeliveryRecipientName ?? invoice.client?.name ?? "",
+  )
+  const [deliveryRecipientEmail, setDeliveryRecipientEmail] = useState(
+    invoice.contractAmendment?.invoiceDeliveryRecipientEmail ?? invoice.client?.email ?? "",
+  )
+  const [deliveryReference, setDeliveryReference] = useState(
+    invoice.contractAmendment?.invoiceDeliveryReference ?? "",
+  )
+  const [deliveryConfirmOpen, setDeliveryConfirmOpen] = useState(false)
   const [items, setItems] = useState<Line[]>(
     invoice.items.map((item) => ({
       description: item.description,
@@ -192,6 +208,35 @@ export default function InvoiceDetailClient({
     const reason = window.prompt("اكتب سبب إلغاء الفاتورة")
     if (!reason) return
     await mutate({ action: "CANCEL", reason }, "cancel")
+  }
+
+  async function deliverInvoice() {
+    setBusy("delivery")
+    setError("")
+    setSuccess("")
+    try {
+      const response = await fetch(`/api/finance/invoices/${invoice.id}/delivery`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipientName: deliveryRecipientName,
+          recipientEmail: deliveryRecipientEmail,
+          deliveryReference,
+        }),
+      })
+      const payload = await response.json()
+      if (!response.ok || !payload.ok) {
+        setError(payload.message || "تعذر إرسال الفاتورة")
+        return
+      }
+      setSuccess("تم إرسال الفاتورة وتوثيق عملية التسليم")
+      setDeliveryConfirmOpen(false)
+      router.refresh()
+    } catch {
+      setError("تعذر الاتصال بالخادم")
+    } finally {
+      setBusy("")
+    }
   }
 
   async function recordPayment(event: React.FormEvent<HTMLFormElement>) {
@@ -312,6 +357,47 @@ export default function InvoiceDetailClient({
             ? ` مرجع الإصدار: ${invoice.contractAmendment.invoiceIssueReference}.`
             : " يجب توثيق قرار الضريبة ومرجع الإصدار قبل إصدارها."}
         </AquaAlert>
+      ) : null}
+
+      {invoice.contractAmendment && invoice.status === "ISSUED" && canManage ? (
+        <div className="aqua-card p-4 d-print-none">
+          <h2 className="h5 fw-black mb-2">إرسال الفاتورة للعميل</h2>
+          {invoice.contractAmendment.invoiceDeliverySentAt ? (
+            <AquaAlert variant="success" title="تم إرسال الفاتورة">
+              أُرسلت إلى {invoice.contractAmendment.invoiceDeliveryRecipientEmail} بمرجع {invoice.contractAmendment.invoiceDeliveryReference}.
+            </AquaAlert>
+          ) : (
+            <>
+              {invoice.contractAmendment.invoiceDeliveryFailedAt ? (
+                <AquaAlert variant="warning" title="تعذرت المحاولة السابقة">
+                  تم توثيق الفشل. راجع العنوان وإعدادات البريد ثم أعد المحاولة.
+                </AquaAlert>
+              ) : null}
+              <div className="row g-3 mt-1">
+                <div className="col-12 col-md-4">
+                  <label className="form-label">اسم المستلم</label>
+                  <input className="form-control" maxLength={120} value={deliveryRecipientName} onChange={(event) => setDeliveryRecipientName(event.target.value)} />
+                </div>
+                <div className="col-12 col-md-4">
+                  <label className="form-label">بريد المستلم</label>
+                  <input className="form-control" type="email" maxLength={254} dir="ltr" value={deliveryRecipientEmail} onChange={(event) => setDeliveryRecipientEmail(event.target.value)} />
+                </div>
+                <div className="col-12 col-md-4">
+                  <label className="form-label">مرجع التسليم</label>
+                  <input className="form-control" maxLength={200} value={deliveryReference} onChange={(event) => setDeliveryReference(event.target.value)} />
+                </div>
+              </div>
+              <button
+                className="btn btn-info fw-bold mt-3"
+                type="button"
+                disabled={!deliveryRecipientName.trim() || !deliveryRecipientEmail.trim() || !deliveryReference.trim() || Boolean(busy)}
+                onClick={() => setDeliveryConfirmOpen(true)}
+              >
+                إرسال الفاتورة
+              </button>
+            </>
+          )}
+        </div>
       ) : null}
 
       {invoice.status === "DRAFT" && canManage ? (
@@ -486,6 +572,15 @@ export default function InvoiceDetailClient({
         }
         confirmLabel="إصدار الفاتورة"
         loading={busy === "issue"}
+      />
+      <AquaConfirmDialog
+        open={deliveryConfirmOpen}
+        onClose={() => setDeliveryConfirmOpen(false)}
+        onConfirm={deliverInvoice}
+        title="إرسال الفاتورة للعميل"
+        description={`ستُرسل الفاتورة ${invoice.invoiceNumber} إلى ${deliveryRecipientEmail}. لا تحتوي الرسالة رابطًا إلى النظام الداخلي.`}
+        confirmLabel="إرسال وتوثيق"
+        loading={busy === "delivery"}
       />
     </div>
   )

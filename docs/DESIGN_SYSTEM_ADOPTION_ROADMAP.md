@@ -621,3 +621,12 @@ Status: **implemented**
 - Require Finance to confirm tax treatment, due date, and an issuance reference before issuing the linked invoice.
 - Preserve issuer, timestamp, tax decision, reference, and Activity evidence under invoice and amendment row locks.
 - Keep external delivery, payment reminders, online collection, WhatsApp, and n8n outside this batch.
+
+## PROJ-18 — Secure Amendment Invoice Delivery
+
+Status: **implemented**
+
+- Deliver only an issued amendment invoice to an explicit normalized recipient through transactional email.
+- Send a client-safe summary without exposing an internal dashboard link or creating an unprotected public route.
+- Preserve prepared, sent, and failed provider evidence and block duplicate successful or concurrent delivery.
+- Keep PDF attachments, a secure public invoice portal, payment reminders, online collection, WhatsApp, and n8n outside this batch.

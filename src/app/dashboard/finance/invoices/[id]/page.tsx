@@ -74,6 +74,18 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                 invoice.contractAmendment.invoiceTaxDecision === "TAX_EXEMPT"
                   ? invoice.contractAmendment.invoiceTaxDecision
                   : null,
+              invoiceDeliveryRecipientName:
+                invoice.contractAmendment.invoiceDeliveryRecipientName,
+              invoiceDeliveryRecipientEmail:
+                invoice.contractAmendment.invoiceDeliveryRecipientEmail,
+              invoiceDeliveryReference:
+                invoice.contractAmendment.invoiceDeliveryReference,
+              invoiceDeliverySentAt:
+                invoice.contractAmendment.invoiceDeliverySentAt?.toISOString() ?? null,
+              invoiceDeliveryFailedAt:
+                invoice.contractAmendment.invoiceDeliveryFailedAt?.toISOString() ?? null,
+              invoiceDeliveryAttemptCount:
+                invoice.contractAmendment.invoiceDeliveryAttemptCount,
             }
           : null,
         items: invoice.items.map((item) => ({

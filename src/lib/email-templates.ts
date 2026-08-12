@@ -7,6 +7,78 @@ export type TransactionalEmail = {
   html: string
 }
 
+export function buildAmendmentInvoiceDeliveryEmail({
+  recipientName,
+  invoiceNumber,
+  amendmentNumber,
+  projectName,
+  totalAmount,
+  currency,
+  issueDate,
+  dueDate,
+  companyEmail,
+}: {
+  recipientName: string
+  invoiceNumber: string
+  amendmentNumber: string
+  projectName: string
+  totalAmount: string
+  currency: string
+  issueDate: string
+  dueDate: string
+  companyEmail: string
+}): TransactionalEmail {
+  const safe = {
+    name: escapeHtml(recipientName),
+    invoice: escapeHtml(invoiceNumber),
+    amendment: escapeHtml(amendmentNumber),
+    project: escapeHtml(projectName),
+    total: escapeHtml(totalAmount),
+    currency: escapeHtml(currency),
+    issue: escapeHtml(issueDate),
+    due: escapeHtml(dueDate),
+    email: escapeHtml(companyEmail),
+  }
+  const subject = `فاتورة ${invoiceNumber} من Aqua Tech`
+  const text = [
+    `مرحبًا ${recipientName}،`,
+    "",
+    `تم إصدار الفاتورة ${invoiceNumber} المرتبطة بملحق العقد ${amendmentNumber}.`,
+    `المشروع: ${projectName}`,
+    `الإجمالي: ${totalAmount} ${currency}`,
+    `تاريخ الإصدار: ${issueDate}`,
+    `تاريخ الاستحقاق: ${dueDate}`,
+    "",
+    `للاستفسار أو طلب نسخة إضافية تواصل معنا عبر ${companyEmail}.`,
+    "هذه الرسالة لا تحتوي رابطًا إلى النظام الداخلي.",
+    "",
+    `Aqua.Tech — ${aquaTechCsTheme.productName}`,
+  ].join("\n")
+
+  return {
+    subject,
+    text,
+    html: `<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${escapeHtml(subject)}</title></head>
+<body style="margin:0;background:#f1f5f9;color:#0f172a;font-family:Arial,'Segoe UI',Tahoma,sans-serif">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td align="center" style="padding:32px 14px">
+<table role="presentation" width="620" cellspacing="0" cellpadding="0" style="width:100%;max-width:620px;background:#fff;border:1px solid #dbe4ee;border-radius:22px;overflow:hidden">
+<tr><td style="height:5px;background:#0e7490"></td></tr><tr><td style="padding:30px 34px;text-align:right">
+<div style="font-size:13px;font-weight:800;color:#0e7490" dir="ltr">Aqua.Tech · ${safe.invoice}</div>
+<h1 style="margin:12px 0 18px;font-size:26px">فاتورة صادرة</h1>
+<p style="font-size:16px;line-height:1.9">مرحبًا ${safe.name}،</p>
+<p style="font-size:15px;line-height:1.9;color:#475569">تم إصدار الفاتورة المرتبطة بملحق العقد <strong dir="ltr">${safe.amendment}</strong>.</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:22px 0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px">
+<tr><td style="padding:16px">المشروع</td><td style="padding:16px;font-weight:800">${safe.project}</td></tr>
+<tr><td style="padding:16px">الإجمالي</td><td style="padding:16px;font-weight:900" dir="ltr">${safe.total} ${safe.currency}</td></tr>
+<tr><td style="padding:16px">الإصدار</td><td style="padding:16px" dir="ltr">${safe.issue}</td></tr>
+<tr><td style="padding:16px">الاستحقاق</td><td style="padding:16px" dir="ltr">${safe.due}</td></tr></table>
+<p style="font-size:13px;line-height:1.8;color:#64748b">للاستفسار أو طلب نسخة إضافية: <span dir="ltr">${safe.email}</span></p>
+</td></tr><tr><td style="padding:18px 34px;background:#f8fafc;color:#64748b;font-size:12px">هذه الرسالة لا تحتوي أي رابط إلى النظام الداخلي.</td></tr>
+</table></td></tr></table></body></html>`,
+  }
+}
+
 function escapeHtml(value: string) {
   return value
     .replaceAll("&", "&amp;")

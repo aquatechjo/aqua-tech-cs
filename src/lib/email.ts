@@ -5,10 +5,11 @@ import {
   buildProjectFeedbackInvitationEmail,
   buildProjectFeedbackReminderEmail,
   buildProposalDeliveryEmail,
+  buildAmendmentInvoiceDeliveryEmail,
 } from "@/lib/email-templates"
 
 function requiredEmailEnv(
-  name: "RESEND_API_KEY" | "PASSWORD_RESET_FROM" | "PROPOSAL_FROM" | "FEEDBACK_FROM",
+  name: "RESEND_API_KEY" | "PASSWORD_RESET_FROM" | "PROPOSAL_FROM" | "FEEDBACK_FROM" | "INVOICE_FROM",
 ) {
   const value = process.env[name]?.trim()
 
@@ -17,6 +18,23 @@ function requiredEmailEnv(
   }
 
   return value
+}
+
+export async function sendAmendmentInvoiceDeliveryEmail(input: {
+  to: string
+  recipientName: string
+  invoiceNumber: string
+  amendmentNumber: string
+  projectName: string
+  totalAmount: string
+  currency: string
+  issueDate: string
+  dueDate: string
+  companyEmail: string
+}) {
+  const from = requiredEmailEnv("INVOICE_FROM")
+  const email = buildAmendmentInvoiceDeliveryEmail(input)
+  return sendTransactionalEmail({ from, to: input.to, ...email })
 }
 
 async function sendTransactionalEmail({
