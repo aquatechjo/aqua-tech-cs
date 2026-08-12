@@ -15,6 +15,11 @@ import {
   resolveInvoiceLinks,
 } from "@/lib/finance-server"
 import { prisma } from "@/lib/prisma"
+import {
+  AMENDMENT_INVOICE_TAX_DECISIONS,
+  amendmentInvoiceEditIssues,
+  amendmentInvoiceIssuanceIssues,
+} from "@/lib/project-amendment-invoice-issuance"
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
 
 const decimalInput = z.union([z.string(), z.number()])
@@ -32,6 +37,8 @@ const patchSchema = z.object({
   notes: z.string().trim().max(4000).optional().nullable(),
   terms: z.string().trim().max(4000).optional().nullable(),
   reason: z.string().trim().max(1000).optional().nullable(),
+  issueReference: z.string().trim().min(3).max(200).optional(),
+  taxDecision: z.enum(AMENDMENT_INVOICE_TAX_DECISIONS).optional(),
   items: z
     .array(
       z.object({
@@ -90,6 +97,16 @@ function serializeInvoice(
     project: invoice.project,
     serviceRequest: invoice.serviceRequest,
     createdBy: invoice.createdBy,
+    contractAmendment: invoice.contractAmendment
+      ? {
+          id: invoice.contractAmendment.id,
+          amendmentNumber: invoice.contractAmendment.amendmentNumber,
+          financialAmount: invoice.contractAmendment.financialAmountSnapshot.toString(),
+          invoiceIssuedAt: invoice.contractAmendment.invoiceIssuedAt?.toISOString() ?? null,
+          invoiceIssueReference: invoice.contractAmendment.invoiceIssueReference,
+          invoiceTaxDecision: invoice.contractAmendment.invoiceTaxDecision,
+        }
+      : null,
     items: invoice.items.map((item) => ({
       id: item.id,
       description: item.description,
@@ -126,6 +143,7 @@ function loadInvoice(companyId: string, id: string) {
       project: { select: { id: true, name: true, code: true } },
       serviceRequest: { select: { id: true, customerName: true, serviceType: true } },
       createdBy: { select: { id: true, name: true, email: true } },
+      contractAmendment: true,
       items: { orderBy: { sortOrder: "asc" } },
       payments: {
         orderBy: { paidAt: "desc" },
@@ -154,6 +172,7 @@ export async function GET(
         project: { select: { id: true, name: true, code: true } },
         serviceRequest: { select: { id: true, customerName: true, serviceType: true } },
         createdBy: { select: { id: true, name: true, email: true } },
+        contractAmendment: true,
         items: { orderBy: { sortOrder: "asc" } },
         payments: {
           orderBy: { paidAt: "desc" },
@@ -197,7 +216,15 @@ export async function PATCH(
 
     const existing = await prisma.invoice.findFirst({
       where: { id, companyId: user.companyId },
-      include: { payments: { where: { status: "POSTED" }, select: { id: true } } },
+      include: {
+        payments: { where: { status: "POSTED" }, select: { id: true } },
+        items: { orderBy: { sortOrder: "asc" } },
+        contractAmendment: {
+          include: {
+            project: { select: { id: true, clientId: true } },
+          },
+        },
+      },
     })
 
     if (!existing) {
@@ -226,10 +253,105 @@ export async function PATCH(
           )
         }
 
+        if (existing.contractAmendment) {
+          await tx.$queryRaw`
+            SELECT "id" FROM "Invoice"
+            WHERE "id" = ${existing.id} AND "companyId" = ${user.companyId}
+            FOR UPDATE
+          `
+          await tx.$queryRaw`
+            SELECT "id" FROM "ProjectContractAmendment"
+            WHERE "id" = ${existing.contractAmendment.id}
+              AND "companyId" = ${user.companyId}
+            FOR UPDATE
+          `
+          const lockedInvoice = await tx.invoice.findFirst({
+            where: { id: existing.id, companyId: user.companyId },
+            include: {
+              items: { orderBy: { sortOrder: "asc" } },
+              contractAmendment: {
+                include: {
+                  project: { select: { id: true, clientId: true } },
+                },
+              },
+            },
+          })
+          const lockedAmendment = lockedInvoice?.contractAmendment
+          if (!lockedInvoice || !lockedAmendment) {
+            throw new ApiError(
+              "تعذر تثبيت ربط فاتورة الملحق",
+              409,
+              "PROJECT_AMENDMENT_INVOICE_LINK_MISSING",
+            )
+          }
+          if (lockedInvoice.status !== "DRAFT" || lockedAmendment.invoiceIssuedAt) {
+            throw new ApiError(
+              "تم إصدار فاتورة الملحق مسبقًا",
+              409,
+              "PROJECT_AMENDMENT_INVOICE_ALREADY_ISSUED",
+            )
+          }
+          const issues = amendmentInvoiceIssuanceIssues({
+            reference: data.issueReference,
+            dueDate,
+            taxDecision: data.taxDecision,
+            taxAmount: lockedInvoice.taxAmount.toString(),
+            subtotal: lockedInvoice.subtotal.toString(),
+            discountAmount: lockedInvoice.discountAmount.toString(),
+            amendmentAmount: lockedAmendment.financialAmountSnapshot.toString(),
+            currency: lockedInvoice.currency,
+            amendmentCurrency: lockedAmendment.financialCurrencySnapshot,
+            projectId: lockedInvoice.projectId,
+            amendmentProjectId: lockedAmendment.projectId,
+            clientId: lockedInvoice.clientId,
+            projectClientId: lockedAmendment.project.clientId,
+            items: lockedInvoice.items.map((item) => ({
+              quantity: item.quantity.toString(),
+              unitPrice: item.unitPrice.toString(),
+            })),
+          })
+          if (issues.length) {
+            throw new ApiError(
+              issues[0],
+              409,
+              "PROJECT_AMENDMENT_INVOICE_ISSUANCE_BLOCKED",
+            )
+          }
+        }
+
         await tx.invoice.update({
           where: { id: existing.id },
           data: { status: "ISSUED", issueDate, dueDate },
         })
+        if (existing.contractAmendment) {
+          await tx.projectContractAmendment.update({
+            where: { id: existing.contractAmendment.id },
+            data: {
+              invoiceIssuedById: user.id,
+              invoiceIssuedAt: new Date(),
+              invoiceIssueReference: data.issueReference!,
+              invoiceTaxDecision: data.taxDecision!,
+            },
+          })
+          await logActivity({
+            db: tx,
+            companyId: user.companyId,
+            userId: user.id,
+            action: ActivityAction.PROJECT_AMENDMENT_INVOICE_ISSUED,
+            entityType: "ProjectContractAmendment",
+            entityId: existing.contractAmendment.id,
+            message: `تم إصدار فاتورة الملحق ${existing.invoiceNumber}`,
+            metadata: {
+              invoiceId: existing.id,
+              invoiceNumber: existing.invoiceNumber,
+              amendmentNumber: existing.contractAmendment.amendmentNumber,
+              issueReference: data.issueReference,
+              taxDecision: data.taxDecision,
+              dueDate: dueDate!.toISOString(),
+            },
+            ...meta,
+          })
+        }
         await logActivity({
           db: tx,
           companyId: user.companyId,
@@ -284,6 +406,25 @@ export async function PATCH(
         data.clientId !== undefined ||
         data.projectId !== undefined ||
         data.serviceRequestId !== undefined
+
+      if (existing.contractAmendment && data.action === "UPDATE") {
+        const issues = amendmentInvoiceEditIssues({
+          itemsRequested: data.items !== undefined,
+          discountRequested: data.discountAmount !== undefined,
+          linksRequested:
+            data.currency !== undefined ||
+            data.clientId !== undefined ||
+            data.projectId !== undefined ||
+            data.serviceRequestId !== undefined,
+        })
+        if (issues.length) {
+          throw new ApiError(
+            issues[0],
+            409,
+            "PROJECT_AMENDMENT_INVOICE_IMMUTABLE_BASE",
+          )
+        }
+      }
 
       if (existing.status !== "DRAFT" && financialFieldsRequested) {
         throw new ApiError(

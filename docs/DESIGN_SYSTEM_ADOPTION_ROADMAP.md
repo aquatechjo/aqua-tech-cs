@@ -612,3 +612,12 @@ Status: **implemented**
 - Preserve a unique amendment-to-invoice link, actor, timestamp, amount, currency, and Activity evidence.
 - Require a Project client and matching operational, Project, and amendment currencies.
 - Keep issuance, tax and due-date confirmation, delivery, payments, notifications, WhatsApp, and n8n manual and unchanged.
+
+## PROJ-17 — Govern Amendment Invoice Issuance
+
+Status: **implemented**
+
+- Lock the approved amendment amount, currency, Project, client, and single invoice line against draft edits.
+- Require Finance to confirm tax treatment, due date, and an issuance reference before issuing the linked invoice.
+- Preserve issuer, timestamp, tax decision, reference, and Activity evidence under invoice and amendment row locks.
+- Keep external delivery, payment reminders, online collection, WhatsApp, and n8n outside this batch.

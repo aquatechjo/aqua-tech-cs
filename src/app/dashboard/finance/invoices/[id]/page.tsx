@@ -17,6 +17,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
       client: { select: { id: true, name: true, email: true, phone: true } },
       project: { select: { id: true, name: true, code: true } },
       createdBy: { select: { id: true, name: true, email: true } },
+      contractAmendment: true,
       items: { orderBy: { sortOrder: "asc" } },
       payments: {
         orderBy: { paidAt: "desc" },
@@ -58,6 +59,23 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         client: invoice.client,
         project: invoice.project,
         createdBy: invoice.createdBy,
+        contractAmendment: invoice.contractAmendment
+          ? {
+              id: invoice.contractAmendment.id,
+              amendmentNumber: invoice.contractAmendment.amendmentNumber,
+              financialAmount:
+                invoice.contractAmendment.financialAmountSnapshot.toString(),
+              invoiceIssuedAt:
+                invoice.contractAmendment.invoiceIssuedAt?.toISOString() ?? null,
+              invoiceIssueReference:
+                invoice.contractAmendment.invoiceIssueReference,
+              invoiceTaxDecision:
+                invoice.contractAmendment.invoiceTaxDecision === "TAX_APPLIED" ||
+                invoice.contractAmendment.invoiceTaxDecision === "TAX_EXEMPT"
+                  ? invoice.contractAmendment.invoiceTaxDecision
+                  : null,
+            }
+          : null,
         items: invoice.items.map((item) => ({
           id: item.id,
           description: item.description,

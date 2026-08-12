@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 import AquaDatePicker from "@/components/aqua/AquaDatePicker"
 import AquaPageHeader from "@/components/layout/AquaPageHeader"
+import { AquaAlert, AquaConfirmDialog } from "@/components/aqua"
 
 type Invoice = {
   id: string
@@ -24,6 +25,14 @@ type Invoice = {
   client: { id: string; name: string; email: string | null; phone: string | null } | null
   project: { id: string; name: string; code: string | null } | null
   createdBy: { id: string; name: string; email: string } | null
+  contractAmendment: {
+    id: string
+    amendmentNumber: string
+    financialAmount: string
+    invoiceIssuedAt: string | null
+    invoiceIssueReference: string | null
+    invoiceTaxDecision: "TAX_APPLIED" | "TAX_EXEMPT" | null
+  } | null
   items: Array<{
     id: string
     description: string
@@ -94,6 +103,11 @@ export default function InvoiceDetailClient({
   const [terms, setTerms] = useState(invoice.terms ?? "")
   const [discountAmount, setDiscountAmount] = useState(invoice.discountAmount)
   const [taxAmount, setTaxAmount] = useState(invoice.taxAmount)
+  const [issueReference, setIssueReference] = useState("")
+  const [taxDecision, setTaxDecision] = useState<"TAX_APPLIED" | "TAX_EXEMPT">(
+    Number(invoice.taxAmount) > 0 ? "TAX_APPLIED" : "TAX_EXEMPT",
+  )
+  const [issueConfirmOpen, setIssueConfirmOpen] = useState(false)
   const [items, setItems] = useState<Line[]>(
     invoice.items.map((item) => ({
       description: item.description,
@@ -153,14 +167,25 @@ export default function InvoiceDetailClient({
   async function saveDraft(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     await mutate(
-      { action: "UPDATE", dueDate: dueDate || null, notes, terms, discountAmount, taxAmount, items },
+      invoice.contractAmendment
+        ? { action: "UPDATE", dueDate: dueDate || null, notes, terms, taxAmount }
+        : { action: "UPDATE", dueDate: dueDate || null, notes, terms, discountAmount, taxAmount, items },
       "save",
     )
   }
 
   async function issueInvoice() {
-    if (!window.confirm("إصدار الفاتورة سيقفل البنود والمبالغ. متابعة؟")) return
-    await mutate({ action: "ISSUE", dueDate: dueDate || null }, "issue")
+    const saved = await mutate(
+      {
+        action: "ISSUE",
+        dueDate: dueDate || null,
+        ...(invoice.contractAmendment
+          ? { issueReference, taxDecision }
+          : {}),
+      },
+      "issue",
+    )
+    if (saved) setIssueConfirmOpen(false)
   }
 
   async function cancelInvoice() {
@@ -245,7 +270,7 @@ export default function InvoiceDetailClient({
         <div className="d-flex flex-wrap gap-2">
           <button className="btn btn-outline-light" type="button" onClick={() => window.print()}>طباعة</button>
           {canManage && invoice.status === "DRAFT" ? (
-            <button className="btn btn-info fw-bold" disabled={Boolean(busy)} type="button" onClick={issueInvoice}>
+            <button className="btn btn-info fw-bold" disabled={Boolean(busy)} type="button" onClick={() => setIssueConfirmOpen(true)}>
               {busy === "issue" ? "جارٍ الإصدار..." : "إصدار الفاتورة"}
             </button>
           ) : null}
@@ -277,6 +302,18 @@ export default function InvoiceDetailClient({
         </div>
       </div>
 
+      {invoice.contractAmendment ? (
+        <AquaAlert
+          variant={invoice.status === "DRAFT" ? "warning" : "success"}
+          title={`فاتورة مرتبطة بالملحق ${invoice.contractAmendment.amendmentNumber}`}
+        >
+          القيمة الأساسية المعتمدة {money(invoice.contractAmendment.financialAmount, invoice.currency)} ثابتة دون خصم أو تعديل بنود.
+          {invoice.contractAmendment.invoiceIssueReference
+            ? ` مرجع الإصدار: ${invoice.contractAmendment.invoiceIssueReference}.`
+            : " يجب توثيق قرار الضريبة ومرجع الإصدار قبل إصدارها."}
+        </AquaAlert>
+      ) : null}
+
       {invoice.status === "DRAFT" && canManage ? (
         <form className="aqua-card p-4" onSubmit={saveDraft}>
           <h2 className="h5 fw-black mb-3">تحرير المسودة</h2>
@@ -287,7 +324,7 @@ export default function InvoiceDetailClient({
             </div>
             <div className="col-6 col-md-4">
               <label className="form-label">الخصم</label>
-              <input className="form-control" type="number" min="0" step="0.01" dir="ltr" value={discountAmount} onChange={(e) => setDiscountAmount(e.target.value)} />
+              <input className="form-control" type="number" min="0" step="0.01" dir="ltr" value={discountAmount} disabled={Boolean(invoice.contractAmendment)} onChange={(e) => setDiscountAmount(e.target.value)} />
             </div>
             <div className="col-6 col-md-4">
               <label className="form-label">الضريبة</label>
@@ -295,28 +332,58 @@ export default function InvoiceDetailClient({
             </div>
           </div>
 
+          {invoice.contractAmendment ? (
+            <div className="row g-3 mb-3">
+              <div className="col-12 col-md-6">
+                <label className="form-label">قرار الضريبة</label>
+                <select
+                  className="form-select"
+                  value={taxDecision}
+                  onChange={(event) =>
+                    setTaxDecision(event.target.value as "TAX_APPLIED" | "TAX_EXEMPT")
+                  }
+                >
+                  <option value="TAX_EXEMPT">معفاة / لا ضريبة</option>
+                  <option value="TAX_APPLIED">تم تطبيق الضريبة</option>
+                </select>
+              </div>
+              <div className="col-12 col-md-6">
+                <label className="form-label">مرجع الإصدار</label>
+                <input
+                  className="form-control"
+                  maxLength={200}
+                  value={issueReference}
+                  onChange={(event) => setIssueReference(event.target.value)}
+                  placeholder="قرار أو مرجع المراجعة المالية"
+                />
+              </div>
+            </div>
+          ) : null}
+
           <div className="d-flex flex-column gap-2">
             {items.map((item, index) => (
               <div className="row g-2 align-items-end aqua-card-soft p-2" key={index}>
                 <div className="col-12 col-lg-6">
                   <label className="form-label small">الوصف</label>
-                  <input className="form-control" required value={item.description} onChange={(e) => updateLine(index, { description: e.target.value })} />
+                  <input className="form-control" required disabled={Boolean(invoice.contractAmendment)} value={item.description} onChange={(e) => updateLine(index, { description: e.target.value })} />
                 </div>
                 <div className="col-4 col-lg-2">
                   <label className="form-label small">الكمية</label>
-                  <input className="form-control" type="number" min="0.01" step="0.01" required dir="ltr" value={item.quantity} onChange={(e) => updateLine(index, { quantity: e.target.value })} />
+                  <input className="form-control" type="number" min="0.01" step="0.01" required disabled={Boolean(invoice.contractAmendment)} dir="ltr" value={item.quantity} onChange={(e) => updateLine(index, { quantity: e.target.value })} />
                 </div>
                 <div className="col-5 col-lg-2">
                   <label className="form-label small">سعر الوحدة</label>
-                  <input className="form-control" type="number" min="0" step="0.01" required dir="ltr" value={item.unitPrice} onChange={(e) => updateLine(index, { unitPrice: e.target.value })} />
+                  <input className="form-control" type="number" min="0" step="0.01" required disabled={Boolean(invoice.contractAmendment)} dir="ltr" value={item.unitPrice} onChange={(e) => updateLine(index, { unitPrice: e.target.value })} />
                 </div>
                 <div className="col-3 col-lg-2 d-grid">
-                  <button className="btn btn-outline-danger" type="button" disabled={items.length === 1} onClick={() => setItems((current) => current.filter((_, itemIndex) => itemIndex !== index))}>حذف</button>
+                  <button className="btn btn-outline-danger" type="button" disabled={items.length === 1 || Boolean(invoice.contractAmendment)} onClick={() => setItems((current) => current.filter((_, itemIndex) => itemIndex !== index))}>حذف</button>
                 </div>
               </div>
             ))}
           </div>
-          <button className="btn btn-sm btn-outline-info mt-2" type="button" onClick={() => setItems((current) => [...current, { description: "", quantity: "1", unitPrice: "0" }])}>إضافة بند</button>
+          {!invoice.contractAmendment ? (
+            <button className="btn btn-sm btn-outline-info mt-2" type="button" onClick={() => setItems((current) => [...current, { description: "", quantity: "1", unitPrice: "0" }])}>إضافة بند</button>
+          ) : null}
 
           <div className="row g-3 mt-2">
             <div className="col-12 col-lg-6"><label className="form-label">ملاحظات</label><textarea className="form-control" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
@@ -406,6 +473,20 @@ export default function InvoiceDetailClient({
           {invoice.terms ? <div className="col-12 col-lg-6"><div className="aqua-card p-4 h-100"><h2 className="h6 fw-black">الشروط</h2><p className="aqua-muted mb-0" style={{ whiteSpace: "pre-wrap" }}>{invoice.terms}</p></div></div> : null}
         </div>
       ) : null}
+
+      <AquaConfirmDialog
+        open={issueConfirmOpen}
+        onClose={() => setIssueConfirmOpen(false)}
+        onConfirm={issueInvoice}
+        title="إصدار الفاتورة"
+        description={
+          invoice.contractAmendment
+            ? "سيتم تثبيت قرار الضريبة ومرجع الإصدار وقفل فاتورة الملحق."
+            : "سيتم قفل بنود الفاتورة ومبالغها بعد الإصدار."
+        }
+        confirmLabel="إصدار الفاتورة"
+        loading={busy === "issue"}
+      />
     </div>
   )
 }
