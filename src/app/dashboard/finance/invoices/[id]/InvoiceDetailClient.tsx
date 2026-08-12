@@ -314,6 +314,11 @@ export default function InvoiceDetailClient({
         </div>
         <div className="d-flex flex-wrap gap-2">
           <button className="btn btn-outline-light" type="button" onClick={() => window.print()}>طباعة</button>
+          {invoice.contractAmendment && ["ISSUED", "PARTIALLY_PAID", "PAID"].includes(invoice.status) ? (
+            <Link className="btn btn-outline-info" href={`/invoice-document/${invoice.id}`} target="_blank">
+              مستند فاتورة الملحق
+            </Link>
+          ) : null}
           {canManage && invoice.status === "DRAFT" ? (
             <button className="btn btn-info fw-bold" disabled={Boolean(busy)} type="button" onClick={() => setIssueConfirmOpen(true)}>
               {busy === "issue" ? "جارٍ الإصدار..." : "إصدار الفاتورة"}

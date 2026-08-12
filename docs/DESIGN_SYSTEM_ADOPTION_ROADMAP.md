@@ -630,3 +630,12 @@ Status: **implemented**
 - Send a client-safe summary without exposing an internal dashboard link or creating an unprotected public route.
 - Preserve prepared, sent, and failed provider evidence and block duplicate successful or concurrent delivery.
 - Keep PDF attachments, a secure public invoice portal, payment reminders, online collection, WhatsApp, and n8n outside this batch.
+
+## PROJ-19 — Governed Amendment Invoice Document
+
+Status: **implemented**
+
+- Provide an authenticated, tenant-scoped, print-ready document only for a linked issued amendment invoice with complete issuance evidence.
+- Render the frozen commercial lines, amendment and issuance references, client, Project, totals, payment summary, notes, and terms through the canonical Aqua system-document pattern.
+- Keep the page outside the dashboard shell, no-index, and available for browser print or save as PDF.
+- Keep server-generated PDF attachments, a public invoice portal, online collection, payment reminders, WhatsApp, and n8n outside this batch.
