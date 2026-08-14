@@ -542,6 +542,91 @@
   }
 }
 
+/* UI-08 — My Day final operational hierarchy */
+.aqua-my-day {
+  gap: var(--at-space-3);
+}
+
+.aqua-my-day-hero {
+  min-block-size: 120px;
+  padding: var(--at-space-4) var(--at-space-5);
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-my-day-hero h1 {
+  font-size: var(--at-text-2xl);
+  font-weight: var(--at-weight-black);
+}
+
+.aqua-my-day-hero__copy > p {
+  font-size: var(--at-text-sm);
+  line-height: var(--at-leading-body);
+}
+
+.aqua-my-day-hero__context {
+  border-radius: var(--at-radius-md);
+  box-shadow: var(--at-shadow-xs);
+  backdrop-filter: blur(12px);
+}
+
+.aqua-my-day-metric {
+  min-block-size: 88px;
+  padding: var(--at-space-3);
+  border-radius: var(--at-radius-lg);
+}
+
+.aqua-my-day-metric > div > span,
+.aqua-my-day-metric > div > small {
+  font-size: var(--at-text-xs);
+}
+
+.aqua-my-day-metric > div > strong {
+  font-size: var(--at-text-display);
+  font-weight: var(--at-weight-black);
+}
+
+.aqua-my-day-workspace {
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.25fr);
+  gap: var(--at-space-3);
+}
+
+.aqua-my-day-task-grid {
+  gap: var(--at-space-2);
+}
+
+.aqua-my-day-task {
+  gap: var(--at-space-2);
+  padding: var(--at-space-4);
+  border-radius: var(--at-radius-md);
+}
+
+.aqua-my-day-task__heading h3 {
+  font-size: var(--at-text-md);
+  font-weight: var(--at-weight-black);
+}
+
+.aqua-my-day-task__heading p,
+.aqua-my-day-task__meta,
+.aqua-my-day-task__blockers span,
+.aqua-my-day-task__footer > span {
+  font-size: var(--at-text-xs);
+}
+
+.aqua-my-day-task__blockers {
+  padding: var(--at-space-2) var(--at-space-3);
+}
+
+.aqua-my-day-progress {
+  block-size: 5px;
+}
+
+@media (max-width: 1199.98px) {
+  .aqua-my-day-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 479.98px) {
   .aqua-my-day-metrics {
     grid-template-columns: 1fr;
@@ -983,5 +1068,60 @@
 
   .aqua-my-day-hero h1 {
     font-size: clamp(1.3rem, 7vw, 1.65rem);
+  }
+}
+
+/* UI-08 final cascade after the historical AD-02 layers */
+.aqua-my-day {
+  gap: var(--at-space-3);
+}
+
+.aqua-my-day-hero {
+  min-block-size: 120px;
+  padding: var(--at-space-4) var(--at-space-5);
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-my-day-hero h1 {
+  font-size: var(--at-text-2xl);
+  font-weight: var(--at-weight-black);
+}
+
+.aqua-my-day-hero__copy > p {
+  font-size: var(--at-text-sm);
+  line-height: var(--at-leading-body);
+}
+
+.aqua-my-day-hero__context {
+  border-radius: var(--at-radius-md);
+  box-shadow: var(--at-shadow-xs);
+  backdrop-filter: blur(12px);
+}
+
+.aqua-my-day-metric {
+  min-block-size: 88px;
+  padding: var(--at-space-3);
+  border-radius: var(--at-radius-lg);
+}
+
+.aqua-my-day-metric > div > span,
+.aqua-my-day-metric > div > small {
+  font-size: var(--at-text-xs);
+}
+
+.aqua-my-day-metric > div > strong {
+  font-size: var(--at-text-display);
+  font-weight: var(--at-weight-black);
+}
+
+.aqua-my-day-workspace {
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.25fr);
+  gap: var(--at-space-3);
+}
+
+@media (max-width: 1199.98px) {
+  .aqua-my-day-workspace {
+    grid-template-columns: 1fr;
   }
 }

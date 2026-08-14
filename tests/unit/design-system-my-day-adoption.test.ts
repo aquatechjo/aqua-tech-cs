@@ -57,6 +57,22 @@ test("My Day adoption CSS covers operational hierarchy and accessibility", () =>
   assert.match(layout, /@\/styles\/aqua-my-day\.css/u)
 })
 
+test("UI-08 gives My Day one final operational hierarchy", () => {
+  for (const token of [
+    "UI-08 — My Day final operational hierarchy",
+    "min-block-size: 120px",
+    "min-block-size: 88px",
+    "font-size: var(--at-text-display)",
+    "block-size: 5px",
+    "grid-template-columns: minmax(0, 1fr) minmax(240px, 0.25fr)",
+  ]) {
+    assert.match(
+      css,
+      new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "u")
+    )
+  }
+})
+
 test("AD-02 is included in quality gates and the adoption roadmap", () => {
   assert.match(
     packageJson.scripts["test:unit"],

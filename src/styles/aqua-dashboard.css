@@ -457,3 +457,99 @@
     transform: none;
   }
 }
+
+/* UI-08 — Dashboard final operational hierarchy */
+.aqua-dashboard-overview {
+  gap: var(--at-space-3);
+}
+
+.aqua-dashboard-summary {
+  min-block-size: 120px;
+  padding: var(--at-space-5);
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-dashboard-summary__eyebrow,
+.aqua-dashboard-summary__date,
+.aqua-dashboard-metric__copy > span {
+  font-size: var(--at-text-xs);
+  font-weight: var(--at-weight-bold);
+}
+
+.aqua-dashboard-summary h1 {
+  font-size: var(--at-text-2xl);
+  font-weight: var(--at-weight-black);
+}
+
+.aqua-dashboard-summary__copy > p {
+  font-size: var(--at-text-sm);
+  line-height: var(--at-leading-body);
+}
+
+.aqua-dashboard-metric {
+  min-block-size: 92px;
+  padding: var(--at-space-3);
+  border-radius: var(--at-radius-lg);
+}
+
+.aqua-dashboard-metric__icon {
+  inline-size: 36px;
+  block-size: 36px;
+  border-radius: var(--at-radius-sm);
+}
+
+.aqua-dashboard-metric__copy > strong {
+  font-size: var(--at-text-display);
+  font-weight: var(--at-weight-black);
+}
+
+.aqua-dashboard-metric__copy > small {
+  font-size: var(--at-text-xs);
+}
+
+.aqua-dashboard-metric > .aqua-button {
+  inline-size: 34px;
+  min-inline-size: 34px;
+  min-block-size: 34px;
+  padding: 0;
+}
+
+.aqua-dashboard-metric > .aqua-button .aqua-button__label {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.aqua-dashboard-workspace {
+  grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.5fr);
+  gap: var(--at-space-3);
+}
+
+.aqua-dashboard-focus-item,
+.aqua-dashboard-activity-item {
+  padding: var(--at-space-2) var(--at-space-3);
+  border-radius: var(--at-radius-md);
+}
+
+.aqua-dashboard-focus-item__copy strong,
+.aqua-dashboard-activity-item__copy strong {
+  font-size: var(--at-text-sm);
+  font-weight: var(--at-weight-bold);
+}
+
+.aqua-dashboard-focus-item__copy span,
+.aqua-dashboard-activity-item__copy span,
+.aqua-dashboard-activity-item__time,
+.aqua-dashboard-attention-item__copy > span {
+  font-size: var(--at-text-xs);
+}
+
+@media (max-width: 1199.98px) {
+  .aqua-dashboard-workspace {
+    grid-template-columns: 1fr;
+  }
+}

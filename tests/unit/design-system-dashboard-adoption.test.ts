@@ -90,6 +90,22 @@ test("dashboard adoption CSS covers responsive, logical, and reduced-motion stat
   assert.match(rootLayout, /@\/styles\/aqua-dashboard\.css/u)
 })
 
+test("UI-08 gives the dashboard one final operational hierarchy", () => {
+  for (const token of [
+    "UI-08 — Dashboard final operational hierarchy",
+    "min-block-size: 120px",
+    "min-block-size: 92px",
+    "font-size: var(--at-text-display)",
+    ".aqua-dashboard-metric > .aqua-button .aqua-button__label",
+    "grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.5fr)",
+  ]) {
+    assert.match(
+      dashboardCss,
+      new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "u")
+    )
+  }
+})
+
 test("AD-01 is included in quality gates and the adoption roadmap", () => {
   assert.match(
     packageJson.scripts["test:unit"],

@@ -597,6 +597,16 @@ Status: **implemented**
 - Align legacy Bootstrap tables through one dashboard-scoped compatibility layer.
 - Preserve captions, URLs, mobile stack/scroll strategies, RTL/LTR, keyboard focus, and reduced motion.
 
+## UI-08 — Dashboard and My Day Final Polish
+
+Status: **implemented**
+
+- Apply the completed shared foundation directly to the employee Dashboard and My Day reference pages.
+- Tighten summary, metric, priority, attention, activity, task, blocker, and progress hierarchy.
+- Reduce repeated metric action labels to accessible icon actions.
+- Keep role-aware data, task classification, dates, links, permissions, RTL/LTR, and reduced motion unchanged.
+- Keep this product-specific polish outside the shared Design System release contract.
+
 ## Release gate for every stage
 
 - Lint
