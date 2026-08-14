@@ -10,6 +10,27 @@ const dashboardCss = readFileSync(
   "src/styles/aqua-dashboard.css",
   "utf8"
 )
+const crmSalesCss = readFileSync("src/styles/aqua-crm-sales.css", "utf8")
+const clientsPage = readFileSync(
+  "src/app/dashboard/clients/ClientsClient.tsx",
+  "utf8"
+)
+const contactsPage = readFileSync(
+  "src/app/dashboard/clients/[id]/ClientContactsClient.tsx",
+  "utf8"
+)
+const leadsPage = readFileSync(
+  "src/app/dashboard/leads/LeadsClient.tsx",
+  "utf8"
+)
+const salesPage = readFileSync(
+  "src/app/dashboard/sales/SalesPipelineClient.tsx",
+  "utf8"
+)
+const opportunityPage = readFileSync(
+  "src/app/dashboard/sales/opportunities/[id]/OpportunityDetailClient.tsx",
+  "utf8"
+)
 const rootLayout = readFileSync("src/app/layout.tsx", "utf8")
 const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
   scripts: Record<string, string>
@@ -101,6 +122,35 @@ test("UI-08 gives the dashboard one final operational hierarchy", () => {
   ]) {
     assert.match(
       dashboardCss,
+      new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "u")
+    )
+  }
+})
+
+test("UI-09 applies one CRM and Sales workspace contract", () => {
+  assert.match(rootLayout, /@\/styles\/aqua-crm-sales\.css/u)
+  assert.match(clientsPage, /aqua-crm-page/u)
+  assert.match(contactsPage, /aqua-crm-detail-page/u)
+  assert.match(leadsPage, /aqua-crm-metrics/u)
+  assert.match(salesPage, /aqua-sales-page/u)
+  assert.match(salesPage, /aqua-sales-stage/u)
+  assert.match(salesPage, /aqua-sales-opportunity-card/u)
+  assert.match(opportunityPage, /aqua-opportunity-page/u)
+  assert.match(opportunityPage, /aqua-opportunity-metrics/u)
+
+  for (const token of [
+    ".aqua-crm-actions",
+    ".aqua-crm-metric",
+    ".aqua-sales-stage",
+    ".aqua-sales-opportunity-card",
+    ".aqua-opportunity-page",
+    "inset-inline-end",
+    "min-inline-size",
+    "@media (max-width: 767.98px)",
+    "@media (prefers-reduced-motion: reduce)",
+  ]) {
+    assert.match(
+      crmSalesCss,
       new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "u")
     )
   }

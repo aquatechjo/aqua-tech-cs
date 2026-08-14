@@ -1,0 +1,156 @@
+/* Aqua Tech CS — UI-09 CRM and Sales workspace polish */
+
+.aqua-crm-page,
+.aqua-crm-detail-page,
+.aqua-sales-page,
+.aqua-opportunity-page {
+  display: grid;
+  gap: var(--at-space-3);
+  min-inline-size: 0;
+}
+
+.aqua-crm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--at-space-2);
+}
+
+.aqua-crm-metrics,
+.aqua-sales-metrics,
+.aqua-opportunity-metrics {
+  margin-block-end: 0;
+}
+
+.aqua-crm-metric,
+.aqua-sales-metric,
+.aqua-opportunity-metric {
+  position: relative;
+  min-block-size: 88px;
+  padding: var(--at-space-3) !important;
+  overflow: hidden;
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-crm-metric::after,
+.aqua-sales-metric::after,
+.aqua-opportunity-metric::after {
+  position: absolute;
+  inset-block: var(--at-space-3);
+  inset-inline-end: 0;
+  inline-size: 3px;
+  border-radius: var(--at-radius-pill);
+  background: var(--at-product-accent);
+  content: "";
+  opacity: 0.78;
+}
+
+.aqua-crm-metric .h4,
+.aqua-sales-metric .h3,
+.aqua-opportunity-metric .h5 {
+  margin-block: var(--at-space-1) 0 !important;
+  color: var(--at-product-text);
+  font-family: var(--at-font-mono);
+  font-size: var(--at-text-xl);
+  font-weight: var(--at-weight-black);
+  line-height: var(--at-leading-tight);
+}
+
+.aqua-crm-page .aqua-data-panel,
+.aqua-crm-detail-page .aqua-data-panel {
+  min-inline-size: 0;
+}
+
+.aqua-crm-page .aqua-table__actions,
+.aqua-crm-detail-page .aqua-table__actions {
+  gap: var(--at-space-1);
+}
+
+.aqua-sales-filter,
+.aqua-sales-closed,
+.aqua-opportunity-page > .row .aqua-card {
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-sales-filter,
+.aqua-sales-closed {
+  padding: var(--at-space-4) !important;
+}
+
+.aqua-sales-board {
+  --bs-gutter-x: var(--at-space-3);
+  --bs-gutter-y: var(--at-space-3);
+}
+
+.aqua-sales-stage {
+  padding: var(--at-space-3) !important;
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-sales-stage > .d-flex:first-child {
+  margin-block-end: var(--at-space-2) !important;
+}
+
+.aqua-sales-stage h2 {
+  color: var(--at-product-text);
+  font-size: var(--at-text-md);
+  font-weight: var(--at-weight-black);
+}
+
+.aqua-sales-opportunity-card {
+  display: grid;
+  gap: var(--at-space-2);
+  border-radius: var(--at-radius-md);
+  transition:
+    border-color var(--at-motion-fast) var(--at-ease-standard),
+    background-color var(--at-motion-fast) var(--at-ease-standard),
+    transform var(--at-motion-fast) var(--at-ease-standard);
+}
+
+.aqua-sales-opportunity-card:hover {
+  border-color: rgba(var(--at-product-accent-rgb), 0.24);
+  background: rgba(var(--at-product-accent-rgb), 0.04);
+  transform: translateY(-1px);
+}
+
+.aqua-opportunity-page > .row {
+  --bs-gutter-x: var(--at-space-3);
+  --bs-gutter-y: var(--at-space-3);
+}
+
+.aqua-opportunity-page > .row .aqua-card {
+  padding: var(--at-space-4) !important;
+}
+
+.aqua-opportunity-page > .row .aqua-card-soft {
+  border-radius: var(--at-radius-md);
+}
+
+.aqua-opportunity-page h2.h5 {
+  font-size: var(--at-text-lg);
+  font-weight: var(--at-weight-black);
+}
+
+@media (max-width: 767.98px) {
+  .aqua-crm-actions,
+  .aqua-crm-actions > * {
+    inline-size: 100%;
+  }
+
+  .aqua-sales-opportunity-card:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aqua-sales-opportunity-card {
+    transition: none;
+  }
+
+  .aqua-sales-opportunity-card:hover {
+    transform: none;
+  }
+}

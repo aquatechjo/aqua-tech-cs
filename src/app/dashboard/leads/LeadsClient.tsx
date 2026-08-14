@@ -544,7 +544,7 @@ export default function LeadsClient({
         brandValue="CRM"
       />
 
-      <div className="d-flex flex-wrap gap-2 mb-3">
+      <div className="aqua-crm-actions">
         {canManage ? (
           <AquaButton
             leadingIcon={<UserRoundPlus />}
@@ -574,10 +574,14 @@ export default function LeadsClient({
         </AquaAlert>
       ) : null}
 
-      <div className="row g-3 mb-3">
+      <div className="row g-3 aqua-crm-metrics">
         {summaryCards.map((card) => (
           <div className="col-12 col-sm-6 col-xl" key={card.label}>
-            <AquaCard variant="soft" padding="sm" className="h-100">
+            <AquaCard
+              variant="soft"
+              padding="sm"
+              className="h-100 aqua-crm-metric"
+            >
               <div className="d-flex align-items-start justify-content-between gap-3">
                 <div>
                   <div className="small aqua-muted">{card.label}</div>

@@ -472,7 +472,7 @@ export default function OpportunityDetailClient({
   }
 
   return (
-    <div className="d-flex flex-column gap-4">
+    <div className="aqua-opportunity-page">
       <AquaPageHeader
         badge={`Opportunity • ${stageLabels[stage]}`}
         title={opportunity.title}
@@ -480,7 +480,7 @@ export default function OpportunityDetailClient({
         brandValue="CRM"
       />
 
-      <div className="d-flex flex-wrap gap-2">
+      <div className="aqua-crm-actions">
         <Link className="btn btn-outline-info" href="/dashboard/sales">العودة لخط المبيعات</Link>
         {opportunity.project ? <Link className="btn btn-outline-info" href={`/dashboard/projects/${opportunity.project.id}`}>فتح المشروع</Link> : null}
         {canManage && stage !== "WON" && stage !== "LOST" ? (
@@ -493,7 +493,7 @@ export default function OpportunityDetailClient({
       {error ? <div className="alert alert-danger border-0 rounded-4 mb-0">{error}</div> : null}
       {success ? <div className="alert alert-success border-0 rounded-4 mb-0">{success}</div> : null}
 
-      <div className="row g-3">
+      <div className="row g-3 aqua-opportunity-metrics">
         {[
           ["القيمة المتوقعة", money(estimatedValue, company.currency)],
           ["احتمال الفوز", `${probability}%`],
@@ -501,7 +501,7 @@ export default function OpportunityDetailClient({
           ["آخر تواصل", dateTime(opportunity.lastContactAt)],
         ].map(([label, value]) => (
           <div className="col-12 col-md-6 col-xl-3" key={label}>
-            <div className="aqua-card p-4 h-100">
+            <div className="aqua-card p-4 h-100 aqua-opportunity-metric">
               <div className="small aqua-muted">{label}</div>
               <div className="h5 fw-black mt-3 mb-0" dir="ltr">{value}</div>
             </div>

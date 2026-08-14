@@ -607,6 +607,16 @@ Status: **implemented**
 - Keep role-aware data, task classification, dates, links, permissions, RTL/LTR, and reduced motion unchanged.
 - Keep this product-specific polish outside the shared Design System release contract.
 
+## UI-09 — CRM and Sales Workspace Polish
+
+Status: **implemented**
+
+- Apply one product-specific workspace rhythm to Clients, client contacts, Leads, Sales Pipeline, and opportunity details.
+- Tighten CRM and sales metrics, action rows, forms, pipeline stages, opportunity cards, and closed-opportunity tables.
+- Keep canonical CRM pages and legacy Bootstrap sales pages visually aligned without rewriting workflow logic.
+- Preserve lead qualification, ownership, follow-up, conversion, permissions, RTL/LTR, and reduced motion.
+- Keep this product-specific polish outside the shared Design System release contract.
+
 ## Release gate for every stage
 
 - Lint

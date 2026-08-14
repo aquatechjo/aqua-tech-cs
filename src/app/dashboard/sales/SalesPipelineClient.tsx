@@ -359,7 +359,7 @@ export default function SalesPipelineClient({
   ]
 
   return (
-    <div className="d-flex flex-column gap-4">
+    <div className="aqua-sales-page">
       <AquaPageHeader
         badge="Sales CRM"
         title="خط المبيعات والفرص"
@@ -369,7 +369,7 @@ export default function SalesPipelineClient({
 
       {error ? <div className="alert alert-danger border-0 rounded-4 mb-0">{error}</div> : null}
 
-      <div className="d-flex flex-wrap gap-2">
+      <div className="aqua-crm-actions">
         {canManage ? (
           <button className="btn btn-info fw-bold" type="button" onClick={() => setShowForm((value) => !value)}>
             {showForm ? "إغلاق نموذج الفرصة" : "إضافة فرصة يدوية"}
@@ -380,10 +380,10 @@ export default function SalesPipelineClient({
         </Link>
       </div>
 
-      <div className="row g-3">
+      <div className="row g-3 aqua-sales-metrics">
         {cards.map((card) => (
           <div className="col-12 col-md-6 col-xl-4" key={card.label}>
-            <div className="aqua-card p-4 h-100">
+            <div className="aqua-card p-4 h-100 aqua-sales-metric">
               <div className="small aqua-muted">{card.label}</div>
               <div className="h3 fw-black aqua-text-gradient mt-3 mb-0" dir="ltr">
                 {card.value}
@@ -514,7 +514,7 @@ export default function SalesPipelineClient({
         </form>
       ) : null}
 
-      <div className="aqua-card p-4">
+      <div className="aqua-card p-4 aqua-sales-filter">
         <div className="row g-3 align-items-end">
           <div className="col-12 col-lg-8">
             <label className="form-label">بحث داخل الفرص</label>
@@ -530,14 +530,14 @@ export default function SalesPipelineClient({
         </div>
       </div>
 
-      <div className="row g-3 align-items-stretch">
+      <div className="row g-3 align-items-stretch aqua-sales-board">
         {openStages.map((stage) => {
           const stageItems = filtered.filter((opportunity) => opportunity.stage === stage)
           const stageTotal = stageItems.reduce((sum, item) => sum + Number(item.estimatedValue), 0)
 
           return (
             <div className="col-12 col-lg-6 col-xxl-4" key={stage}>
-              <div className="aqua-card p-3 h-100">
+              <div className="aqua-card p-3 h-100 aqua-sales-stage">
                 <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
                   <div>
                     <h2 className="h6 fw-black mb-1">{stageLabels[stage]}</h2>
@@ -555,7 +555,10 @@ export default function SalesPipelineClient({
                   {stageItems.length === 0 ? (
                     <div className="aqua-card-soft p-4 text-center aqua-muted">لا توجد فرص</div>
                   ) : stageItems.map((opportunity) => (
-                    <div className="aqua-card-soft p-3" key={opportunity.id}>
+                    <div
+                      className="aqua-card-soft p-3 aqua-sales-opportunity-card"
+                      key={opportunity.id}
+                    >
                       <div className="d-flex align-items-start justify-content-between gap-2">
                         <div>
                           <Link className="fw-bold text-info text-decoration-none" href={`/dashboard/sales/opportunities/${opportunity.id}`}>
@@ -601,7 +604,7 @@ export default function SalesPipelineClient({
         })}
       </div>
 
-      <div className="aqua-card p-4">
+      <div className="aqua-card p-4 aqua-sales-closed">
         <h2 className="h5 fw-black mb-1">الفرص المغلقة</h2>
         <div className="small aqua-muted mb-4">الفوز مرتبط بعميل ومشروع، والخسارة تحفظ سبب الإغلاق.</div>
 

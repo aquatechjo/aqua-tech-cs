@@ -279,7 +279,7 @@ export default function ClientContactsClient({
   })
 
   return (
-    <div className="d-flex flex-column gap-3">
+    <div className="aqua-crm-detail-page">
       <AquaPageHeader
         badge="Client account"
         title={client.name}
@@ -287,7 +287,7 @@ export default function ClientContactsClient({
         brandValue="CRM"
       />
 
-      <div className="d-flex flex-wrap gap-2">
+      <div className="aqua-crm-actions">
         <AquaLinkButton href="/dashboard/clients" variant="ghost">
           رجوع إلى العملاء
         </AquaLinkButton>
