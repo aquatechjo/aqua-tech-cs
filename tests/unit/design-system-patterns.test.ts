@@ -137,6 +137,32 @@ test("UI-06 keeps modal hierarchy compact and confirmations non-dismissible whil
   assert.match(confirmDialog, /dismissible=\{!loading\}/u)
 })
 
+test("UI-07 keeps tables, tabs, and pagination compact", () => {
+  const bootstrapCss = readFileSync("src/styles/aqua-bootstrap.css", "utf8")
+
+  for (const token of [
+    ".aqua-tabs__item",
+    "min-block-size: 38px",
+    ".aqua-tabs__count",
+    "block-size: 1.25rem",
+    ".aqua-pagination .page-link",
+    "min-inline-size: 36px",
+    ".aqua-table__actions",
+    "white-space: nowrap",
+  ]) {
+    assert.match(patternsCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
+  }
+
+  for (const token of [
+    "UI-07 operational compatibility",
+    ".table:not(.aqua-table)",
+    ".table-responsive",
+    "scrollbar-width: thin",
+  ]) {
+    assert.match(bootstrapCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
+  }
+})
+
 test("canonical table requires an explicit mobile strategy contract", () => {
   assert.match(table, /data-aqua-mobile-strategy/u)
   assert.match(table, /data-aqua-density/u)

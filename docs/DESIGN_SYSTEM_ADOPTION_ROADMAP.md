@@ -587,6 +587,16 @@ Status: **implemented**
 - Preserve focus trapping, active-element restoration, scroll lock, accessibility roles, RTL/LTR, and reduced motion.
 - Keep the remaining browser-native confirmations visible in the adoption backlog for page-level migration.
 
+## UI-07 — Tables, Tabs, and Pagination Polish
+
+Status: **implemented**
+
+- Tighten canonical table rows, sticky headers, action cells, state rows, and scrollbars.
+- Standardize line and pill tab height, padding, focus, active state, and count indicators.
+- Standardize pagination controls and result summaries on the compact operational scale.
+- Align legacy Bootstrap tables through one dashboard-scoped compatibility layer.
+- Preserve captions, URLs, mobile stack/scroll strategies, RTL/LTR, keyboard focus, and reduced motion.
+
 ## Release gate for every stage
 
 - Lint

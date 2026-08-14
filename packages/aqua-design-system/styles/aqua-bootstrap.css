@@ -1195,6 +1195,45 @@ p {
   line-height: var(--at-leading-body);
 }
 
+/* UI-07 operational compatibility for legacy Bootstrap tables */
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .table:not(.aqua-table) {
+  margin-block-end: 0;
+  border-color: var(--at-product-border);
+  color: var(--at-product-text);
+  font-size: var(--at-text-sm);
+  vertical-align: middle;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .table:not(.aqua-table) > :not(caption) > * > * {
+  padding: var(--at-space-3) var(--at-space-4);
+  border-block-end-color: var(--at-product-border);
+  background: transparent;
+  color: inherit;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .table:not(.aqua-table) thead th {
+  background: color-mix(in srgb, var(--at-product-surface) 94%, transparent);
+  color: var(--at-product-muted);
+  font-size: var(--at-text-xs);
+  font-weight: var(--at-weight-black);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .table:not(.aqua-table) tbody tr {
+  transition: background-color var(--at-motion-fast) var(--at-ease-standard);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .table:not(.aqua-table) tbody tr:hover {
+  background: rgba(var(--at-product-accent-rgb), 0.045);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .table-responsive {
+  border-radius: var(--at-radius-md);
+  scrollbar-color: rgba(var(--at-product-accent-rgb), 0.34) transparent;
+  scrollbar-width: thin;
+}
+
 /* Aqua.Tech Design DNA foundation */
 :where(
     a,

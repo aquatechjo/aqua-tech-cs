@@ -3,9 +3,20 @@
 ## Package
 
 - Name: `@aqua-tech/design-system`
-- Current internal version: `0.13.0`
+- Current internal version: `0.14.0`
 - Canonical source: Aqua Tech CS
 - Generated package: `packages/aqua-design-system`
+
+## 0.14.0 — internal
+
+Release level: **minor**
+
+- Tightened canonical table scrollbars, sticky headers, row feedback, action cells, and state-row spacing.
+- Tightened line and pill tabs, count indicators, pagination links, and result summaries.
+- Added dashboard-scoped compatibility for legacy Bootstrap tables and responsive table wrappers.
+- Consumer migration: none required; table mobile strategies, tab contracts, and pagination URLs remain unchanged.
+- Visual review surfaces: CRM tables, finance tables, workflow tabs, pagination, RTL, keyboard focus, and mobile table strategies.
+- Quality gate: package sync, lint, typecheck, unit tests, visual contract, and production build.
 
 ## 0.13.0 — internal
 
