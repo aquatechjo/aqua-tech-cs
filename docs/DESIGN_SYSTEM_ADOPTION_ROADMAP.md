@@ -536,6 +536,17 @@ Status: **implemented**
 - Keep the desktop-first compact operational character without reducing essential text below the approved readable scale.
 - Preserve Bootstrap behavior, RTL/LTR logic, responsive layout, reduced motion, and all PROJ-20 business behavior.
 
+## UI-02 — Sidebar and Top Bar Polish
+
+Status: **implemented**
+
+- Replace accumulated operational-shell overrides with one governed Aqua Tech CS shell layer.
+- Keep a stable 256px desktop Sidebar and align the Top Bar and content gutter to the same layout contract.
+- Add one Lucide icon for every navigation destination and give active, hover, focus, and disabled states a consistent visual hierarchy.
+- Remove the non-operational technology-stack footer and keep the Sidebar focused on product identity and navigation.
+- Replace the generated account initial with a consistent outlined account icon and keep role and email presentation compact and readable.
+- Preserve navigation permissions, nested-route activation, responsive drawer behavior, RTL/LTR mirroring, reduced motion, and every business workflow.
+
 ## Release gate for every stage
 
 - Lint

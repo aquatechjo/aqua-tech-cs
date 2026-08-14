@@ -1,7 +1,7 @@
 "use client"
 
 import type { RefObject } from "react"
-import { Languages, Menu } from "lucide-react"
+import { Languages, Menu, UserRound } from "lucide-react"
 
 import { AquaButton, AquaLinkButton } from "@/components/aqua"
 import LogoutButton from "@/components/auth/LogoutButton"
@@ -34,7 +34,6 @@ export default function AquaTopbar({
       MANAGER: "مدير",
       EMPLOYEE: "موظف",
     } as Record<string, string>)[userRole] ?? userRole
-  const identityInitial = roleLabel.trim().charAt(0) || "م"
   const nextLanguageLabel = language.toLowerCase().startsWith("en")
     ? "AR"
     : "EN"
@@ -86,7 +85,7 @@ export default function AquaTopbar({
             title={`الحساب: ${userEmail}`}
           >
             <span className="aqua-topbar__avatar" aria-hidden="true">
-              {identityInitial}
+              <UserRound />
             </span>
             <span className="aqua-topbar__identity-copy">
               <span className="aqua-topbar__account-label">{roleLabel}</span>

@@ -51,16 +51,6 @@ export default function AquaSidebar({
         <AquaSidebarNav sections={sections} onNavigate={onNavigate} />
       </div>
 
-      <div className="aqua-sidebar__footer" dir="ltr">
-        <span className="aqua-sidebar__stack-label">Aqua.Tech Stack</span>
-        <div className="aqua-sidebar__stack-items" aria-label="تقنيات النظام">
-          {["Next.js", "AI", "API", "DB"].map((item) => (
-            <span className="aqua-sidebar__stack-item" key={item}>
-              {item}
-            </span>
-          ))}
-        </div>
-      </div>
     </aside>
   )
 }

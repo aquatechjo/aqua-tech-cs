@@ -9,6 +9,10 @@ const topbar = readFileSync("src/components/layout/AquaTopbar.tsx", "utf8")
 const pageTitle = readFileSync("src/components/layout/AquaPageTitle.tsx", "utf8")
 const dashboardLayout = readFileSync("src/app/dashboard/layout.tsx", "utf8")
 const sidebar = readFileSync("src/components/layout/AquaSidebar.tsx", "utf8")
+const sidebarNav = readFileSync(
+  "src/components/layout/AquaSidebarNav.tsx",
+  "utf8"
+)
 const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
   scripts: Record<string, string>
 }
@@ -41,17 +45,21 @@ test("AD-02.2 reduces hero, metric, empty-state, and focus density", () => {
 test("AD-02.2 balances the account chip and compacts the navigation shell", () => {
   assert.match(topbar, /roleLabel/u)
   assert.match(topbar, /aqua-topbar__account-label/u)
+  assert.match(topbar, /UserRound/u)
   assert.ok(topbar.includes("title={`الحساب: ${userEmail}`}"))
   assert.match(sidebar, /showTagline=\{false\}/u)
+  assert.doesNotMatch(sidebar, /Aqua\.Tech Stack/u)
+  assert.match(sidebarNav, /navigationIcons/u)
+  assert.match(sidebarNav, /aqua-nav-link__icon/u)
   assert.doesNotMatch(sidebar, /Internal OS/u)
   assert.doesNotMatch(sidebar, /بيئة التشغيل الداخلية/u)
 
   for (const token of [
     "--aqua-shell-sidebar-width: 256px",
-    "min-block-size: 64px",
-    "min-block-size: 36px",
+    "min-block-size: 60px",
+    "min-block-size: 40px",
     ".aqua-topbar__account-label",
-    "min-height: 980px",
+    ".aqua-nav-link__icon",
   ]) {
     assert.match(shellCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "u"))
   }
