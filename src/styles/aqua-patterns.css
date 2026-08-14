@@ -510,8 +510,8 @@ html[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
   position: fixed;
   inset-block: 0;
   inset-inline: 0;
-  background: rgba(2, 6, 23, 0.76);
-  backdrop-filter: blur(8px);
+  background: rgba(2, 6, 23, 0.7);
+  backdrop-filter: blur(6px);
   pointer-events: none;
   animation: aqua-modal-backdrop-in var(--at-motion-fast) var(--at-ease-entrance);
 }
@@ -521,27 +521,27 @@ html[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
   z-index: 1;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  inline-size: min(100%, 640px);
+  inline-size: min(100%, 600px);
   max-block-size: min(90vh, 900px);
   overflow: hidden;
   border: 1px solid rgba(var(--at-product-accent-rgb), 0.2);
-  border-radius: var(--at-radius-xl);
+  border-radius: var(--at-radius-lg);
   background: color-mix(in srgb, var(--at-product-surface) 96%, transparent);
   color: var(--at-product-text);
-  box-shadow: var(--at-shadow-lg);
+  box-shadow: var(--at-shadow-md);
   animation: aqua-modal-in var(--at-motion-normal) var(--at-ease-entrance);
 }
 
 .aqua-modal--sm {
-  inline-size: min(100%, 480px);
+  inline-size: min(100%, 440px);
 }
 
 .aqua-modal--lg {
-  inline-size: min(100%, 820px);
+  inline-size: min(100%, 760px);
 }
 
 .aqua-modal--xl {
-  inline-size: min(100%, 1080px);
+  inline-size: min(100%, 1000px);
 }
 
 .aqua-modal:focus {
@@ -553,7 +553,7 @@ html[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--at-space-4);
-  padding: var(--at-space-6);
+  padding: var(--at-space-4) var(--at-space-5);
   border-block-end: 1px solid var(--at-product-border);
 }
 
@@ -566,20 +566,21 @@ html[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
 .aqua-modal__title {
   margin: 0;
   color: var(--at-product-text);
-  font-size: 1.12rem;
-  font-weight: 900;
+  font-size: var(--at-text-lg);
+  font-weight: var(--at-weight-black);
 }
 
 .aqua-modal__description {
   margin: 0;
   color: var(--at-product-muted);
-  font-size: 0.82rem;
-  line-height: 1.65;
+  font-size: var(--at-text-sm);
+  line-height: var(--at-leading-body);
 }
 
 .aqua-modal__close {
-  inline-size: 44px;
-  min-inline-size: 44px;
+  inline-size: 36px;
+  min-inline-size: 36px;
+  min-block-size: 36px;
   padding-inline: 0;
 }
 
@@ -595,12 +596,12 @@ html[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
 .aqua-modal__body {
   min-block-size: 0;
   overflow-y: auto;
-  padding: var(--at-space-6);
+  padding: var(--at-space-5);
   overscroll-behavior: contain;
 }
 
 .aqua-modal__footer {
-  padding: var(--at-space-4) var(--at-space-6);
+  padding: var(--at-space-3) var(--at-space-5);
   border-block-start: 1px solid var(--at-product-border);
   background: rgba(255, 255, 255, 0.018);
 }

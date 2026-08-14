@@ -1,6 +1,6 @@
 {
   "name": "@aqua-tech/design-system",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "Aqua.Tech Design DNA components, contracts, product themes, and Bootstrap CSS layers.",
   "private": true,
   "type": "module",

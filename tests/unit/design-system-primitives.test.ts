@@ -171,3 +171,20 @@ test("UI-05 keeps cards, badges, skeletons, and empty states compact", () => {
     assert.match(bootstrapCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
   }
 })
+
+test("UI-06 keeps alerts and toast feedback compact", () => {
+  const css = readFileSync(
+    join(process.cwd(), "src", "styles", "aqua-primitives.css"),
+    "utf8"
+  )
+
+  for (const token of [
+    ".aqua-alert",
+    "padding: var(--at-space-3)",
+    ".aqua-toast-viewport",
+    "box-shadow: var(--at-shadow-md)",
+    "font-size: var(--at-text-sm)",
+  ]) {
+    assert.match(css, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
+  }
+})

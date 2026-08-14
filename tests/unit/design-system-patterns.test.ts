@@ -100,6 +100,8 @@ test("canonical modal manages focus, Escape, scroll lock, and restoration", () =
     'document.body.style.overflow = "hidden"',
     "previousActiveElement?.focus()",
     "createPortal",
+    "dismissible",
+    "disabled={!dismissible}",
   ]) {
     assert.match(
       modal,
@@ -115,6 +117,24 @@ test("canonical modal manages focus, Escape, scroll lock, and restoration", () =
     patternsCss,
     /\.aqua-modal__body\s*\{[\s\S]*overflow-y:\s*auto;/u
   )
+})
+
+test("UI-06 keeps modal hierarchy compact and confirmations non-dismissible while loading", () => {
+  const confirmDialog = readFileSync(
+    "src/components/aqua/AquaConfirmDialog.tsx",
+    "utf8"
+  )
+
+  for (const token of [
+    "inline-size: min(100%, 600px)",
+    "border-radius: var(--at-radius-lg)",
+    "padding: var(--at-space-4) var(--at-space-5)",
+    "inline-size: 36px",
+  ]) {
+    assert.match(patternsCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
+  }
+
+  assert.match(confirmDialog, /dismissible=\{!loading\}/u)
 })
 
 test("canonical table requires an explicit mobile strategy contract", () => {

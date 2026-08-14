@@ -46,6 +46,7 @@ export default function AquaConfirmDialog({
       title={title}
       size="sm"
       closeOnBackdrop={!loading}
+      dismissible={!loading}
       footer={
         <div className="aqua-modal__action-row">
           <AquaButton

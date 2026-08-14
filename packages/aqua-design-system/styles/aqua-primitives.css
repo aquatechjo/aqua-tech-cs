@@ -470,13 +470,13 @@ html[dir="ltr"] .aqua-select,
 
   display: flex;
   align-items: flex-start;
-  gap: var(--at-space-3);
+  gap: var(--at-space-2);
   margin: 0;
   border: 1px solid rgba(var(--aqua-alert-rgb), 0.24);
   border-radius: var(--at-radius-md);
   background: rgba(var(--aqua-alert-rgb), 0.08);
   color: var(--aqua-alert-color);
-  padding: var(--at-space-4);
+  padding: var(--at-space-3);
 }
 
 .aqua-alert--success {
@@ -522,13 +522,14 @@ html[dir="ltr"] .aqua-select,
 
 .aqua-alert__title {
   color: currentColor;
-  font-weight: 900;
+  font-size: var(--at-text-sm);
+  font-weight: var(--at-weight-black);
 }
 
 .aqua-alert__message {
   color: color-mix(in srgb, currentColor 82%, var(--at-product-text));
-  font-size: 0.875rem;
-  line-height: 1.65;
+  font-size: var(--at-text-sm);
+  line-height: var(--at-leading-body);
 }
 
 .aqua-spinner {
@@ -773,8 +774,10 @@ html[dir="rtl"] .aqua-skeleton::after {
   background: color-mix(in srgb, var(--at-product-surface) 94%, transparent) !important;
   color: var(--at-product-text) !important;
   font-family: var(--at-font-body) !important;
-  box-shadow: var(--at-shadow-lg) !important;
-  backdrop-filter: blur(18px);
+  padding: var(--at-space-3) var(--at-space-4) !important;
+  box-shadow: var(--at-shadow-md) !important;
+  backdrop-filter: blur(14px);
+  font-size: var(--at-text-sm) !important;
 }
 
 .aqua-toast-viewport [data-sonner-toast] [data-description] {

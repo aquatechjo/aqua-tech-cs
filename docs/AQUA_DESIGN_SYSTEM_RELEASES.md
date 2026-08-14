@@ -3,9 +3,20 @@
 ## Package
 
 - Name: `@aqua-tech/design-system`
-- Current internal version: `0.12.0`
+- Current internal version: `0.13.0`
 - Canonical source: Aqua Tech CS
 - Generated package: `packages/aqua-design-system`
+
+## 0.13.0 — internal
+
+Release level: **minor**
+
+- Added the backwards-compatible `dismissible` modal contract.
+- Prevented confirm dialogs from closing through the backdrop, Escape, or close button while an action is loading.
+- Tightened modal dimensions, header/body/footer spacing, backdrop, alerts, and toast presentation.
+- Consumer migration: none required; modals remain dismissible by default.
+- Visual review surfaces: task and project modals, destructive confirmations, alerts, toast feedback, keyboard focus, and reduced motion.
+- Quality gate: package sync, lint, typecheck, unit tests, visual contract, and production build.
 
 ## 0.12.0 — internal
 

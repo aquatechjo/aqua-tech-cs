@@ -577,6 +577,16 @@ Status: **implemented**
 - Unify loading, empty, error, success, and permission page-state hierarchy.
 - Preserve data conditions, status meaning, accessibility announcements, RTL/LTR, and reduced motion.
 
+## UI-06 — Modals, Toasts, and Confirmations
+
+Status: **implemented**
+
+- Tighten modal widths, spacing, backdrop, close control, alerts, and toast feedback.
+- Add one backwards-compatible dismissibility contract for modal interactions.
+- Block backdrop, Escape, and close-button dismissal while a confirmation action is loading.
+- Preserve focus trapping, active-element restoration, scroll lock, accessibility roles, RTL/LTR, and reduced motion.
+- Keep the remaining browser-native confirmations visible in the adoption backlog for page-level migration.
+
 ## Release gate for every stage
 
 - Lint

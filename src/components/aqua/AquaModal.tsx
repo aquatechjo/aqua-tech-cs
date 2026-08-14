@@ -30,6 +30,7 @@ type AquaModalProps = {
   size?: AquaModalSize
   closeLabel?: string
   closeOnBackdrop?: boolean
+  dismissible?: boolean
   className?: string
 }
 
@@ -43,6 +44,7 @@ export default function AquaModal({
   size = "md",
   closeLabel = "إغلاق النافذة",
   closeOnBackdrop = true,
+  dismissible = true,
   className,
 }: AquaModalProps) {
   const mounted = React.useSyncExternalStore(
@@ -75,7 +77,7 @@ export default function AquaModal({
     })
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
+      if (event.key === "Escape" && dismissible) {
         event.preventDefault()
         onCloseRef.current()
         return
@@ -112,7 +114,7 @@ export default function AquaModal({
       document.body.style.overflow = previousOverflow
       previousActiveElement?.focus()
     }
-  }, [open])
+  }, [dismissible, open])
 
   if (!mounted || !open) return null
 
@@ -120,7 +122,11 @@ export default function AquaModal({
     <div
       className="aqua-modal-layer"
       onMouseDown={(event) => {
-        if (closeOnBackdrop && event.target === event.currentTarget) {
+        if (
+          dismissible &&
+          closeOnBackdrop &&
+          event.target === event.currentTarget
+        ) {
           onClose()
         }
       }}
@@ -157,6 +163,7 @@ export default function AquaModal({
             className="aqua-modal__close"
             leadingIcon={<X />}
             aria-label={closeLabel}
+            disabled={!dismissible}
             onClick={onClose}
           >
             {closeLabel}
