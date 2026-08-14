@@ -1,0 +1,121 @@
+/* UI-10: product-level Discovery, Pricing, and Proposal workspace polish. */
+
+.aqua-discovery-page,
+.aqua-discovery-detail-page,
+.aqua-report-page,
+.aqua-pricing-page,
+.aqua-proposal-page {
+  display: grid;
+  gap: var(--at-space-3);
+  min-inline-size: 0;
+}
+
+.aqua-workspace-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--at-space-2);
+  margin-block-end: 0;
+}
+
+.aqua-workspace-metrics {
+  margin-block: 0;
+}
+
+.aqua-workspace-metrics > [class*="col-"] {
+  display: flex;
+}
+
+.aqua-workspace-metrics .aqua-card,
+.aqua-workspace-metric {
+  position: relative;
+  width: 100%;
+  min-block-size: 88px;
+  overflow: hidden;
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-workspace-metrics .aqua-card::after,
+.aqua-workspace-metric::after {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  inline-size: 3px;
+  content: "";
+  background: var(--at-product-accent);
+  opacity: 0.72;
+}
+
+.aqua-discovery-page .aqua-data-panel,
+.aqua-discovery-detail-page .aqua-data-panel,
+.aqua-report-page .aqua-data-panel,
+.aqua-pricing-page .aqua-data-panel,
+.aqua-proposal-page .aqua-data-panel {
+  min-inline-size: 0;
+}
+
+.aqua-discovery-detail-page textarea,
+.aqua-report-page textarea,
+.aqua-pricing-page textarea,
+.aqua-proposal-page textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.aqua-report-page .aqua-pre-line,
+.aqua-proposal-page .aqua-pre-line {
+  line-height: 1.75;
+}
+
+.aqua-pricing-page .table-responsive,
+.aqua-proposal-page .table-responsive,
+.aqua-discovery-page .table-responsive {
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-lg);
+}
+
+.aqua-pricing-page .aqua-form-section,
+.aqua-proposal-page .aqua-form-section {
+  background: rgba(var(--at-product-accent-rgb), 0.035);
+}
+
+.aqua-proposal-page .aqua-card .h3,
+.aqua-proposal-page .aqua-card .h4,
+.aqua-report-page .aqua-card .h4 {
+  letter-spacing: -0.02em;
+}
+
+.aqua-discovery-public__workspace,
+.aqua-proposal-public__decision-grid {
+  align-items: start;
+}
+
+.aqua-discovery-public__conversation,
+.aqua-proposal-public__commercial,
+.aqua-proposal-public__payments,
+.aqua-proposal-public__response {
+  box-shadow: 0 18px 44px rgb(8 42 51 / 8%);
+}
+
+@media (max-width: 767.98px) {
+  .aqua-workspace-actions > * {
+    flex: 1 1 auto;
+  }
+
+  .aqua-workspace-metrics .aqua-card,
+  .aqua-workspace-metric {
+    min-block-size: 82px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aqua-discovery-page *,
+  .aqua-discovery-detail-page *,
+  .aqua-report-page *,
+  .aqua-pricing-page *,
+  .aqua-proposal-page * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

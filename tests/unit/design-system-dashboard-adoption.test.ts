@@ -11,6 +11,30 @@ const dashboardCss = readFileSync(
   "utf8"
 )
 const crmSalesCss = readFileSync("src/styles/aqua-crm-sales.css", "utf8")
+const discoveryProposalCss = readFileSync(
+  "src/styles/aqua-discovery-proposal.css",
+  "utf8"
+)
+const discoveryPage = readFileSync(
+  "src/app/dashboard/discovery/DiscoverySessionsClient.tsx",
+  "utf8"
+)
+const discoveryDetailPage = readFileSync(
+  "src/app/dashboard/discovery/[id]/DiscoveryIntakeClient.tsx",
+  "utf8"
+)
+const reportPage = readFileSync(
+  "src/app/dashboard/discovery/[id]/report/DiscoveryReportClient.tsx",
+  "utf8"
+)
+const pricingPage = readFileSync(
+  "src/app/dashboard/discovery/[id]/pricing/PricingWorkspaceClient.tsx",
+  "utf8"
+)
+const proposalPage = readFileSync(
+  "src/app/dashboard/discovery/[id]/proposal/ProposalWorkspaceClient.tsx",
+  "utf8"
+)
 const clientsPage = readFileSync(
   "src/app/dashboard/clients/ClientsClient.tsx",
   "utf8"
@@ -151,6 +175,32 @@ test("UI-09 applies one CRM and Sales workspace contract", () => {
   ]) {
     assert.match(
       crmSalesCss,
+      new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "u")
+    )
+  }
+})
+
+test("UI-10 applies one Discovery, Pricing, and Proposal workspace contract", () => {
+  assert.match(rootLayout, /@\/styles\/aqua-discovery-proposal\.css/u)
+  assert.match(discoveryPage, /aqua-discovery-page/u)
+  assert.match(discoveryDetailPage, /aqua-discovery-detail-page/u)
+  assert.match(reportPage, /aqua-report-page/u)
+  assert.match(pricingPage, /aqua-pricing-page/u)
+  assert.match(proposalPage, /aqua-proposal-page/u)
+
+  for (const token of [
+    ".aqua-workspace-actions",
+    ".aqua-workspace-metrics",
+    ".aqua-workspace-metric",
+    ".aqua-discovery-public__workspace",
+    ".aqua-proposal-public__decision-grid",
+    "inset-inline-end",
+    "min-inline-size",
+    "@media (max-width: 767.98px)",
+    "@media (prefers-reduced-motion: reduce)",
+  ]) {
+    assert.match(
+      discoveryProposalCss,
       new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "u")
     )
   }

@@ -527,7 +527,7 @@ export default function DiscoveryIntakeClient({
   }
 
   return (
-    <div className="d-flex flex-column gap-3">
+    <div className="aqua-discovery-detail-page">
       <AquaPageHeader
         badge="Discovery Session"
         title={
@@ -537,7 +537,7 @@ export default function DiscoveryIntakeClient({
         brandValue="Discovery"
       />
 
-      <div className="d-flex flex-wrap gap-2">
+      <div className="aqua-workspace-actions">
         <AquaLinkButton href="/dashboard/discovery" variant="ghost">
           رجوع إلى الجلسات
         </AquaLinkButton>
@@ -585,9 +585,9 @@ export default function DiscoveryIntakeClient({
         </AquaAlert>
       ) : null}
 
-      <div className="row g-3">
+      <div className="row g-3 aqua-workspace-metrics">
         <div className="col-12 col-sm-6 col-xl-3">
-          <AquaCard variant="soft" padding="sm" className="h-100">
+          <AquaCard variant="soft" padding="sm" className="h-100 aqua-workspace-metric">
             <div className="small aqua-muted">الحالة</div>
             <div className="mt-2">
               <AquaBadge
@@ -600,7 +600,7 @@ export default function DiscoveryIntakeClient({
           </AquaCard>
         </div>
         <div className="col-12 col-sm-6 col-xl-3">
-          <AquaCard variant="soft" padding="sm" className="h-100">
+          <AquaCard variant="soft" padding="sm" className="h-100 aqua-workspace-metric">
             <div className="small aqua-muted">اكتمال الحقائق</div>
             <div className="h4 fw-black mb-1 mt-2" dir="ltr">
               {session.completionScore}%
@@ -611,7 +611,7 @@ export default function DiscoveryIntakeClient({
           </AquaCard>
         </div>
         <div className="col-12 col-sm-6 col-xl-3">
-          <AquaCard variant="soft" padding="sm" className="h-100">
+          <AquaCard variant="soft" padding="sm" className="h-100 aqua-workspace-metric">
             <div className="small aqua-muted">الفجوات المفتوحة</div>
             <div className="h4 fw-black mb-1 mt-2" dir="ltr">
               {openGaps.length}
@@ -622,7 +622,7 @@ export default function DiscoveryIntakeClient({
           </AquaCard>
         </div>
         <div className="col-12 col-sm-6 col-xl-3">
-          <AquaCard variant="soft" padding="sm" className="h-100">
+          <AquaCard variant="soft" padding="sm" className="h-100 aqua-workspace-metric">
             <div className="small aqua-muted">آخر تحديث</div>
             <div className="small fw-bold mb-1 mt-2">
               {formatDate.format(new Date(session.updatedAt))}

@@ -675,7 +675,7 @@ export default function ProposalWorkspaceClient({
   ]
 
   return (
-    <div className="d-flex flex-column gap-3">
+    <div className="aqua-proposal-page">
       <AquaPageHeader
         badge="Central Proposal"
         title={`العرض المركزي — ${displayName}`}
@@ -683,7 +683,7 @@ export default function ProposalWorkspaceClient({
         brandValue={workspace?.proposalNumber ?? "PROP‑02"}
       />
 
-      <div className="d-flex flex-wrap gap-2">
+      <div className="aqua-workspace-actions">
         <AquaLinkButton
           href={`/dashboard/discovery/${session.id}/pricing`}
           variant="ghost"
@@ -769,7 +769,7 @@ export default function ProposalWorkspaceClient({
         </AquaAlert>
       ) : null}
 
-      <div className="row g-3">
+      <div className="row g-3 aqua-workspace-metrics">
         <div className="col-12 col-sm-6 col-xl-3">
           <AquaCard variant="soft" padding="sm" className="h-100">
             <div className="small aqua-muted">حالة العرض</div>

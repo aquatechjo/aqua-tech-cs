@@ -617,6 +617,16 @@ Status: **implemented**
 - Preserve lead qualification, ownership, follow-up, conversion, permissions, RTL/LTR, and reduced motion.
 - Keep this product-specific polish outside the shared Design System release contract.
 
+## UI-10 — Discovery, Pricing, and Proposal Workspace Polish
+
+Status: **implemented**
+
+- Apply one product-specific workspace rhythm to Discovery sessions, intake, reports, pricing, and proposals.
+- Tighten action rows, operational metrics, long-form evidence, commercial forms, tables, and review panels.
+- Align the authenticated workspaces with the existing public Discovery and Proposal experiences.
+- Preserve evidence provenance, versioning, approvals, pricing calculations, delivery, permissions, RTL/LTR, and reduced motion.
+- Keep this product-specific polish outside the shared Design System release contract.
+
 ## Release gate for every stage
 
 - Lint

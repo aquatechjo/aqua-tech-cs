@@ -217,7 +217,7 @@ export default function DiscoverySessionsClient({
   }
 
   return (
-    <div className="aqua-crm-page">
+    <div className="aqua-discovery-page">
       <AquaPageHeader
         badge="Discovery Intake"
         title="جمع المتطلبات"
@@ -225,7 +225,7 @@ export default function DiscoverySessionsClient({
         brandValue="Discovery"
       />
 
-      <div className="d-flex flex-wrap gap-2 mb-3">
+      <div className="aqua-workspace-actions">
         <AquaLinkButton href="/dashboard/leads" variant="secondary">
           العملاء المحتملون
         </AquaLinkButton>
@@ -244,10 +244,10 @@ export default function DiscoverySessionsClient({
         </AquaAlert>
       ) : null}
 
-      <div className="row g-3 mb-3">
+      <div className="row g-3 aqua-workspace-metrics">
         {summaryCards.map((card) => (
           <div className="col-12 col-sm-6 col-xl-3" key={card.label}>
-            <AquaCard variant="soft" padding="sm" className="h-100">
+            <AquaCard variant="soft" padding="sm" className="h-100 aqua-workspace-metric">
               <div className="d-flex align-items-start justify-content-between gap-3">
                 <div>
                   <div className="small aqua-muted">{card.label}</div>
