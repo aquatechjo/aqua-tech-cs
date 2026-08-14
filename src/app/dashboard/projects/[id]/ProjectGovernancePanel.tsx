@@ -411,6 +411,7 @@ export default function ProjectGovernancePanel({
   return (
     <>
       <AquaDataPanel
+        className="aqua-project-panel aqua-project-governance"
         title="سجل حوكمة المشروع"
         description="مخاطر ومشكلات وقرارات مرتبطة بسياق التنفيذ وأثر تدقيق واضح."
         meta={

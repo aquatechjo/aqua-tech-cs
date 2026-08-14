@@ -611,6 +611,7 @@ export default function ProjectChangeRequestsPanel({
 
   return (
     <AquaDataPanel
+      className="aqua-project-panel aqua-project-changes"
       title="طلبات تغيير النطاق"
       description="مسار رسمي لتعديل التسليمات مع مراجعة واعتماد وتطبيق قابل للتدقيق."
       meta={

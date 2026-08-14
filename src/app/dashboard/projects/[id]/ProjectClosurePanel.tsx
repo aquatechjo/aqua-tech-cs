@@ -41,7 +41,7 @@ export default function ProjectClosurePanel({ projectId, closure, blockers, canM
     } catch (error) { aquaToast.error(error instanceof Error ? error.message : "تعذر تحديث إغلاق المشروع") } finally { setBusy(false) }
   }
 
-  return <AquaDataPanel title="إغلاق المشروع والمراجعة الختامية" description="بوابة موثقة للتسليم، الدروس المستفادة، الاعتماد والأرشفة." meta={<AquaBadge variant={total ? "warning" : "success"} size="sm">{total ? `${total} بند مفتوح` : "جاهز للإغلاق"}</AquaBadge>}>
+  return <AquaDataPanel className="aqua-project-panel aqua-project-closure" title="إغلاق المشروع والمراجعة الختامية" description="بوابة موثقة للتسليم، الدروس المستفادة، الاعتماد والأرشفة." meta={<AquaBadge variant={total ? "warning" : "success"} size="sm">{total ? `${total} بند مفتوح` : "جاهز للإغلاق"}</AquaBadge>}>
     {total ? <AquaAlert variant="warning" title="توجد بنود تشغيلية مفتوحة">التسليمات {blockers.incompleteDeliverables} · طلبات التغيير {blockers.openChangeRequests} · المخاطر {blockers.openRisks} · المشكلات {blockers.openIssues} · المهام {blockers.incompleteTasks}. لا يُسمح بالتجاوز دون سبب موثق.</AquaAlert> : null}
     <form action={async (form) => submit(form, "SAVE_DRAFT")} className="aqua-form-stack">
       <label>النتيجة<select className="form-select" name="outcome" defaultValue={closure?.outcome ?? "SUCCESS"} disabled={!canManage || closure?.status === "ARCHIVED"}><option value="SUCCESS">ناجح</option><option value="PARTIAL_SUCCESS">نجاح جزئي</option><option value="CANCELLED">ملغي</option></select></label>

@@ -700,7 +700,7 @@ export default function ProjectExecutionClient({
   }
 
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} aqua-project-execution-page`}>
       <section className={styles.intro}>
         <div className={styles.introCopy}>
           <span className={styles.introIcon} aria-hidden="true">

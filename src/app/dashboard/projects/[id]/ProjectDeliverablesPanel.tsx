@@ -333,6 +333,7 @@ export default function ProjectDeliverablesPanel({
   return (
     <>
       <AquaDataPanel
+        className="aqua-project-panel aqua-project-deliverables"
         title="التسليمات والمخرجات"
         eyebrow="Delivery baseline"
         description="سجل النطاق القابل للتسليم من العرض المقبول حتى المراجعة والاعتماد."

@@ -26,6 +26,31 @@ const executionCss = readFileSync(
   "src/app/dashboard/projects/[id]/ProjectExecution.module.css",
   "utf8"
 )
+const ui11Css = readFileSync(
+  "src/styles/aqua-project-execution.css",
+  "utf8"
+)
+const rootLayout = readFileSync("src/app/layout.tsx", "utf8")
+const deliverablesPanel = readFileSync(
+  "src/app/dashboard/projects/[id]/ProjectDeliverablesPanel.tsx",
+  "utf8"
+)
+const governancePanel = readFileSync(
+  "src/app/dashboard/projects/[id]/ProjectGovernancePanel.tsx",
+  "utf8"
+)
+const changeRequestsPanel = readFileSync(
+  "src/app/dashboard/projects/[id]/ProjectChangeRequestsPanel.tsx",
+  "utf8"
+)
+const closurePanel = readFileSync(
+  "src/app/dashboard/projects/[id]/ProjectClosurePanel.tsx",
+  "utf8"
+)
+const feedbackPanel = readFileSync(
+  "src/app/dashboard/projects/[id]/ProjectFeedbackPanel.tsx",
+  "utf8"
+)
 const listApi = readFileSync(
   "src/app/api/projects/route.ts",
   "utf8"
@@ -175,6 +200,35 @@ test("AD-04 styling covers responsive logical and reduced-motion behavior", () =
     /\.projectModal\s*\{[\s\S]*block-size:\s*min\(900px, 90vh\);/u
   )
   assert.match(css, /block-size:\s*min\(900px, 90dvh\);/u)
+})
+
+test("UI-11 applies one Projects and execution workspace contract", () => {
+  assert.match(rootLayout, /@\/styles\/aqua-project-execution\.css/u)
+  assert.match(client, /aqua-projects-page/u)
+  assert.match(executionClient, /aqua-project-execution-page/u)
+  assert.match(deliverablesPanel, /aqua-project-deliverables/u)
+  assert.match(governancePanel, /aqua-project-governance/u)
+  assert.match(changeRequestsPanel, /aqua-project-changes/u)
+  assert.match(closurePanel, /aqua-project-closure/u)
+  assert.match(feedbackPanel, /aqua-project-feedback/u)
+
+  for (const contract of [
+    ".aqua-projects-page",
+    ".aqua-project-execution-page",
+    ".aqua-project-panel",
+    ".aqua-project-deliverables",
+    ".aqua-project-governance",
+    ".aqua-project-changes",
+    "min-inline-size",
+    "border-block-start",
+    "@media (max-width: 767.98px)",
+    "@media (prefers-reduced-motion: reduce)",
+  ]) {
+    assert.match(
+      ui11Css,
+      new RegExp(contract.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"), "u")
+    )
+  }
 })
 
 test("AD-04 is included in quality gates and the adoption roadmap", () => {

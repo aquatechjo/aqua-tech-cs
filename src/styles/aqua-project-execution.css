@@ -1,0 +1,103 @@
+/* Aqua Tech CS — UI-11 Projects and execution workspace polish */
+
+.aqua-projects-page,
+.aqua-project-execution-page {
+  min-inline-size: 0;
+}
+
+.aqua-projects-page > section:first-child,
+.aqua-project-execution-page > section:first-child {
+  border-radius: var(--at-radius-lg);
+}
+
+.aqua-projects-page > section[aria-label="ملخص المشاريع"],
+.aqua-project-execution-page > section[aria-label="ملخص التنفيذ"] {
+  gap: var(--at-space-3);
+}
+
+.aqua-projects-page > section[aria-label="ملخص المشاريع"] > .aqua-card,
+.aqua-project-execution-page > section[aria-label="ملخص التنفيذ"] > .aqua-card {
+  min-block-size: 88px;
+  padding: var(--at-space-3) !important;
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-project-execution-page > .aqua-card {
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-project-panel {
+  min-inline-size: 0;
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-project-panel .aqua-data-panel__header {
+  align-items: flex-start;
+  gap: var(--at-space-3);
+}
+
+.aqua-project-panel .aqua-data-panel__body {
+  min-inline-size: 0;
+}
+
+.aqua-project-panel textarea {
+  min-block-size: 92px;
+  resize: vertical;
+}
+
+.aqua-project-deliverables article,
+.aqua-project-governance article,
+.aqua-project-changes article {
+  border-radius: var(--at-radius-md);
+}
+
+.aqua-project-governance [role="tablist"] {
+  padding: var(--at-space-1);
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-md);
+  background: rgba(var(--at-product-accent-rgb), 0.035);
+}
+
+.aqua-project-changes form,
+.aqua-project-closure form,
+.aqua-project-feedback form {
+  min-inline-size: 0;
+}
+
+.aqua-project-closure .aqua-form-stack,
+.aqua-project-feedback .aqua-form-stack {
+  gap: var(--at-space-3);
+}
+
+.aqua-project-closure .aqua-form-stack > .d-flex,
+.aqua-project-feedback .aqua-form-stack > .d-flex {
+  padding-block-start: var(--at-space-2);
+  border-block-start: 1px solid var(--at-product-border);
+}
+
+.aqua-project-execution-page .aqua-table__actions {
+  gap: var(--at-space-1);
+}
+
+@media (max-width: 767.98px) {
+  .aqua-project-panel .aqua-data-panel__header,
+  .aqua-project-panel .aqua-data-panel__actions {
+    inline-size: 100%;
+  }
+
+  .aqua-project-panel .aqua-data-panel__actions > * {
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aqua-projects-page *,
+  .aqua-project-execution-page *,
+  .aqua-project-panel * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

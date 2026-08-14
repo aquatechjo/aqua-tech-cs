@@ -627,6 +627,16 @@ Status: **implemented**
 - Preserve evidence provenance, versioning, approvals, pricing calculations, delivery, permissions, RTL/LTR, and reduced motion.
 - Keep this product-specific polish outside the shared Design System release contract.
 
+## UI-11 — Projects and Project Execution Polish
+
+Status: **implemented**
+
+- Apply one product-specific visual contract to the Projects register and execution workspace.
+- Tighten project summaries, readiness, phases, tasks, dependencies, blockers, members, and workflow context.
+- Align deliverables, governance, change requests, closure, and client feedback panels.
+- Preserve project visibility, readiness gates, delivery transitions, approvals, audit evidence, permissions, RTL/LTR, and reduced motion.
+- Keep this product-specific polish outside the shared Design System release contract.
+
 ## Release gate for every stage
 
 - Lint

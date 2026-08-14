@@ -424,7 +424,7 @@ export default function ProjectsClient({
   }
 
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} aqua-projects-page`}>
       <section className={styles.intro}>
         <div className={styles.introCopy}>
           <span className={styles.introIcon} aria-hidden="true">
