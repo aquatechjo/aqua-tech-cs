@@ -65,6 +65,27 @@ export const aquaTechDesignTokens = {
     bodyArabic: '"IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif',
     bodyLatin: 'Inter, "Segoe UI", Arial, sans-serif',
     mono: '"JetBrains Mono", "SFMono-Regular", Consolas, monospace',
+    sizePx: {
+      xs: 12,
+      sm: 13,
+      md: 14,
+      lg: 16,
+      xl: 18,
+      xxl: 22,
+      display: 28,
+    },
+    lineHeight: {
+      tight: 1.25,
+      compact: 1.4,
+      body: 1.65,
+    },
+    weight: {
+      regular: 400,
+      medium: 500,
+      semibold: 600,
+      bold: 700,
+      black: 800,
+    },
   },
 } as const
 

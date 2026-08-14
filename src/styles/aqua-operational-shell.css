@@ -24,11 +24,12 @@
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar .aqua-brand-lockup__name {
-  font-size: 1rem;
+  font-size: var(--at-text-lg);
+  font-weight: var(--at-weight-bold);
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar .aqua-brand-lockup__tagline {
-  font-size: 0.64rem;
+  font-size: var(--at-text-xs);
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__company {
@@ -48,11 +49,12 @@
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__company-name {
   min-inline-size: 0;
-  font-size: 0.82rem;
+  font-size: var(--at-text-sm);
+  font-weight: var(--at-weight-semibold);
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__company-meta {
-  font-size: 0.62rem;
+  font-size: var(--at-text-xs);
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar-nav {
@@ -66,7 +68,8 @@
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar-nav__label {
   padding-inline: 10px;
-  font-size: 0.62rem;
+  font-size: var(--at-text-xs);
+  font-weight: var(--at-weight-bold);
   letter-spacing: 0.05em;
 }
 
@@ -75,8 +78,8 @@
   gap: 10px;
   padding: 8px 11px;
   border-radius: 11px;
-  font-size: 0.8rem;
-  font-weight: 670;
+  font-size: var(--at-text-sm);
+  font-weight: var(--at-weight-semibold);
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-nav-link:hover:not(.aqua-nav-link--disabled) {
@@ -147,16 +150,17 @@
 .aqua-shell:not(.aqua-shell--showcase) .aqua-page-heading__title {
   flex: 0 0 auto;
   margin: 0;
-  font-size: clamp(1rem, 1.45vw, 1.18rem);
-  line-height: 1.25;
+  font-size: var(--at-text-xl);
+  font-weight: var(--at-weight-bold);
+  line-height: var(--at-leading-tight);
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-page-heading__subtitle {
   max-inline-size: min(42vw, 620px);
   margin: 0;
   overflow: hidden;
-  font-size: 0.69rem;
-  line-height: 1.35;
+  font-size: var(--at-text-sm);
+  line-height: var(--at-leading-compact);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -198,12 +202,13 @@
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__email {
-  font-size: 0.73rem;
+  font-size: var(--at-text-sm);
+  font-weight: var(--at-weight-semibold);
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__role {
   margin: 0;
-  font-size: 0.58rem;
+  font-size: var(--at-text-xs);
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__actions > .aqua-button {

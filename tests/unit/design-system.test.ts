@@ -22,6 +22,17 @@ test("Aqua.Tech DNA exposes the approved fixed scales", () => {
   assert.equal(aquaTechDesignTokens.space[4], 16)
   assert.equal(aquaTechDesignTokens.motion.durationMs.fast, 180)
   assert.equal(aquaTechDesignTokens.color.brand.cyan, "#00B4FF")
+  assert.deepEqual(Object.values(aquaTechDesignTokens.typography.sizePx), [
+    12,
+    13,
+    14,
+    16,
+    18,
+    22,
+    28,
+  ])
+  assert.equal(aquaTechDesignTokens.typography.lineHeight.body, 1.65)
+  assert.equal(aquaTechDesignTokens.typography.weight.bold, 700)
 })
 
 test("Aqua tech CS product theme stays within the approved theme boundary", () => {

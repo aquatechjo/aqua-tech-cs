@@ -46,6 +46,24 @@
   --at-font-mono:
     "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 
+  --at-text-xs: 0.75rem;
+  --at-text-sm: 0.8125rem;
+  --at-text-md: 0.875rem;
+  --at-text-lg: 1rem;
+  --at-text-xl: 1.125rem;
+  --at-text-2xl: 1.375rem;
+  --at-text-display: 1.75rem;
+
+  --at-leading-tight: 1.25;
+  --at-leading-compact: 1.4;
+  --at-leading-body: 1.65;
+
+  --at-weight-regular: 400;
+  --at-weight-medium: 500;
+  --at-weight-semibold: 600;
+  --at-weight-bold: 700;
+  --at-weight-black: 800;
+
   --at-product-accent: #06b6d4;
   --at-product-accent-rgb: 6, 182, 212;
   --at-product-accent-secondary: #2563eb;

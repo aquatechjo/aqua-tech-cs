@@ -37,10 +37,36 @@ body {
 
 body {
   font-family: var(--at-font-body);
+  font-size: var(--at-text-md);
+  font-weight: var(--at-weight-regular);
+  line-height: var(--at-leading-body);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: inherit;
+  font-family: inherit;
+  font-weight: var(--at-weight-bold);
+  line-height: var(--at-leading-tight);
+}
+
+p {
+  line-height: var(--at-leading-body);
 }
 
 .aqua-page {

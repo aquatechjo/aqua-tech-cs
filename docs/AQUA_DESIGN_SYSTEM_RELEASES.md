@@ -3,9 +3,20 @@
 ## Package
 
 - Name: `@aqua-tech/design-system`
-- Current internal version: `0.8.0`
+- Current internal version: `0.9.0`
 - Canonical source: Aqua Tech CS
 - Generated package: `packages/aqua-design-system`
+
+## 0.9.0 — internal
+
+Release level: **minor**
+
+- Added the canonical operational type-size, line-height, and weight scales.
+- Connected Bootstrap body, headings, controls, and the Aqua Tech CS compact shell to semantic typography tokens.
+- Removed the legacy Arial body override and duplicate operating-system color-scheme override.
+- Consumer migration: none required; the new typography tokens are additive.
+- Visual review surfaces: desktop RTL shell, page headings, navigation, form controls, and compact account identity.
+- Quality gate: package sync, lint, typecheck, unit tests, visual contract, and production build.
 
 ## 0.8.0 — internal
 

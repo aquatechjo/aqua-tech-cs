@@ -526,6 +526,16 @@ Status: **implemented**
 - Replace duplicated primitives gradually.
 - Keep legal-domain UX where it is genuinely domain-specific.
 
+## UI-01 — Project-wide Typography Foundation
+
+Status: **implemented**
+
+- Add one semantic operational type scale for body copy, labels, navigation, headings, and exceptional display text.
+- Set Aqua Tech CS body, controls, headings, and shell typography from approved tokens instead of page-level arbitrary sizes.
+- Remove the legacy Arial and operating-system color-scheme overrides from the application root.
+- Keep the desktop-first compact operational character without reducing essential text below the approved readable scale.
+- Preserve Bootstrap behavior, RTL/LTR logic, responsive layout, reduced motion, and all PROJ-20 business behavior.
+
 ## Release gate for every stage
 
 - Lint

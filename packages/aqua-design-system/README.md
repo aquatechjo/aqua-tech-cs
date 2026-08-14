@@ -4,7 +4,7 @@ Internal Aqua.Tech Design System package generated from Aqua Tech CS.
 
 ## Version
 
-0.8.0
+0.9.0
 
 ## Next.js usage
 

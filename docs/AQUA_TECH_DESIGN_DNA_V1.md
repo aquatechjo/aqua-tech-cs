@@ -62,6 +62,22 @@ Rules:
 - Do not mix more than three font families in one product.
 - Arabic and English numerals use Latin digits in operational products unless a client explicitly requires otherwise.
 
+Canonical operational type scale:
+
+| Token | Size | Use |
+|---|---:|---|
+| XS | 12px | supporting metadata and compact labels |
+| SM | 13px | navigation, table support text, and secondary UI |
+| MD | 14px | default operational body and controls |
+| LG | 16px | emphasized body and compact section headings |
+| XL | 18px | page titles |
+| 2XL | 22px | major section titles |
+| Display | 28px | exceptional dashboard or public emphasis only |
+
+Use line heights `1.25` for titles, `1.4` for compact interface copy, and
+`1.65` for readable body content. Operational pages must not introduce
+presentation-scale headings when a semantic scale token is sufficient.
+
 ### 3.3 Core brand palette
 
 The mother brand owns these fixed colors:
