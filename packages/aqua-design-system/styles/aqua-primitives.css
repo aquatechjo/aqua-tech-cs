@@ -276,10 +276,10 @@ html[dir="ltr"] .aqua-select,
 
 .aqua-card {
   border: 1px solid var(--at-product-border);
-  border-radius: var(--at-radius-xl);
+  border-radius: var(--at-radius-lg);
   color: var(--at-product-text);
-  box-shadow: var(--at-shadow-md);
-  backdrop-filter: blur(16px);
+  box-shadow: var(--at-shadow-sm);
+  backdrop-filter: blur(12px);
 }
 
 .aqua-card--surface {
@@ -299,8 +299,8 @@ html[dir="ltr"] .aqua-select,
 .aqua-card--glow {
   border-color: rgba(var(--at-product-accent-rgb), 0.2);
   box-shadow:
-    var(--at-shadow-lg),
-    0 0 48px rgba(var(--at-product-accent-rgb), 0.08);
+    var(--at-shadow-md),
+    0 0 36px rgba(var(--at-product-accent-rgb), 0.07);
 }
 
 .aqua-card--padding-none {
@@ -308,15 +308,15 @@ html[dir="ltr"] .aqua-select,
 }
 
 .aqua-card--padding-sm {
-  padding: var(--at-space-4);
+  padding: var(--at-space-3);
 }
 
 .aqua-card--padding-md {
-  padding: var(--at-space-6);
+  padding: var(--at-space-4);
 }
 
 .aqua-card--padding-lg {
-  padding: var(--at-space-8);
+  padding: var(--at-space-6);
 }
 
 .aqua-badge {
@@ -325,25 +325,27 @@ html[dir="ltr"] .aqua-select,
 
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: var(--at-space-1);
   max-inline-size: 100%;
   border: 1px solid rgba(var(--aqua-badge-rgb), 0.24);
   border-radius: var(--at-radius-pill);
   background: rgba(var(--aqua-badge-rgb), 0.1);
   color: var(--aqua-badge-color);
-  font-weight: 800;
+  font-weight: var(--at-weight-bold);
   line-height: 1.2;
   white-space: normal;
 }
 
 .aqua-badge--sm {
-  padding: 0.25rem 0.55rem;
-  font-size: 0.6875rem;
+  min-block-size: 22px;
+  padding: 0.2rem var(--at-space-2);
+  font-size: var(--at-text-xs);
 }
 
 .aqua-badge--md {
-  padding: 0.35rem 0.75rem;
-  font-size: 0.75rem;
+  min-block-size: 26px;
+  padding: 0.25rem var(--at-space-3);
+  font-size: var(--at-text-xs);
 }
 
 .aqua-badge--blue,
@@ -602,8 +604,8 @@ html[dir="rtl"] .aqua-skeleton::after {
 
 .aqua-skeleton--card {
   inline-size: 100%;
-  block-size: 180px;
-  border-radius: var(--at-radius-xl);
+  block-size: 140px;
+  border-radius: var(--at-radius-lg);
 }
 
 .aqua-empty-state {
@@ -616,9 +618,9 @@ html[dir="rtl"] .aqua-skeleton::after {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  inline-size: 64px;
-  block-size: 64px;
-  margin-block-end: var(--at-space-4);
+  inline-size: 52px;
+  block-size: 52px;
+  margin-block-end: var(--at-space-3);
   border: 1px solid rgba(var(--at-product-accent-rgb), 0.2);
   border-radius: var(--at-radius-lg);
   background: rgba(var(--at-product-accent-rgb), 0.09);
@@ -626,24 +628,24 @@ html[dir="rtl"] .aqua-skeleton::after {
 }
 
 .aqua-empty-state__icon > svg {
-  inline-size: 30px;
-  block-size: 30px;
+  inline-size: 24px;
+  block-size: 24px;
 }
 
 .aqua-empty-state__title {
   margin: 0;
   color: var(--at-product-text);
-  font-size: 1.2rem;
-  font-weight: 900;
-  line-height: 1.35;
+  font-size: var(--at-text-lg);
+  font-weight: var(--at-weight-black);
+  line-height: var(--at-leading-compact);
 }
 
 .aqua-empty-state__description {
   max-inline-size: 40rem;
   margin: var(--at-space-2) 0 0;
   color: var(--at-product-muted);
-  font-size: 0.9rem;
-  line-height: 1.75;
+  font-size: var(--at-text-sm);
+  line-height: var(--at-leading-body);
 }
 
 .aqua-empty-state__action {
@@ -651,9 +653,9 @@ html[dir="rtl"] .aqua-skeleton::after {
 }
 
 .aqua-empty-state--compact .aqua-empty-state__icon {
-  inline-size: 48px;
-  block-size: 48px;
-  margin-block-end: var(--at-space-3);
+  inline-size: 40px;
+  block-size: 40px;
+  margin-block-end: var(--at-space-2);
 }
 
 .aqua-background {

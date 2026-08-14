@@ -567,6 +567,16 @@ Status: **implemented**
 - Keep action meaning visible without adding page-specific button recipes.
 - Preserve existing event handlers, form validation, permissions, RTL/LTR behavior, and reduced motion.
 
+## UI-05 — Cards, Status Badges, and Page States
+
+Status: **implemented**
+
+- Tighten shared card padding, radius, shadow, and loading-skeleton density.
+- Standardize semantic badge sizes and status colors across canonical and legacy dashboard markup.
+- Replace oversized text-only empty surfaces with a compact dashed operational state treatment.
+- Unify loading, empty, error, success, and permission page-state hierarchy.
+- Preserve data conditions, status meaning, accessibility announcements, RTL/LTR, and reduced motion.
+
 ## Release gate for every stage
 
 - Lint

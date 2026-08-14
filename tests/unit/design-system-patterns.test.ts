@@ -78,6 +78,18 @@ test("UI-03 provides a compact operational page hierarchy", () => {
   )
 })
 
+test("UI-05 page states use compact semantic layout tokens", () => {
+  for (const token of [
+    ".aqua-page-state",
+    "min-block-size: 160px",
+    ".aqua-page-state--compact",
+    "min-block-size: 112px",
+    "font-size: var(--at-text-sm)",
+  ]) {
+    assert.match(patternsCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
+  }
+})
+
 test("canonical modal manages focus, Escape, scroll lock, and restoration", () => {
   for (const token of [
     'role="dialog"',

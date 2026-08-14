@@ -1,5 +1,5 @@
 export const aquaDesignSystemPackageName = "@aqua-tech/design-system" as const
-export const aquaDesignSystemVersion = "0.11.0" as const
+export const aquaDesignSystemVersion = "0.12.0" as const
 export const aquaDesignSystemSchemaVersion = 1 as const
 
 export const aquaDesignSystemCssLayers = [

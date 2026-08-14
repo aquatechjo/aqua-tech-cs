@@ -139,3 +139,35 @@ test("UI-04 keeps button and field density on the operational size scale", () =>
     assert.match(bootstrapCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
   }
 })
+
+test("UI-05 keeps cards, badges, skeletons, and empty states compact", () => {
+  const primitivesCss = readFileSync(
+    join(process.cwd(), "src", "styles", "aqua-primitives.css"),
+    "utf8"
+  )
+  const bootstrapCss = readFileSync(
+    join(process.cwd(), "src", "styles", "aqua-bootstrap.css"),
+    "utf8"
+  )
+
+  for (const token of [
+    ".aqua-card--padding-md",
+    "padding: var(--at-space-4)",
+    ".aqua-badge--md",
+    "min-block-size: 26px",
+    ".aqua-skeleton--card",
+    "block-size: 140px",
+    ".aqua-empty-state__icon",
+  ]) {
+    assert.match(primitivesCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
+  }
+
+  for (const token of [
+    "UI-05 operational compatibility",
+    ".badge:not(.aqua-badge)",
+    ".aqua-card-soft.text-center",
+    "border-style: dashed",
+  ]) {
+    assert.match(bootstrapCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
+  }
+})

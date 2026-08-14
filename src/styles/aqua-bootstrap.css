@@ -1151,6 +1151,50 @@ p {
   line-height: var(--at-leading-compact);
 }
 
+/* UI-05 operational compatibility for legacy cards and status badges */
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .aqua-card-soft {
+  border-color: var(--at-product-border);
+  border-radius: var(--at-radius-lg);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: var(--at-shadow-xs);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .badge:not(.aqua-badge) {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 24px;
+  padding: 0.2rem var(--at-space-2);
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-pill);
+  background: rgba(255, 255, 255, 0.045) !important;
+  color: var(--at-product-muted) !important;
+  font-size: var(--at-text-xs);
+  font-weight: var(--at-weight-bold);
+  line-height: 1.2;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .badge:not(.aqua-badge).text-bg-info {
+  border-color: rgba(var(--at-product-accent-rgb), 0.26);
+  background: rgba(var(--at-product-accent-rgb), 0.1) !important;
+  color: var(--at-product-accent-soft) !important;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .badge:not(.aqua-badge).text-bg-danger {
+  border-color: color-mix(in srgb, var(--at-danger) 42%, transparent);
+  background: color-mix(in srgb, var(--at-danger) 12%, transparent) !important;
+  color: color-mix(in srgb, var(--at-danger) 44%, white) !important;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .aqua-card-soft.text-center:is(.aqua-muted, .aqua-soft) {
+  display: grid;
+  min-block-size: 112px;
+  place-items: center;
+  border-style: dashed;
+  color: var(--at-product-muted);
+  font-size: var(--at-text-sm);
+  line-height: var(--at-leading-body);
+}
+
 /* Aqua.Tech Design DNA foundation */
 :where(
     a,

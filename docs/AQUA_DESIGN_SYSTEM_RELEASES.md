@@ -3,9 +3,21 @@
 ## Package
 
 - Name: `@aqua-tech/design-system`
-- Current internal version: `0.11.0`
+- Current internal version: `0.12.0`
 - Canonical source: Aqua Tech CS
 - Generated package: `packages/aqua-design-system`
+
+## 0.12.0 — internal
+
+Release level: **minor**
+
+- Tightened canonical card padding, radius, shadow, skeleton, and empty-state density.
+- Standardized compact badge dimensions and semantic status presentation.
+- Added dashboard-scoped compatibility for legacy Bootstrap badges and text-only empty cards.
+- Tightened loading, empty, error, success, and permission page-state layouts.
+- Consumer migration: none required; existing component contracts and legacy status markup remain compatible.
+- Visual review surfaces: dashboards, status badges, loading skeletons, empty results, errors, RTL, and reduced motion.
+- Quality gate: package sync, lint, typecheck, unit tests, visual contract, and production build.
 
 ## 0.11.0 — internal
 
