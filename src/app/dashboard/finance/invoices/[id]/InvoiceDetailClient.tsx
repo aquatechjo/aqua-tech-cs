@@ -324,7 +324,7 @@ export default function InvoiceDetailClient({
   }
 
   return (
-    <div className="d-flex flex-column gap-4">
+    <div className="aqua-invoice-detail-page">
       <AquaPageHeader
         badge={invoice.invoiceNumber}
         title="تفاصيل الفاتورة"
@@ -332,7 +332,7 @@ export default function InvoiceDetailClient({
         brandValue="Invoice"
       />
 
-      <div className="d-flex flex-wrap justify-content-between gap-2 d-print-none">
+      <div className="aqua-finance-actions aqua-finance-actions--split d-print-none">
         <div className="d-flex flex-wrap gap-2">
           <Link className="btn btn-outline-info" href="/dashboard/finance/invoices">رجوع للفواتير</Link>
           <Link className="btn btn-outline-info" href="/dashboard/finance">ملخص المالية</Link>

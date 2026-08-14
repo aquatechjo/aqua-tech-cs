@@ -128,7 +128,7 @@ export default async function FinanceDashboardPage() {
   ]
 
   return (
-    <div className="d-flex flex-column gap-4">
+    <div className="aqua-finance-page">
       <AquaPageHeader
         badge="Operational Finance"
         title="المالية التشغيلية"
@@ -136,7 +136,7 @@ export default async function FinanceDashboardPage() {
         brandValue="Finance"
       />
 
-      <div className="d-flex flex-wrap gap-2">
+      <div className="aqua-finance-actions">
         <Link className="btn btn-info fw-bold" href="/dashboard/finance/invoices">
           إدارة الفواتير
         </Link>
@@ -145,10 +145,10 @@ export default async function FinanceDashboardPage() {
         </Link>
       </div>
 
-      <div className="row g-3">
+      <div className="row g-3 aqua-finance-metrics">
         {cards.map((card) => (
           <div className="col-12 col-md-6 col-xl-4" key={card.label}>
-            <div className="aqua-card p-4 h-100">
+            <div className="aqua-card p-4 h-100 aqua-finance-metric">
               <div className="small aqua-muted">{card.label}</div>
               <div className="h3 fw-black aqua-text-gradient mt-3 mb-0" dir="ltr">
                 {money(card.value, user.company.currency)}
@@ -159,7 +159,7 @@ export default async function FinanceDashboardPage() {
         ))}
       </div>
 
-      <div className="row g-4">
+      <div className="row g-4 aqua-finance-overview-grid">
         <div className="col-12 col-xl-7">
           <div className="aqua-card p-4 h-100">
             <div className="d-flex align-items-center justify-content-between gap-3 mb-4">

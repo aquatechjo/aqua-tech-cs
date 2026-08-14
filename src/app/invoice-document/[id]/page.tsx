@@ -61,7 +61,7 @@ export default async function AmendmentInvoiceDocumentPage({
   )
 
   return (
-    <main className="py-3" data-amendment-invoice-document>
+    <main className="py-3 aqua-invoice-document" data-amendment-invoice-document>
       <InvoiceDocumentActions invoiceId={invoice.id} />
       <AquaSystemDocument
         title="فاتورة ملحق عقد"

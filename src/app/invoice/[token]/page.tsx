@@ -15,7 +15,7 @@ export default async function PublicInvoicePage({ params }: { params: Promise<{ 
   if (!amendment?.invoice) return <main className="aqua-proposal-public" dir="rtl"><section className="aqua-proposal-public__invalid"><div className="aqua-proposal-public__invalid-card"><span className="aqua-proposal-public__status-mark">404</span><h1>رابط الفاتورة غير متاح</h1><p>قد يكون الرابط منتهيًا أو ملغيًا أو تم استبداله برابط أحدث.</p></div></section></main>
   const invoice = amendment.invoice
   const outstanding = Math.max(0, Number(invoice.totalAmount.toString()) - Number(invoice.amountPaid.toString()))
-  return <main className="py-3" dir="rtl" data-public-amendment-invoice>
+  return <main className="py-3 aqua-client-invoice" dir="rtl" data-public-amendment-invoice>
     <div className="d-flex justify-content-center p-3"><PublicInvoiceActions /></div>
     <AquaSystemDocument title="فاتورة ملحق عقد" documentLabel="Amendment Invoice" reference={invoice.invoiceNumber} issuedAt={day(invoice.issueDate)} density="compact" footerNote={`صادرة عن ${amendment.company.name} — لا تُعد إيصال دفع`}>
       <div className="row g-3 mb-4"><div className="col-6"><div className="small text-secondary">العميل</div><strong>{invoice.client?.name ?? "—"}</strong></div><div className="col-6 text-start"><div className="small text-secondary">المشروع</div><strong>{amendment.project.name}</strong><div className="small" dir="ltr">{amendment.project.code ?? "—"}</div></div></div>

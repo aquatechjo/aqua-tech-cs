@@ -1,0 +1,146 @@
+/* Aqua Tech CS — UI-13 Finance, invoices, and expenses polish */
+
+.aqua-finance-page,
+.aqua-expenses-page,
+.aqua-invoices-page,
+.aqua-invoice-detail-page {
+  display: grid;
+  gap: var(--at-space-3);
+  min-inline-size: 0;
+}
+
+.aqua-finance-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--at-space-2);
+}
+
+.aqua-finance-actions--split {
+  justify-content: space-between;
+}
+
+.aqua-finance-metric {
+  position: relative;
+  min-block-size: 88px;
+  padding: var(--at-space-3) !important;
+  overflow: hidden;
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-finance-metric::after {
+  position: absolute;
+  inset-block: var(--at-space-3);
+  inset-inline-end: 0;
+  inline-size: 3px;
+  border-radius: var(--at-radius-pill);
+  background: var(--at-product-accent);
+  content: "";
+  opacity: 0.78;
+}
+
+.aqua-finance-metric .h3 {
+  margin-block: var(--at-space-1) 0 !important;
+  font-family: var(--at-font-mono);
+  font-size: var(--at-text-xl);
+  line-height: var(--at-leading-tight);
+}
+
+.aqua-finance-overview-grid,
+.aqua-invoice-detail-page > .row {
+  --bs-gutter-x: var(--at-space-3);
+  --bs-gutter-y: var(--at-space-3);
+}
+
+.aqua-finance-page .aqua-card,
+.aqua-expenses-page .aqua-card,
+.aqua-invoices-page .aqua-card,
+.aqua-invoice-detail-page .aqua-card,
+.aqua-finance-editor,
+.aqua-finance-register {
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-finance-editor,
+.aqua-finance-register {
+  padding: var(--at-space-4) !important;
+}
+
+.aqua-finance-editor textarea,
+.aqua-invoice-detail-page textarea {
+  min-block-size: 92px;
+  resize: vertical;
+}
+
+.aqua-finance-page .table-responsive,
+.aqua-expenses-page .table-responsive,
+.aqua-invoices-page .table-responsive,
+.aqua-invoice-detail-page .table-responsive,
+.aqua-client-invoice .table-responsive,
+.aqua-invoice-document .table-responsive {
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-md);
+}
+
+.aqua-expenses-page table,
+.aqua-invoices-page table,
+.aqua-invoice-detail-page table {
+  margin-block-end: 0;
+}
+
+.aqua-invoice-detail-page .aqua-card-soft {
+  border-radius: var(--at-radius-md);
+}
+
+.aqua-client-invoice,
+.aqua-invoice-document {
+  min-block-size: 100vh;
+  background: var(--at-product-bg);
+}
+
+.aqua-client-invoice > .aqua-system-document,
+.aqua-invoice-document > .aqua-system-document {
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-lg);
+  background: var(--at-product-surface);
+  box-shadow: var(--at-shadow-md);
+}
+
+@media (max-width: 767.98px) {
+  .aqua-finance-actions--split,
+  .aqua-finance-actions--split > * {
+    inline-size: 100%;
+  }
+
+  .aqua-finance-actions--split > * {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--at-space-2);
+  }
+}
+
+@media print {
+  .aqua-client-invoice,
+  .aqua-invoice-document {
+    min-block-size: auto;
+    background: #fff;
+  }
+
+  .aqua-client-invoice > .aqua-system-document,
+  .aqua-invoice-document > .aqua-system-document {
+    border: 0;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aqua-finance-page *,
+  .aqua-expenses-page *,
+  .aqua-invoices-page *,
+  .aqua-invoice-detail-page * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

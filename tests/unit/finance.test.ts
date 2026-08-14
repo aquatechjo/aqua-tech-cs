@@ -1,4 +1,5 @@
 import assert from "node:assert/strict"
+import { readFileSync } from "node:fs"
 import test from "node:test"
 import {
   businessDate,
@@ -11,6 +12,60 @@ import {
   parseScaledDecimal,
   paymentAdjustedInvoiceStatus,
 } from "../../src/lib/finance"
+
+const financeCss = readFileSync("src/styles/aqua-finance.css", "utf8")
+const rootLayout = readFileSync("src/app/layout.tsx", "utf8")
+const financePage = readFileSync("src/app/dashboard/finance/page.tsx", "utf8")
+const expensesPage = readFileSync(
+  "src/app/dashboard/finance/expenses/ExpensesClient.tsx",
+  "utf8",
+)
+const invoicesPage = readFileSync(
+  "src/app/dashboard/finance/invoices/InvoicesClient.tsx",
+  "utf8",
+)
+const invoiceDetailPage = readFileSync(
+  "src/app/dashboard/finance/invoices/[id]/InvoiceDetailClient.tsx",
+  "utf8",
+)
+const publicInvoicePage = readFileSync(
+  "src/app/invoice/[token]/page.tsx",
+  "utf8",
+)
+const invoiceDocumentPage = readFileSync(
+  "src/app/invoice-document/[id]/page.tsx",
+  "utf8",
+)
+
+test("UI-13 applies one Finance, invoices, and expenses visual contract", () => {
+  assert.match(rootLayout, /@\/styles\/aqua-finance\.css/u)
+  assert.match(financePage, /aqua-finance-page/u)
+  assert.match(financePage, /aqua-finance-metrics/u)
+  assert.match(expensesPage, /aqua-expenses-page/u)
+  assert.match(invoicesPage, /aqua-invoices-page/u)
+  assert.match(invoiceDetailPage, /aqua-invoice-detail-page/u)
+  assert.match(publicInvoicePage, /aqua-client-invoice/u)
+  assert.match(invoiceDocumentPage, /aqua-invoice-document/u)
+
+  for (const contract of [
+    ".aqua-finance-page",
+    ".aqua-finance-actions",
+    ".aqua-finance-metric",
+    ".aqua-finance-editor",
+    ".aqua-finance-register",
+    ".aqua-client-invoice",
+    "inset-inline-end",
+    "min-inline-size",
+    "@media (max-width: 767.98px)",
+    "@media print",
+    "@media (prefers-reduced-motion: reduce)",
+  ]) {
+    assert.match(
+      financeCss,
+      new RegExp(contract.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"), "u"),
+    )
+  }
+})
 
 test("invoice totals are calculated from scaled decimal values", () => {
   const totals = calculateInvoiceTotals({

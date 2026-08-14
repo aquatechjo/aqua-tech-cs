@@ -183,7 +183,7 @@ export default function InvoicesClient({
   }
 
   return (
-    <div className="d-flex flex-column gap-4">
+    <div className="aqua-invoices-page">
       <AquaPageHeader
         badge="Invoices"
         title="الفواتير والتحصيل"
@@ -191,7 +191,7 @@ export default function InvoicesClient({
         brandValue="Billing"
       />
 
-      <div className="d-flex flex-wrap justify-content-between gap-2">
+      <div className="aqua-finance-actions aqua-finance-actions--split">
         <div className="d-flex flex-wrap gap-2">
           <Link className="btn btn-outline-info" href="/dashboard/finance">
             ملخص المالية
@@ -212,7 +212,7 @@ export default function InvoicesClient({
       </div>
 
       {showForm && canManage ? (
-        <form className="aqua-card p-4" onSubmit={createInvoice}>
+        <form className="aqua-card p-4 aqua-finance-editor" onSubmit={createInvoice}>
           <div className="d-flex align-items-start justify-content-between gap-3 mb-4">
             <div>
               <h2 className="h5 fw-black mb-1">إنشاء فاتورة</h2>
@@ -341,7 +341,7 @@ export default function InvoicesClient({
         </form>
       ) : null}
 
-      <div className="aqua-card p-4">
+      <div className="aqua-card p-4 aqua-finance-register">
         <div className="row g-2 mb-4">
           <div className="col-12 col-lg-8">
             <input className="form-control" placeholder="بحث برقم الفاتورة أو العميل أو المشروع" value={q} onChange={(e) => setQ(e.target.value)} />

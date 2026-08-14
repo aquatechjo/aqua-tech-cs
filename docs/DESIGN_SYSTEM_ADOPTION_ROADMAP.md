@@ -647,6 +647,16 @@ Status: **implemented**
 - Preserve task scope, timers, billability, costing, approvals, employee access, permissions, RTL/LTR, and reduced motion.
 - Keep this product-specific polish outside the shared Design System release contract.
 
+## UI-13 — Finance, Invoices, and Expenses Polish
+
+Status: **implemented**
+
+- Apply one product-specific finance rhythm to the overview, invoices, expenses, invoice detail, and client invoice documents.
+- Tighten financial metrics, registers, commercial editors, amount summaries, collections, and action rows.
+- Align legacy Bootstrap finance surfaces with the current Aqua operational shell.
+- Preserve decimal calculations, issuance, expense approvals, payment reversal, delivery, portal security, permissions, RTL/LTR, print, and reduced motion.
+- Keep this product-specific polish outside the shared Design System release contract.
+
 ## Release gate for every stage
 
 - Lint

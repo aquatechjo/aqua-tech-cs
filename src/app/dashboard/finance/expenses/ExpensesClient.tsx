@@ -199,7 +199,7 @@ export default function ExpensesClient({
   }
 
   return (
-    <div className="d-flex flex-column gap-4">
+    <div className="aqua-expenses-page">
       <AquaPageHeader
         badge="Expenses"
         title="المصروفات التشغيلية"
@@ -207,7 +207,7 @@ export default function ExpensesClient({
         brandValue="Costs"
       />
 
-      <div className="d-flex flex-wrap justify-content-between gap-2">
+      <div className="aqua-finance-actions aqua-finance-actions--split">
         <div className="d-flex flex-wrap gap-2">
           <Link className="btn btn-outline-info" href="/dashboard/finance">ملخص المالية</Link>
           <Link className="btn btn-outline-info" href="/dashboard/finance/invoices">الفواتير</Link>
@@ -221,7 +221,7 @@ export default function ExpensesClient({
       {success ? <div className="alert alert-success">{success}</div> : null}
 
       {showForm ? (
-        <form className="aqua-card p-4" onSubmit={createExpense}>
+        <form className="aqua-card p-4 aqua-finance-editor" onSubmit={createExpense}>
           <h2 className="h5 fw-black mb-4">تسجيل مصروف</h2>
           <div className="row g-3">
             <div className="col-12 col-md-6 col-xl-3">
@@ -251,7 +251,7 @@ export default function ExpensesClient({
         </form>
       ) : null}
 
-      <div className="aqua-card p-4">
+      <div className="aqua-card p-4 aqua-finance-register">
         <div className="row g-2 mb-4">
           <div className="col-12 col-lg-8"><input className="form-control" placeholder="بحث بالرقم أو المشروع أو المورد أو الوصف" value={q} onChange={(e) => setQ(e.target.value)} /></div>
           <div className="col-12 col-lg-4"><select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}><option value="ALL">كل الحالات</option>{Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
