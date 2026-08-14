@@ -3,9 +3,20 @@
 ## Package
 
 - Name: `@aqua-tech/design-system`
-- Current internal version: `0.10.0`
+- Current internal version: `0.11.0`
 - Canonical source: Aqua Tech CS
 - Generated package: `packages/aqua-design-system`
+
+## 0.11.0 — internal
+
+Release level: **minor**
+
+- Standardized compact operational button and field heights across small, medium, and large sizes.
+- Added a scoped compatibility layer for legacy Bootstrap buttons and controls inside the Aqua Tech CS dashboard.
+- Unified hover, active, focus-visible, disabled, readonly, success, and danger presentation.
+- Consumer migration: none required; canonical Aqua components and existing Bootstrap class usage remain compatible.
+- Visual review surfaces: operational forms, inline table actions, workflow actions, disabled controls, RTL, and reduced motion.
+- Quality gate: package sync, lint, typecheck, unit tests, visual contract, and production build.
 
 ## 0.10.0 — internal
 

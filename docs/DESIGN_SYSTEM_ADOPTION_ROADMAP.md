@@ -557,6 +557,16 @@ Status: **implemented**
 - Use semantic typography, spacing, radius, and shadow tokens instead of new page-level literals.
 - Preserve existing page-header calls, Bootstrap behavior, RTL/LTR layout, mobile stacking, and all business workflows.
 
+## UI-04 — Buttons, Forms, and Interaction States
+
+Status: **implemented**
+
+- Standardize small, medium, and large button and field heights for compact desktop workflows.
+- Align legacy Bootstrap controls with canonical Aqua component styling through one dashboard-scoped compatibility layer.
+- Unify hover, active, focus-visible, disabled, readonly, loading, success, and danger feedback.
+- Keep action meaning visible without adding page-specific button recipes.
+- Preserve existing event handlers, form validation, permissions, RTL/LTR behavior, and reduced motion.
+
 ## Release gate for every stage
 
 - Lint

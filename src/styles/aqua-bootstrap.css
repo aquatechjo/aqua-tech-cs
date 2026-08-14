@@ -1020,6 +1020,137 @@ p {
 }
 
 
+/* UI-04 operational compatibility for legacy Bootstrap controls */
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .btn:not(.aqua-button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--at-space-2);
+  min-block-size: 42px;
+  padding: var(--at-space-2) var(--at-space-4);
+  border-radius: var(--at-radius-md);
+  font-size: var(--at-text-md);
+  font-weight: var(--at-weight-bold);
+  line-height: 1.2;
+  transition:
+    transform var(--at-motion-fast) var(--at-ease-standard),
+    background-color var(--at-motion-fast) var(--at-ease-standard),
+    border-color var(--at-motion-fast) var(--at-ease-standard),
+    color var(--at-motion-fast) var(--at-ease-standard),
+    box-shadow var(--at-motion-fast) var(--at-ease-standard),
+    opacity var(--at-motion-fast) var(--at-ease-standard);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .btn-sm:not(.aqua-button) {
+  min-block-size: 36px;
+  padding: var(--at-space-2) var(--at-space-3);
+  font-size: var(--at-text-sm);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .btn-lg:not(.aqua-button) {
+  min-block-size: 48px;
+  padding: var(--at-space-3) var(--at-space-5);
+  font-size: var(--at-text-lg);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .btn:not(.aqua-button):hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .btn:not(.aqua-button):active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .btn:not(.aqua-button):focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 4px var(--at-focus-ring);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .btn:not(.aqua-button):disabled,
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .btn:not(.aqua-button).disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+  transform: none;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content :is(.btn-info, .btn-primary) {
+  border-color: transparent;
+  background: linear-gradient(
+    90deg,
+    var(--at-product-accent),
+    var(--at-product-accent-secondary)
+  );
+  color: var(--at-product-accent-contrast);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content :is(.btn-outline-info, .btn-outline-primary, .btn-outline-secondary, .btn-outline-light) {
+  border-color: var(--at-product-border);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--at-product-text);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content :is(.btn-outline-info, .btn-outline-primary, .btn-outline-secondary, .btn-outline-light):hover:not(:disabled) {
+  border-color: rgba(var(--at-product-accent-rgb), 0.34);
+  background: rgba(var(--at-product-accent-rgb), 0.09);
+  color: var(--at-product-accent-soft);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content :is(.btn-success, .btn-outline-success) {
+  border-color: color-mix(in srgb, var(--at-success) 45%, transparent);
+  background: color-mix(in srgb, var(--at-success) 14%, transparent);
+  color: color-mix(in srgb, var(--at-success) 48%, white);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content :is(.btn-danger, .btn-outline-danger) {
+  border-color: color-mix(in srgb, var(--at-danger) 45%, transparent);
+  background: color-mix(in srgb, var(--at-danger) 12%, transparent);
+  color: color-mix(in srgb, var(--at-danger) 44%, white);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content :is(.form-control, .form-select):not(.aqua-control) {
+  min-block-size: 42px;
+  padding: var(--at-space-2) var(--at-space-3);
+  border-color: var(--at-product-border);
+  border-radius: var(--at-radius-md);
+  background-color: color-mix(in srgb, var(--at-product-bg) 78%, transparent);
+  color: var(--at-product-text);
+  font-size: var(--at-text-md);
+  line-height: var(--at-leading-compact);
+  text-align: start;
+  box-shadow: none;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content :is(.form-control, .form-select):not(.aqua-control):hover:not(:disabled):not([readonly]) {
+  border-color: rgba(var(--at-product-accent-rgb), 0.3);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content :is(.form-control, .form-select):not(.aqua-control):focus {
+  border-color: var(--at-product-accent);
+  background-color: color-mix(in srgb, var(--at-product-bg) 90%, transparent);
+  color: var(--at-product-text);
+  box-shadow: 0 0 0 4px var(--at-focus-ring);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content :is(.form-control, .form-select):not(.aqua-control):disabled {
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.065);
+  background-color: rgba(255, 255, 255, 0.025);
+  color: var(--at-product-muted);
+  opacity: 0.72;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content .form-control:not(.aqua-control)[readonly] {
+  background-color: rgba(255, 255, 255, 0.03);
+  color: var(--at-product-muted);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__content :is(.form-label, label) {
+  color: var(--at-product-text);
+  font-size: var(--at-text-sm);
+  font-weight: var(--at-weight-bold);
+  line-height: var(--at-leading-compact);
+}
+
 /* Aqua.Tech Design DNA foundation */
 :where(
     a,

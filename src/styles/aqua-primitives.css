@@ -99,19 +99,21 @@
 }
 
 .aqua-button--sm {
+  min-block-size: 36px;
   padding: var(--at-space-2) var(--at-space-3);
-  font-size: 0.8125rem;
+  font-size: var(--at-text-sm);
 }
 
 .aqua-button--md {
-  padding: var(--at-space-3) var(--at-space-4);
-  font-size: 0.875rem;
+  min-block-size: 42px;
+  padding: var(--at-space-2) var(--at-space-4);
+  font-size: var(--at-text-md);
 }
 
 .aqua-button--lg {
-  min-block-size: 52px;
-  padding: var(--at-space-4) var(--at-space-6);
-  font-size: 1rem;
+  min-block-size: 48px;
+  padding: var(--at-space-3) var(--at-space-5);
+  font-size: var(--at-text-lg);
 }
 
 .aqua-button--block {
@@ -154,9 +156,9 @@
   gap: var(--at-space-1);
   margin: 0;
   color: var(--at-product-text);
-  font-size: 0.875rem;
-  font-weight: 700;
-  line-height: 1.45;
+  font-size: var(--at-text-sm);
+  font-weight: var(--at-weight-bold);
+  line-height: var(--at-leading-compact);
 }
 
 .aqua-field__required {
@@ -166,13 +168,13 @@
 .form-control.aqua-control,
 .form-select.aqua-control {
   inline-size: 100%;
-  min-block-size: 48px;
+  min-block-size: 42px;
   border: 1px solid var(--at-product-border);
   border-radius: var(--at-radius-md);
   background-color: color-mix(in srgb, var(--at-product-bg) 78%, transparent);
   color: var(--at-product-text);
   font: inherit;
-  line-height: 1.45;
+  line-height: var(--at-leading-compact);
   text-align: start;
   box-shadow: none;
   transition:
@@ -226,20 +228,21 @@
 }
 
 .aqua-control--sm {
-  min-block-size: 44px !important;
+  min-block-size: 38px !important;
   padding: var(--at-space-2) var(--at-space-3) !important;
-  font-size: 0.8125rem !important;
+  font-size: var(--at-text-sm) !important;
 }
 
 .aqua-control--md {
-  padding: var(--at-space-3) var(--at-space-4) !important;
-  font-size: 0.875rem !important;
+  min-block-size: 42px !important;
+  padding: var(--at-space-2) var(--at-space-3) !important;
+  font-size: var(--at-text-md) !important;
 }
 
 .aqua-control--lg {
-  min-block-size: 54px !important;
-  padding: var(--at-space-4) var(--at-space-4) !important;
-  font-size: 1rem !important;
+  min-block-size: 48px !important;
+  padding: var(--at-space-3) var(--at-space-4) !important;
+  font-size: var(--at-text-lg) !important;
 }
 
 .aqua-select {
@@ -263,8 +266,8 @@ html[dir="ltr"] .aqua-select,
 .aqua-field__message {
   margin: 0;
   color: var(--at-product-muted);
-  font-size: 0.78rem;
-  line-height: 1.55;
+  font-size: var(--at-text-xs);
+  line-height: var(--at-leading-compact);
 }
 
 .aqua-field__message--error {

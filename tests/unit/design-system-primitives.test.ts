@@ -107,3 +107,35 @@ test("primitive CSS covers focus, disabled, RTL, loading, and reduced motion", (
   assert.match(css, /padding-inline/u)
   assert.match(css, /inset-inline/u)
 })
+
+test("UI-04 keeps button and field density on the operational size scale", () => {
+  const primitivesCss = readFileSync(
+    join(process.cwd(), "src", "styles", "aqua-primitives.css"),
+    "utf8"
+  )
+  const bootstrapCss = readFileSync(
+    join(process.cwd(), "src", "styles", "aqua-bootstrap.css"),
+    "utf8"
+  )
+
+  for (const token of [
+    ".aqua-button--sm",
+    "min-block-size: 36px",
+    ".aqua-button--md",
+    "min-block-size: 42px",
+    ".aqua-control--lg",
+    "min-block-size: 48px",
+  ]) {
+    assert.match(primitivesCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
+  }
+
+  for (const token of [
+    "UI-04 operational compatibility",
+    ".btn-outline-info",
+    ".form-control, .form-select",
+    ":focus-visible",
+    ":disabled",
+  ]) {
+    assert.match(bootstrapCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
+  }
+})
