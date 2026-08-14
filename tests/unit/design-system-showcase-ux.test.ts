@@ -76,5 +76,5 @@ test("light system documents override dark detail-list colors", () => {
     publicCss,
     /\.aqua-system-document \.aqua-detail-list__value \{\s*color: #0f172a;/u
   )
-  assert.match(packageContracts, /aquaDesignSystemVersion = "0\.9\.0"/u)
+  assert.match(packageContracts, /aquaDesignSystemVersion = "0\.10\.0"/u)
 })

@@ -711,56 +711,83 @@ p {
   border-radius: 18px;
 }
 
-/* Compact unified page header */
+/* Compact operational page header */
 .aqua-page-header {
-  padding: 1.35rem !important;
-  margin-bottom: 1rem !important;
+  display: grid;
+  gap: var(--at-space-3);
+  padding: var(--at-space-5) !important;
+  margin-block-end: var(--at-space-4) !important;
   min-height: auto !important;
+  border-radius: var(--at-radius-lg) !important;
+  box-shadow: var(--at-shadow-sm) !important;
+}
+
+.aqua-page-header__main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--at-space-4);
+}
+
+.aqua-page-header__copy {
+  min-inline-size: 0;
+}
+
+.aqua-page-header__context,
+.aqua-page-header__actions,
+.aqua-page-header__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--at-space-2);
+}
+
+.aqua-page-header__section {
+  color: var(--at-product-soft-text);
+  font-family: var(--at-font-mono);
+  font-size: var(--at-text-xs);
+  font-weight: var(--at-weight-bold);
+  letter-spacing: 0.04em;
 }
 
 .aqua-page-header-title {
-  font-size: clamp(1.55rem, 2vw, 2.15rem);
-  line-height: 1.35;
-  font-weight: 900;
-  margin: 0.85rem 0 0.45rem;
+  margin: var(--at-space-3) 0 var(--at-space-1);
+  font-size: var(--at-text-2xl);
+  line-height: var(--at-leading-tight);
+  font-weight: var(--at-weight-black);
 }
 
 .aqua-page-header-desc {
-  max-width: 760px;
-  font-size: 0.92rem;
-  line-height: 1.8;
-  color: var(--aqua-muted);
-  margin-bottom: 0;
+  max-inline-size: 52rem;
+  margin: 0;
+  color: var(--at-product-muted);
+  font-size: var(--at-text-sm);
+  line-height: var(--at-leading-body);
 }
 
-.aqua-page-brand-box {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.025);
-  border-radius: 20px;
-  padding: 1rem;
-  min-width: 190px;
+.aqua-page-header__actions {
+  justify-content: flex-end;
+  flex: 0 0 auto;
 }
 
-.aqua-page-brand-box .brand-kicker {
-  color: var(--aqua-soft);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.aqua-page-brand-box .brand-value {
-  font-size: 1.25rem;
-  font-weight: 900;
+.aqua-page-header__meta {
+  padding-block-start: var(--at-space-3);
+  border-block-start: 1px solid var(--at-product-border);
+  color: var(--at-product-soft-text);
+  font-size: var(--at-text-sm);
 }
 
 @media (max-width: 767.98px) {
   .aqua-page-header {
-    padding: 1rem !important;
+    padding: var(--at-space-4) !important;
   }
 
-  .aqua-page-brand-box {
-    min-width: 100%;
+  .aqua-page-header__main {
+    display: grid;
+  }
+
+  .aqua-page-header__actions {
+    justify-content: flex-start;
   }
 }
 /* Clients CRM layout */

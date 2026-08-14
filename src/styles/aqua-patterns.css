@@ -4,11 +4,11 @@
 .aqua-data-panel,
 .aqua-filter-bar {
   border: 1px solid var(--at-product-border);
-  border-radius: var(--at-radius-xl);
+  border-radius: var(--at-radius-lg);
   background: color-mix(in srgb, var(--at-product-surface) 76%, transparent);
   color: var(--at-product-text);
-  box-shadow: var(--at-shadow-md);
-  backdrop-filter: blur(16px);
+  box-shadow: var(--at-shadow-sm);
+  backdrop-filter: blur(12px);
 }
 
 .aqua-form-section,
@@ -22,7 +22,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--at-space-4);
-  padding: var(--at-space-6);
+  padding: var(--at-space-4) var(--at-space-5);
   border-block-end: 1px solid var(--at-product-border);
   background: rgba(255, 255, 255, 0.018);
 }
@@ -38,8 +38,8 @@
 .aqua-data-panel__eyebrow {
   color: var(--at-product-accent-soft);
   font-family: var(--at-font-mono);
-  font-size: 0.68rem;
-  font-weight: 800;
+  font-size: var(--at-text-xs);
+  font-weight: var(--at-weight-bold);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -48,9 +48,9 @@
 .aqua-data-panel__title {
   margin: 0;
   color: var(--at-product-text);
-  font-size: 1.05rem;
-  font-weight: 900;
-  line-height: 1.4;
+  font-size: var(--at-text-lg);
+  font-weight: var(--at-weight-black);
+  line-height: var(--at-leading-compact);
 }
 
 .aqua-form-section__description,
@@ -59,8 +59,8 @@
   max-inline-size: 52rem;
   margin: 0;
   color: var(--at-product-muted);
-  font-size: 0.82rem;
-  line-height: 1.65;
+  font-size: var(--at-text-sm);
+  line-height: var(--at-leading-body);
 }
 
 .aqua-form-section__header-actions,
@@ -75,12 +75,12 @@
 
 .aqua-form-section__body,
 .aqua-data-panel__body {
-  padding: var(--at-space-6);
+  padding: var(--at-space-5);
 }
 
 .aqua-form-section__footer,
 .aqua-data-panel__footer {
-  padding: var(--at-space-4) var(--at-space-6);
+  padding: var(--at-space-3) var(--at-space-5);
   border-block-start: 1px solid var(--at-product-border);
   background: rgba(255, 255, 255, 0.018);
 }
@@ -137,8 +137,8 @@
 .aqua-filter-bar__title {
   margin: 0;
   color: var(--at-product-text);
-  font-size: 0.9rem;
-  font-weight: 850;
+  font-size: var(--at-text-sm);
+  font-weight: var(--at-weight-black);
 }
 
 .aqua-filter-bar__count {
@@ -153,8 +153,8 @@
   background: rgba(var(--at-product-accent-rgb), 0.1);
   color: var(--at-product-accent-soft);
   font-family: var(--at-font-mono);
-  font-size: 0.68rem;
-  font-weight: 800;
+  font-size: var(--at-text-xs);
+  font-weight: var(--at-weight-bold);
 }
 
 .aqua-filter-bar__fields {
@@ -188,7 +188,7 @@
 
 .aqua-data-panel__meta {
   color: var(--at-product-soft-text);
-  font-size: 0.75rem;
+  font-size: var(--at-text-xs);
 }
 
 .aqua-table-shell {
@@ -222,7 +222,7 @@
   border-block-end: 1px solid var(--at-product-border);
   background: transparent;
   color: inherit;
-  padding: var(--at-space-4);
+  padding: var(--at-space-3) var(--at-space-4);
 }
 
 .aqua-table thead th {
@@ -231,8 +231,8 @@
   z-index: 1;
   background: color-mix(in srgb, var(--at-product-surface) 94%, transparent);
   color: var(--at-product-muted);
-  font-size: 0.72rem;
-  font-weight: 850;
+  font-size: var(--at-text-xs);
+  font-weight: var(--at-weight-black);
   letter-spacing: 0.03em;
   white-space: nowrap;
 }
@@ -262,20 +262,20 @@ html[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
 }
 
 .aqua-table-shell[data-aqua-density="compact"] .aqua-table > :not(caption) > * > * {
-  padding: var(--at-space-3);
-  font-size: 0.82rem;
+  padding: var(--at-space-2) var(--at-space-3);
+  font-size: var(--at-text-sm);
 }
 
 .aqua-table__primary {
   color: var(--at-product-text);
-  font-weight: 800;
+  font-weight: var(--at-weight-bold);
 }
 
 .aqua-table__secondary {
   margin-block-start: var(--at-space-1);
   color: var(--at-product-soft-text);
-  font-size: 0.75rem;
-  line-height: 1.45;
+  font-size: var(--at-text-xs);
+  line-height: var(--at-leading-compact);
 }
 
 .aqua-table__actions {

@@ -3,9 +3,20 @@
 ## Package
 
 - Name: `@aqua-tech/design-system`
-- Current internal version: `0.9.0`
+- Current internal version: `0.10.0`
 - Canonical source: Aqua Tech CS
 - Generated package: `packages/aqua-design-system`
+
+## 0.10.0 — internal
+
+Release level: **minor**
+
+- Added a compact operational page-header hierarchy with optional action and metadata regions.
+- Replaced the duplicate in-page product brand box with a small workflow-context label.
+- Tightened shared form, filter, data-panel, and table spacing using semantic typography and spacing tokens.
+- Consumer migration: none required; existing page-header props remain compatible and new regions are optional.
+- Visual review surfaces: dashboard page headers, filters, data panels, compact tables, RTL, and mobile stacking.
+- Quality gate: package sync, lint, typecheck, unit tests, visual contract, and production build.
 
 ## 0.9.0 — internal
 

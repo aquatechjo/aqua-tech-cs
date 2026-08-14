@@ -18,6 +18,10 @@ const clientsPage = readFileSync(
   "src/app/dashboard/clients/ClientsClient.tsx",
   "utf8"
 )
+const pageHeader = readFileSync(
+  "src/components/layout/AquaPageHeader.tsx",
+  "utf8"
+)
 
 test("DS-04 exposes constrained data and workflow contracts", () => {
   assert.deepEqual(aquaDataDensities, ["comfortable", "compact"])
@@ -51,6 +55,27 @@ test("workflow CSS covers responsive tables, modal states, RTL, and reduced moti
       new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
     )
   }
+})
+
+test("UI-03 provides a compact operational page hierarchy", () => {
+  for (const token of [
+    "aqua-page-header__context",
+    "aqua-page-header__actions",
+    "aqua-page-header__meta",
+    "<header",
+  ]) {
+    assert.match(pageHeader, new RegExp(token))
+  }
+
+  assert.equal(pageHeader.includes("aqua-page-brand-box"), false)
+  assert.match(
+    patternsCss,
+    /\.aqua-data-panel[\s\S]*border-radius:\s*var\(--at-radius-lg\)/u
+  )
+  assert.match(
+    patternsCss,
+    /\.aqua-table >[\s\S]*padding:\s*var\(--at-space-3\) var\(--at-space-4\)/u
+  )
 })
 
 test("canonical modal manages focus, Escape, scroll lock, and restoration", () => {

@@ -47,7 +47,7 @@ function fileNames(directory: string, extension: string) {
 
 test("DS-06 exposes constrained package, starter, and release contracts", () => {
   assert.equal(aquaDesignSystemPackageName, "@aqua-tech/design-system")
-  assert.match(aquaDesignSystemVersion, /^0\.9\.\d+$/u)
+  assert.match(aquaDesignSystemVersion, /^0\.10\.\d+$/u)
   assert.deepEqual(aquaDesignSystemCssLayers, [
     "tokens",
     "bootstrap",

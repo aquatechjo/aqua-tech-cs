@@ -547,6 +547,16 @@ Status: **implemented**
 - Replace the generated account initial with a consistent outlined account icon and keep role and email presentation compact and readable.
 - Preserve navigation permissions, nested-route activation, responsive drawer behavior, RTL/LTR mirroring, reduced motion, and every business workflow.
 
+## UI-03 — Page Structure and Spacing
+
+Status: **implemented**
+
+- Replace the duplicate page-level product brand box with compact workflow context.
+- Standardize optional page actions and metadata within the shared page-header contract.
+- Tighten shared form, filter, data-panel, and table spacing for a denser desktop operational rhythm.
+- Use semantic typography, spacing, radius, and shadow tokens instead of new page-level literals.
+- Preserve existing page-header calls, Bootstrap behavior, RTL/LTR layout, mobile stacking, and all business workflows.
+
 ## Release gate for every stage
 
 - Lint
