@@ -5,6 +5,12 @@ import test from "node:test"
 const myDayPage = readFileSync("src/app/dashboard/my-day/page.tsx", "utf8")
 const myDayCss = readFileSync("src/styles/aqua-my-day.css", "utf8")
 const shellCss = readFileSync("src/styles/aqua-operational-shell.css", "utf8")
+const cleanupCss = readFileSync("src/styles/aqua-density-cleanup.css", "utf8")
+const dashboardPage = readFileSync("src/app/dashboard/page.tsx", "utf8")
+const tasksPage = readFileSync(
+  "src/app/dashboard/tasks/TasksClient.tsx",
+  "utf8"
+)
 const layout = readFileSync("src/app/layout.tsx", "utf8")
 const topbar = readFileSync("src/components/layout/AquaTopbar.tsx", "utf8")
 const pageTitle = readFileSync("src/components/layout/AquaPageTitle.tsx", "utf8")
@@ -59,6 +65,33 @@ test("compact shell remains product-level and responsive", () => {
   assert.match(shellCss, /@media \(max-width: 479\.98px\)/u)
   assert.match(shellCss, /padding-inline-end/u)
   assert.match(shellCss, /inline-size/u)
+})
+
+test("UI-13A corrects operational density and RTL navigation", () => {
+  assert.match(layout, /@\/styles\/aqua-density-cleanup\.css/u)
+  assert.match(dashboardPage, /ArrowLeft/u)
+  assert.doesNotMatch(dashboardPage, /ArrowUpLeft/u)
+  assert.match(myDayPage, /ArrowLeft/u)
+  assert.doesNotMatch(myDayPage, /ArrowUpLeft/u)
+  assert.match(tasksPage, /stats\.totalPages > 1/u)
+  assert.doesNotMatch(tasksPage, /Page \{stats\.currentPage\}/u)
+
+  for (const token of [
+    "--aqua-shell-sidebar-width: 232px",
+    ".aqua-topbar__project-name",
+    ".aqua-dashboard-workspace",
+    ".aqua-my-day-workspace",
+    ".aqua-tasks-page .aqua-filter-bar",
+    "grid-template-columns: minmax(0, 1fr) 240px",
+    "min-block-size: 170px",
+    "@media (max-width: 1199.98px)",
+    "@media (prefers-reduced-motion: reduce)",
+  ]) {
+    assert.match(
+      cleanupCss,
+      new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "u")
+    )
+  }
 })
 
 test("AD-02.1 is included in quality gates and adoption governance", () => {

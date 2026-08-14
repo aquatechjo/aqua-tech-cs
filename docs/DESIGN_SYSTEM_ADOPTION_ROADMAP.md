@@ -657,6 +657,16 @@ Status: **implemented**
 - Preserve decimal calculations, issuance, expense approvals, payment reversal, delivery, portal security, permissions, RTL/LTR, print, and reduced motion.
 - Keep this product-specific polish outside the shared Design System release contract.
 
+## UI-13A — Operational Density and RTL Cleanup
+
+Status: **implemented**
+
+- Correct diagonal navigation arrows to stable horizontal RTL actions on Dashboard and My Day.
+- Reduce sidebar, topbar, hero, metric, empty-state, rail, filter, and panel density based on desktop review.
+- Remove the duplicated product label from the topbar while keeping the page title and sidebar identity.
+- Hide redundant single-page pagination metadata and increase secondary-text readability inside the application shell.
+- Preserve routes, tasks, dashboard data, shell behavior, keyboard focus, responsive behavior, and reduced motion.
+
 ## Release gate for every stage
 
 - Lint

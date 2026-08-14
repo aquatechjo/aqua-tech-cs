@@ -1,6 +1,6 @@
 import {
   AlertTriangle,
-  ArrowUpLeft,
+  ArrowLeft,
   Ban,
   CalendarClock,
   CalendarDays,
@@ -289,7 +289,7 @@ export default async function MyDayPage() {
               href="/dashboard/tasks"
               variant="primary"
               size="sm"
-              trailingIcon={<ArrowUpLeft />}
+              trailingIcon={<ArrowLeft />}
             >
               كل المهام
             </AquaLinkButton>
@@ -387,7 +387,7 @@ export default async function MyDayPage() {
                   href="/dashboard/tasks"
                   variant="secondary"
                   size="sm"
-                  trailingIcon={<ArrowUpLeft />}
+                  trailingIcon={<ArrowLeft />}
                 >
                   فتح سجل المهام
                 </AquaLinkButton>
@@ -504,7 +504,7 @@ export default async function MyDayPage() {
                               }
                               variant="ghost"
                               size="sm"
-                              trailingIcon={<ArrowUpLeft />}
+                              trailingIcon={<ArrowLeft />}
                               aria-label={`فتح ${task.title}`}
                             >
                               فتح
@@ -551,7 +551,7 @@ export default async function MyDayPage() {
                 variant="ghost"
                 fullWidth
                 leadingIcon={<ListTodo />}
-                trailingIcon={<ArrowUpLeft />}
+                trailingIcon={<ArrowLeft />}
               >
                 إدارة المهام
               </AquaLinkButton>
@@ -560,7 +560,7 @@ export default async function MyDayPage() {
                 variant="ghost"
                 fullWidth
                 leadingIcon={<FolderKanban />}
-                trailingIcon={<ArrowUpLeft />}
+                trailingIcon={<ArrowLeft />}
               >
                 تنفيذ المشاريع
               </AquaLinkButton>
@@ -569,7 +569,7 @@ export default async function MyDayPage() {
                 variant="ghost"
                 fullWidth
                 leadingIcon={<Clock3 />}
-                trailingIcon={<ArrowUpLeft />}
+                trailingIcon={<ArrowLeft />}
               >
                 الوقت والطاقة
               </AquaLinkButton>

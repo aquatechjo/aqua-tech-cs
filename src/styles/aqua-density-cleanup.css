@@ -1,0 +1,182 @@
+/* Aqua Tech CS — UI-13A operational density and RTL cleanup */
+
+.aqua-shell:not(.aqua-shell--showcase) {
+  --aqua-shell-sidebar-width: 232px;
+  --aqua-shell-content-gutter: clamp(14px, 1.45vw, 24px);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar {
+  gap: var(--at-space-2);
+  padding: 10px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__header {
+  min-block-size: 38px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar-nav {
+  gap: 10px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar-nav__section {
+  gap: 2px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar-nav__label {
+  padding-inline: 9px;
+  font-size: 0.64rem;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-nav-link {
+  min-block-size: 36px;
+  padding: 4px 7px;
+  font-size: 0.78rem;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-nav-link__content {
+  gap: var(--at-space-2);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-nav-link__icon {
+  inline-size: 26px;
+  block-size: 26px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__inner {
+  min-block-size: 54px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__project-name,
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__context-divider {
+  display: none;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-page-heading__title {
+  font-size: 0.95rem;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-muted,
+.aqua-shell:not(.aqua-shell--showcase) .aqua-soft,
+.aqua-shell:not(.aqua-shell--showcase) .aqua-table__secondary,
+.aqua-shell:not(.aqua-shell--showcase) .aqua-data-panel__description {
+  color: color-mix(in srgb, var(--at-product-muted) 88%, white 12%);
+}
+
+.aqua-dashboard-summary {
+  min-block-size: 108px;
+  padding: var(--at-space-4);
+}
+
+.aqua-dashboard-summary h1 {
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+}
+
+.aqua-dashboard-metric {
+  min-block-size: 84px;
+}
+
+.aqua-dashboard-workspace {
+  grid-template-columns: minmax(0, 1fr) 280px;
+}
+
+.aqua-dashboard-attention-panel .aqua-data-panel__body {
+  padding: var(--at-space-2);
+}
+
+.aqua-dashboard-attention-item {
+  padding: var(--at-space-2);
+}
+
+.aqua-dashboard-attention-panel .aqua-empty-state,
+.aqua-dashboard-overview .aqua-empty-state {
+  min-block-size: 150px;
+  padding-block: var(--at-space-4);
+}
+
+.aqua-my-day {
+  gap: var(--at-space-3);
+}
+
+.aqua-my-day-hero {
+  grid-template-columns: minmax(0, 1fr) 250px;
+  min-block-size: 138px;
+  gap: var(--at-space-3);
+  padding: var(--at-space-4);
+}
+
+.aqua-my-day-hero h1 {
+  font-size: clamp(1.4rem, 2vw, 1.8rem);
+}
+
+.aqua-my-day-hero__context {
+  gap: var(--at-space-2);
+  padding: var(--at-space-3);
+}
+
+.aqua-my-day-metric {
+  min-block-size: 88px;
+  padding: var(--at-space-3);
+}
+
+.aqua-my-day-workspace {
+  grid-template-columns: minmax(0, 1fr) 240px;
+}
+
+.aqua-my-day-empty {
+  min-block-size: 170px;
+}
+
+.aqua-my-day-rail .aqua-data-panel__header,
+.aqua-my-day-rail .aqua-data-panel__body {
+  padding: var(--at-space-3);
+}
+
+.aqua-tasks-page {
+  gap: var(--at-space-3);
+}
+
+.aqua-tasks-page > section:first-child {
+  padding: var(--at-space-3) var(--at-space-4);
+}
+
+.aqua-tasks-page > section[aria-label="ملخص المهام"] > .aqua-card {
+  min-block-size: 84px;
+}
+
+.aqua-tasks-page .aqua-filter-bar {
+  padding: var(--at-space-3);
+}
+
+.aqua-tasks-page .aqua-filter-bar__header {
+  margin-block-end: var(--at-space-2);
+}
+
+.aqua-tasks-page .aqua-filter-bar .aqua-form-grid {
+  row-gap: var(--at-space-2);
+}
+
+.aqua-tasks-page .aqua-data-panel__meta:empty {
+  display: none;
+}
+
+.aqua-button svg[data-lucide="arrow-left"] {
+  inline-size: 15px;
+  block-size: 15px;
+}
+
+@media (max-width: 1199.98px) {
+  .aqua-dashboard-workspace,
+  .aqua-my-day-hero,
+  .aqua-my-day-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aqua-dashboard-overview *,
+  .aqua-my-day *,
+  .aqua-tasks-page * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

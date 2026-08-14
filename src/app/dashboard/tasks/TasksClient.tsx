@@ -583,9 +583,11 @@ export default function TasksClient({
         title={scope.label}
         description={`عرض ${stats.from}–${stats.to} من أصل ${stats.totalTasks} مهمة ضمن النطاق الحالي`}
         meta={
-          <span dir="ltr">
-            Page {stats.currentPage} / {stats.totalPages}
-          </span>
+          stats.totalPages > 1 ? (
+            <span dir="ltr">
+              {stats.currentPage} / {stats.totalPages}
+            </span>
+          ) : null
         }
         footer={pagination}
       >

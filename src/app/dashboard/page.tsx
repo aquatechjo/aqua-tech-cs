@@ -1,7 +1,7 @@
 import {
   Activity,
   AlertTriangle,
-  ArrowUpLeft,
+  ArrowLeft,
   Ban,
   CalendarCheck,
   CalendarClock,
@@ -639,7 +639,7 @@ export default async function DashboardPage() {
               href="/dashboard/my-day"
               variant="primary"
               size="sm"
-              trailingIcon={<ArrowUpLeft />}
+              trailingIcon={<ArrowLeft />}
             >
               افتح يومي
             </AquaLinkButton>
@@ -673,7 +673,7 @@ export default async function DashboardPage() {
                 href={metric.href}
                 variant="ghost"
                 size="sm"
-                trailingIcon={<ArrowUpLeft />}
+                trailingIcon={<ArrowLeft />}
                 aria-label={`فتح ${metric.label}`}
               >
                 عرض
@@ -706,7 +706,7 @@ export default async function DashboardPage() {
               href="/dashboard/my-day"
               variant="ghost"
               size="sm"
-              trailingIcon={<ArrowUpLeft />}
+              trailingIcon={<ArrowLeft />}
             >
               فتح تفاصيل يومي
             </AquaLinkButton>
@@ -819,7 +819,7 @@ export default async function DashboardPage() {
                       href={item.href}
                       variant="ghost"
                       size="sm"
-                      trailingIcon={<ArrowUpLeft />}
+                      trailingIcon={<ArrowLeft />}
                       aria-label={`فتح ${item.label}`}
                     >
                       فتح
@@ -845,7 +845,7 @@ export default async function DashboardPage() {
               href="/dashboard/activity"
               variant="ghost"
               size="sm"
-              trailingIcon={<ArrowUpLeft />}
+              trailingIcon={<ArrowLeft />}
             >
               عرض سجل النشاط
             </AquaLinkButton>

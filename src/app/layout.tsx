@@ -18,6 +18,7 @@ import "@/styles/aqua-workforce.css"
 import "@/styles/aqua-finance.css"
 import "@/styles/aqua-dashboard.css"
 import "@/styles/aqua-my-day.css"
+import "@/styles/aqua-density-cleanup.css"
 import "flatpickr/dist/flatpickr.min.css"
 
 import AquaToastViewport from "@/components/aqua/AquaToast"
