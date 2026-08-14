@@ -639,3 +639,12 @@ Status: **implemented**
 - Render the frozen commercial lines, amendment and issuance references, client, Project, totals, payment summary, notes, and terms through the canonical Aqua system-document pattern.
 - Keep the page outside the dashboard shell, no-index, and available for browser print or save as PDF.
 - Keep server-generated PDF attachments, a public invoice portal, online collection, payment reminders, WhatsApp, and n8n outside this batch.
+
+## PROJ-20 — Secure Client Invoice Portal
+
+Status: **implemented**
+
+- Issue, rotate, and revoke an opaque 1–30 day client invoice link under Finance authority and tenant-scoped locks.
+- Store only its hash and preserve issue, expiry, revocation, first-view, last-view, view-count, and Activity evidence.
+- Show a client-safe, no-index, no-referrer invoice document without any internal route or dashboard data.
+- Keep automatic link delivery, online collection, payment reminders, WhatsApp, and n8n outside this batch.

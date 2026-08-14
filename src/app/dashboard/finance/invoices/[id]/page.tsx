@@ -86,6 +86,18 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                 invoice.contractAmendment.invoiceDeliveryFailedAt?.toISOString() ?? null,
               invoiceDeliveryAttemptCount:
                 invoice.contractAmendment.invoiceDeliveryAttemptCount,
+              invoicePortalExpiresAt:
+                invoice.contractAmendment.invoicePortalExpiresAt?.toISOString() ?? null,
+              invoicePortalIssuedAt:
+                invoice.contractAmendment.invoicePortalIssuedAt?.toISOString() ?? null,
+              invoicePortalRevokedAt:
+                invoice.contractAmendment.invoicePortalRevokedAt?.toISOString() ?? null,
+              invoicePortalFirstViewedAt:
+                invoice.contractAmendment.invoicePortalFirstViewedAt?.toISOString() ?? null,
+              invoicePortalLastViewedAt:
+                invoice.contractAmendment.invoicePortalLastViewedAt?.toISOString() ?? null,
+              invoicePortalViewCount:
+                invoice.contractAmendment.invoicePortalViewCount,
             }
           : null,
         items: invoice.items.map((item) => ({

@@ -38,6 +38,12 @@ type Invoice = {
     invoiceDeliverySentAt: string | null
     invoiceDeliveryFailedAt: string | null
     invoiceDeliveryAttemptCount: number
+    invoicePortalExpiresAt: string | null
+    invoicePortalIssuedAt: string | null
+    invoicePortalRevokedAt: string | null
+    invoicePortalFirstViewedAt: string | null
+    invoicePortalLastViewedAt: string | null
+    invoicePortalViewCount: number
   } | null
   items: Array<{
     id: string
@@ -124,6 +130,8 @@ export default function InvoiceDetailClient({
     invoice.contractAmendment?.invoiceDeliveryReference ?? "",
   )
   const [deliveryConfirmOpen, setDeliveryConfirmOpen] = useState(false)
+  const [portalDays, setPortalDays] = useState("14")
+  const [portalPath, setPortalPath] = useState("")
   const [items, setItems] = useState<Line[]>(
     invoice.items.map((item) => ({
       description: item.description,
@@ -139,6 +147,9 @@ export default function InvoiceDetailClient({
   const [paymentNotes, setPaymentNotes] = useState("")
 
   const outstanding = Math.max(0, Number(invoice.totalAmount) - Number(invoice.amountPaid))
+  const portalUrl = portalPath && typeof window !== "undefined"
+    ? `${window.location.origin}${portalPath}`
+    : portalPath
   const preview = useMemo(() => {
     const subtotal = items.reduce(
       (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
@@ -237,6 +248,20 @@ export default function InvoiceDetailClient({
     } finally {
       setBusy("")
     }
+  }
+
+  async function managePortal(action: "ISSUE" | "REVOKE") {
+    setBusy(`portal-${action.toLowerCase()}`)
+    setError("")
+    setSuccess("")
+    try {
+      const response = await fetch(`/api/finance/invoices/${invoice.id}/portal`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(action === "ISSUE" ? { action, validDays: Number(portalDays) } : { action }) })
+      const payload = await response.json()
+      if (!response.ok || !payload.ok) { setError(payload.message || "تعذر إدارة رابط الفاتورة"); return }
+      setPortalPath(payload.data.path ?? "")
+      setSuccess(action === "ISSUE" ? "تم إصدار رابط جديد. انسخه الآن؛ لا يُخزن الرمز بصورته الأصلية." : "تم إلغاء رابط الفاتورة")
+      router.refresh()
+    } catch { setError("تعذر الاتصال بالخادم") } finally { setBusy("") }
   }
 
   async function recordPayment(event: React.FormEvent<HTMLFormElement>) {
@@ -402,6 +427,33 @@ export default function InvoiceDetailClient({
               </button>
             </>
           )}
+        </div>
+      ) : null}
+
+      {invoice.contractAmendment && ["ISSUED", "PARTIALLY_PAID", "PAID"].includes(invoice.status) && canManage ? (
+        <div className="aqua-card p-4 d-print-none">
+          <h2 className="h5 fw-black mb-2">بوابة فاتورة العميل</h2>
+          <p className="aqua-muted">أنشئ رابطًا عشوائيًا محدود الصلاحية. إصدار رابط جديد يلغي الرابط السابق فورًا.</p>
+          {invoice.contractAmendment.invoicePortalIssuedAt && !invoice.contractAmendment.invoicePortalRevokedAt ? (
+            <AquaAlert variant="info" title="يوجد رابط مُصدر">
+              ينتهي في {dateOnly(invoice.contractAmendment.invoicePortalExpiresAt)} — عدد المشاهدات {invoice.contractAmendment.invoicePortalViewCount}.
+              {invoice.contractAmendment.invoicePortalFirstViewedAt ? ` أول مشاهدة: ${dateOnly(invoice.contractAmendment.invoicePortalFirstViewedAt)}.` : " لم يُفتح بعد."}
+            </AquaAlert>
+          ) : null}
+          {portalPath ? (
+            <div className="aqua-card-soft p-3 mt-3">
+              <label className="form-label">الرابط الجديد — انسخه الآن</label>
+              <div className="input-group" dir="ltr">
+                <input className="form-control" readOnly value={portalUrl} />
+                <button className="btn btn-outline-info" type="button" onClick={() => navigator.clipboard.writeText(portalUrl)}>نسخ</button>
+              </div>
+            </div>
+          ) : null}
+          <div className="d-flex flex-wrap align-items-end gap-2 mt-3">
+            <div><label className="form-label">مدة الصلاحية بالأيام</label><input className="form-control" type="number" min="1" max="30" value={portalDays} onChange={(event) => setPortalDays(event.target.value)} /></div>
+            <button className="btn btn-info fw-bold" type="button" disabled={Boolean(busy) || Number(portalDays) < 1 || Number(portalDays) > 30} onClick={() => managePortal("ISSUE")}>{busy === "portal-issue" ? "جارٍ الإصدار..." : "إصدار / تدوير الرابط"}</button>
+            {invoice.contractAmendment.invoicePortalIssuedAt && !invoice.contractAmendment.invoicePortalRevokedAt ? <button className="btn btn-outline-danger" type="button" disabled={Boolean(busy)} onClick={() => managePortal("REVOKE")}>{busy === "portal-revoke" ? "جارٍ الإلغاء..." : "إلغاء الرابط"}</button> : null}
+          </div>
         </div>
       ) : null}
 
