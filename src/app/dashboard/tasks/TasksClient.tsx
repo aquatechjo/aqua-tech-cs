@@ -503,7 +503,7 @@ export default function TasksClient({
   const columnCount = scope.showAssignee ? 7 : 6
 
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} aqua-tasks-page`}>
       <section
         className={styles.intro}
         aria-labelledby="tasks-scope-title"

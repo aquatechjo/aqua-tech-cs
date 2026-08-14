@@ -14,6 +14,16 @@ const css = readFileSync(
   "src/app/dashboard/tasks/Tasks.module.css",
   "utf8"
 )
+const workforceCss = readFileSync("src/styles/aqua-workforce.css", "utf8")
+const timeClient = readFileSync(
+  "src/app/dashboard/time/TimeCapacityClient.tsx",
+  "utf8"
+)
+const teamClient = readFileSync(
+  "src/app/dashboard/team/TeamClient.tsx",
+  "utf8"
+)
+const rootLayout = readFileSync("src/app/layout.tsx", "utf8")
 const listApi = readFileSync(
   "src/app/api/tasks/route.ts",
   "utf8"
@@ -110,6 +120,35 @@ test("AD-03 Tasks styling covers responsive logical and reduced-motion behavior"
         contract.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"),
         "u"
       )
+    )
+  }
+})
+
+test("UI-12 applies one Tasks, Time, and Team workspace contract", () => {
+  assert.match(rootLayout, /@\/styles\/aqua-workforce\.css/u)
+  assert.match(client, /aqua-tasks-page/u)
+  assert.match(timeClient, /aqua-time-page/u)
+  assert.match(timeClient, /aqua-workforce-metrics/u)
+  assert.match(timeClient, /aqua-time-entry-grid/u)
+  assert.match(teamClient, /aqua-team-page/u)
+  assert.match(teamClient, /aqua-team-editor/u)
+  assert.match(teamClient, /aqua-team-directory/u)
+
+  for (const contract of [
+    ".aqua-tasks-page",
+    ".aqua-time-page",
+    ".aqua-team-page",
+    ".aqua-workforce-actions",
+    ".aqua-workforce-metric",
+    ".aqua-time-entry-grid",
+    "inset-inline-end",
+    "min-inline-size",
+    "@media (max-width: 767.98px)",
+    "@media (prefers-reduced-motion: reduce)",
+  ]) {
+    assert.match(
+      workforceCss,
+      new RegExp(contract.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"), "u")
     )
   }
 })

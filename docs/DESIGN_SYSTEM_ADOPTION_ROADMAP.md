@@ -637,6 +637,16 @@ Status: **implemented**
 - Preserve project visibility, readiness gates, delivery transitions, approvals, audit evidence, permissions, RTL/LTR, and reduced motion.
 - Keep this product-specific polish outside the shared Design System release contract.
 
+## UI-12 — Tasks, Time, and Team Workspace Polish
+
+Status: **implemented**
+
+- Apply one product-specific workforce rhythm to Tasks, Time and Capacity, and Team management.
+- Tighten operational metrics, week navigation, timers, time-entry forms, capacity tables, and weekly sheets.
+- Align the employee editor and directory with the compact task and time surfaces.
+- Preserve task scope, timers, billability, costing, approvals, employee access, permissions, RTL/LTR, and reduced motion.
+- Keep this product-specific polish outside the shared Design System release contract.
+
 ## Release gate for every stage
 
 - Lint

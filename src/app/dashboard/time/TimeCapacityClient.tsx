@@ -594,7 +594,7 @@ export default function TimeCapacityClient({
   const nextWeek = addDays(weekStart, 7)
 
   return (
-    <div className="d-flex flex-column gap-4">
+    <div className="aqua-time-page">
       <AquaPageHeader
         badge="Time & Capacity"
         title="الوقت والطاقة التشغيلية"
@@ -602,7 +602,7 @@ export default function TimeCapacityClient({
         brandValue="Utilization"
       />
 
-      <div className="aqua-card p-3">
+      <div className="aqua-card p-3 aqua-time-week-nav">
         <div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
           <div>
             <div className="small aqua-muted">الأسبوع التشغيلي</div>
@@ -633,7 +633,7 @@ export default function TimeCapacityClient({
       {error ? <div className="alert alert-danger mb-0">{error}</div> : null}
       {success ? <div className="alert alert-success mb-0">{success}</div> : null}
 
-      <div className="row g-3">
+      <div className="row g-3 aqua-workforce-metrics">
         {[
           {
             label: "الساعات المسجلة",
@@ -665,7 +665,7 @@ export default function TimeCapacityClient({
           },
         ].map((card) => (
           <div className="col-12 col-md-6 col-xl-3" key={card.label}>
-            <div className="aqua-card p-4 h-100">
+            <div className="aqua-card p-4 h-100 aqua-workforce-metric">
               <div className="small aqua-muted">{card.label}</div>
               <div className="display-6 fw-black aqua-text-gradient mt-2">
                 {card.value}
@@ -707,7 +707,7 @@ export default function TimeCapacityClient({
         </div>
       ) : null}
 
-      <div className="row g-4 align-items-start">
+      <div className="row g-4 align-items-start aqua-time-entry-grid">
         <div className="col-12 col-xl-5">
           <div className="aqua-card p-4">
             <div className="d-flex align-items-start justify-content-between gap-3 mb-4">

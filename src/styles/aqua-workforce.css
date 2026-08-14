@@ -1,0 +1,124 @@
+/* Aqua Tech CS — UI-12 Tasks, Time, and Team workspace polish */
+
+.aqua-tasks-page,
+.aqua-time-page,
+.aqua-team-page {
+  min-inline-size: 0;
+}
+
+.aqua-time-page,
+.aqua-team-page {
+  display: grid;
+  gap: var(--at-space-3);
+}
+
+.aqua-workforce-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--at-space-2);
+}
+
+.aqua-tasks-page > section[aria-label="ملخص المهام"] > .aqua-card,
+.aqua-workforce-metric {
+  position: relative;
+  min-block-size: 88px;
+  padding: var(--at-space-3) !important;
+  overflow: hidden;
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-workforce-metric::after {
+  position: absolute;
+  inset-block: var(--at-space-3);
+  inset-inline-end: 0;
+  inline-size: 3px;
+  border-radius: var(--at-radius-pill);
+  background: var(--at-product-accent);
+  content: "";
+  opacity: 0.78;
+}
+
+.aqua-workforce-metric .display-6 {
+  margin-block: var(--at-space-1) 0 !important;
+  font-family: var(--at-font-mono);
+  font-size: var(--at-text-xl);
+  line-height: var(--at-leading-tight);
+}
+
+.aqua-time-week-nav,
+.aqua-time-entry-grid .aqua-card,
+.aqua-time-page > .aqua-card,
+.aqua-team-editor,
+.aqua-team-directory {
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-time-week-nav .btn {
+  min-block-size: 34px;
+}
+
+.aqua-time-entry-grid {
+  --bs-gutter-x: var(--at-space-3);
+  --bs-gutter-y: var(--at-space-3);
+}
+
+.aqua-time-entry-grid .display-5 {
+  font-family: var(--at-font-mono);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+}
+
+.aqua-time-page .table-responsive,
+.aqua-team-directory .table-responsive {
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-md);
+}
+
+.aqua-time-page table,
+.aqua-team-directory table {
+  margin-block-end: 0;
+}
+
+.aqua-time-page textarea,
+.aqua-team-page textarea {
+  min-block-size: 88px;
+  resize: vertical;
+}
+
+.aqua-team-workspace {
+  --bs-gutter-x: var(--at-space-3);
+  --bs-gutter-y: var(--at-space-3);
+  align-items: start;
+}
+
+.aqua-team-editor,
+.aqua-team-directory {
+  padding: var(--at-space-4) !important;
+}
+
+.aqua-team-directory .aqua-table__actions,
+.aqua-tasks-page .aqua-table__actions {
+  gap: var(--at-space-1);
+}
+
+@media (max-width: 767.98px) {
+  .aqua-workforce-actions,
+  .aqua-workforce-actions > * {
+    inline-size: 100%;
+  }
+
+  .aqua-time-week-nav .btn {
+    flex: 1 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aqua-tasks-page *,
+  .aqua-time-page *,
+  .aqua-team-page * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

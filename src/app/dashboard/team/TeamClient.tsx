@@ -239,7 +239,7 @@ export default function TeamClient({
   }
 
   return (
-    <div>
+    <div className="aqua-team-page">
       <AquaPageHeader
         badge="People & Access"
         title="الفريق والموظفون"
@@ -247,7 +247,7 @@ export default function TeamClient({
         brandValue="People"
       />
 
-      <div className="d-flex justify-content-end mb-4">
+      <div className="aqua-workforce-actions">
         <Link href="/dashboard/organization" className="btn aqua-btn-ghost">
           إدارة الهيكل التنظيمي والفرق
         </Link>
@@ -257,10 +257,10 @@ export default function TeamClient({
         <div className="alert alert-danger rounded-4 border-0">{error}</div>
       ) : null}
 
-      <div className="row g-4">
+      <div className="row g-4 aqua-team-workspace">
         {manager ? (
           <div className="col-12 col-xl-4">
-            <div className="aqua-card p-4">
+            <div className="aqua-card p-4 aqua-team-editor">
               <div className="d-flex align-items-start justify-content-between gap-3 mb-4">
                 <div>
                   <h3 className="h5 fw-black mb-1">
@@ -500,7 +500,7 @@ export default function TeamClient({
         ) : null}
 
         <div className={manager ? "col-12 col-xl-8" : "col-12"}>
-          <div className="aqua-card p-4">
+          <div className="aqua-card p-4 aqua-team-directory">
             <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
               <div>
                 <h3 className="h5 fw-black mb-1">دليل الموظفين</h3>
