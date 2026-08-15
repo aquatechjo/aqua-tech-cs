@@ -467,7 +467,7 @@ export default async function ActivityPage({
   const to = Math.min(skip + activities.length, totalActivities);
 
   return (
-    <div className="aqua-compact-page">
+    <div className="aqua-compact-page aqua-activity-page aqua-admin-governance-page">
       <div className="aqua-compact-header mb-3">
         <AquaPageHeader
           badge="Activity Log"
@@ -477,7 +477,26 @@ export default async function ActivityPage({
         />
       </div>
 
-      <div className="aqua-card aqua-log-table-card p-4">
+      <section className="aqua-activity-metrics" aria-label="ملخص سجل النشاطات">
+        <div className="aqua-card aqua-activity-metric">
+          <span>كل العمليات</span>
+          <strong>{totalActivities}</strong>
+        </div>
+        <div className="aqua-card aqua-activity-metric">
+          <span>عمليات اليوم</span>
+          <strong>{todayActivities}</strong>
+        </div>
+        <div className="aqua-card aqua-activity-metric">
+          <span>تسجيلات الدخول</span>
+          <strong>{loginCount}</strong>
+        </div>
+        <div className="aqua-card aqua-activity-metric">
+          <span>تغييرات الفريق</span>
+          <strong>{teamChanges}</strong>
+        </div>
+      </section>
+
+      <div className="aqua-card aqua-log-table-card aqua-admin-panel p-4">
         <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
           <div>
             <h3 className="h5 fw-black mb-1">كل النشاطات</h3>
@@ -486,15 +505,7 @@ export default async function ActivityPage({
             </p>
           </div>
 
-          <div className="d-flex flex-wrap align-items-center gap-2">
-            <span className="aqua-badge">Total {totalActivities}</span>
-            <span className="aqua-badge">Today {todayActivities}</span>
-            <span className="aqua-badge">Login {loginCount}</span>
-            <span className="aqua-badge">Team {teamChanges}</span>
-            <span className="small aqua-soft ms-2" dir="ltr">
-              Page {currentPage} / {totalPages}
-            </span>
-          </div>
+          <span className="aqua-badge">{PAGE_SIZE} عملية لكل صفحة</span>
         </div>
 
         {activities.length === 0 ? (
@@ -503,7 +514,7 @@ export default async function ActivityPage({
           </div>
         ) : (
           <>
-            <div className="aqua-log-table-scroll">
+            <div className="aqua-log-table-scroll aqua-admin-table-wrap">
               <table className="table table-hover align-middle aqua-log-table">
                 <thead>
                   <tr>
@@ -545,8 +556,7 @@ export default async function ActivityPage({
 
                         {activity.userAgent ? (
                           <div
-                            className="small aqua-soft mt-2 text-truncate"
-                            style={{ maxWidth: 420 }}
+                            className="small aqua-soft mt-2 text-truncate aqua-activity-agent"
                             dir="ltr"
                             title={activity.userAgent}
                           >

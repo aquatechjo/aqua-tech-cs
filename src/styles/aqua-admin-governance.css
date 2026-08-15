@@ -1,0 +1,185 @@
+/* Aqua Tech CS — UI-15 Settings, Team, and Activity workspace polish */
+
+.aqua-admin-governance-page {
+  min-inline-size: 0;
+}
+
+.aqua-settings-page,
+.aqua-activity-page {
+  display: grid;
+  gap: var(--at-space-3);
+}
+
+.aqua-admin-actions {
+  margin-block-end: 0;
+}
+
+.aqua-admin-panel {
+  min-inline-size: 0;
+  border-radius: var(--at-radius-lg) !important;
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-settings-workspace {
+  --bs-gutter-x: var(--at-space-3);
+  --bs-gutter-y: var(--at-space-3);
+}
+
+.aqua-settings-form-card,
+.aqua-settings-preview-card {
+  padding: var(--at-space-4) !important;
+}
+
+.aqua-settings-form-card .form-label,
+.aqua-team-editor .form-label {
+  margin-block-end: var(--at-space-1);
+  font-size: var(--at-text-sm);
+  font-weight: var(--at-weight-semibold);
+}
+
+.aqua-settings-form-card .alert,
+.aqua-team-page > .alert {
+  margin-block-end: var(--at-space-3);
+  padding: var(--at-space-3);
+}
+
+.aqua-settings-preview-card {
+  top: calc(var(--at-shell-topbar-height, 72px) + var(--at-space-3));
+  max-inline-size: none;
+}
+
+.aqua-settings-preview-card .aqua-card-soft {
+  padding: var(--at-space-3) !important;
+  margin-block-end: var(--at-space-2) !important;
+  border-radius: var(--at-radius-md);
+}
+
+.aqua-settings-preview-card .row {
+  --bs-gutter-x: var(--at-space-2);
+  --bs-gutter-y: var(--at-space-2);
+}
+
+.aqua-team-admin-workspace {
+  align-items: start;
+}
+
+.aqua-team-admin-workspace .aqua-team-editor,
+.aqua-team-admin-workspace .aqua-team-directory {
+  padding: var(--at-space-4) !important;
+}
+
+.aqua-team-editor form > .mb-3,
+.aqua-team-editor form > .row {
+  margin-block-end: var(--at-space-3) !important;
+}
+
+.aqua-team-editor form > .row.mt-0 {
+  margin-block-start: 0 !important;
+}
+
+.aqua-team-directory .table-responsive,
+.aqua-admin-table-wrap {
+  min-inline-size: 0;
+  overflow: auto;
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-md);
+}
+
+.aqua-team-directory .table,
+.aqua-admin-table-wrap .table {
+  margin-block-end: 0;
+}
+
+.aqua-team-directory td:last-child .btn {
+  min-block-size: 32px;
+  padding-inline: var(--at-space-2);
+}
+
+.aqua-activity-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--at-space-3);
+}
+
+.aqua-activity-metric {
+  position: relative;
+  display: flex;
+  min-block-size: 76px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--at-space-3);
+  padding: var(--at-space-3) var(--at-space-4) !important;
+  overflow: hidden;
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-activity-metric::after {
+  position: absolute;
+  inset-block: var(--at-space-3);
+  inset-inline-end: 0;
+  inline-size: 3px;
+  border-radius: var(--at-radius-pill);
+  background: var(--at-product-accent);
+  content: "";
+  opacity: 0.78;
+}
+
+.aqua-activity-metric span {
+  color: var(--at-product-muted);
+  font-size: var(--at-text-sm);
+}
+
+.aqua-activity-metric strong {
+  font-family: var(--at-font-mono);
+  font-size: var(--at-text-xl);
+  line-height: var(--at-leading-tight);
+}
+
+.aqua-activity-page .aqua-log-table-card {
+  padding: var(--at-space-4) !important;
+}
+
+.aqua-activity-page .aqua-log-table-scroll {
+  max-block-size: min(58vh, 620px);
+}
+
+.aqua-activity-agent {
+  max-inline-size: 360px;
+}
+
+.aqua-activity-page .aqua-pagination {
+  margin-block-start: 0;
+}
+
+@media (max-width: 1199.98px) {
+  .aqua-settings-preview-card {
+    position: static;
+  }
+
+  .aqua-activity-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767.98px) {
+  .aqua-admin-actions,
+  .aqua-admin-actions > * {
+    inline-size: 100%;
+  }
+
+  .aqua-activity-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .aqua-activity-metric {
+    min-block-size: 68px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aqua-admin-governance-page * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

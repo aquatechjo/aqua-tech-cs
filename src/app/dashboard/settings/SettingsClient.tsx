@@ -91,7 +91,7 @@ export default function SettingsClient({
     }
   }
   return (
-    <div className="aqua-settings-page">
+    <div className="aqua-compact-page aqua-settings-page aqua-admin-governance-page">
       <AquaPageHeader
         badge="Company Settings"
         title="إعدادات الشركة"
@@ -99,9 +99,9 @@ export default function SettingsClient({
         brandValue="Aqua.Tech"
       />
 
-      <div className="row g-3 align-items-start">
+      <div className="row g-3 align-items-start aqua-settings-workspace">
         <div className="col-12 col-xl-8">
-          <div className="aqua-card aqua-settings-form-card">
+          <div className="aqua-card aqua-settings-form-card aqua-admin-panel">
             <div className="d-flex align-items-start justify-content-between gap-3 mb-4">
               <div>
                 <h3 className="h5 fw-black mb-1">بيانات الشركة</h3>
@@ -252,7 +252,7 @@ export default function SettingsClient({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="btn aqua-btn-primary px-5 py-3 mt-4"
+                  className="btn aqua-btn-primary px-4 mt-4"
                 >
                   {loading ? "جاري الحفظ..." : "حفظ الإعدادات"}
                 </button>
@@ -262,7 +262,7 @@ export default function SettingsClient({
         </div>
 
         <div className="col-12 col-xl-4">
-          <div className="aqua-card aqua-settings-preview-card">
+          <div className="aqua-card aqua-settings-preview-card aqua-admin-panel">
             <div className="d-flex align-items-center gap-3 mb-3">
               <div className="aqua-mark">AF</div>
 

@@ -677,6 +677,16 @@ Status: **implemented**
 - Preserve attendance calculations, leave entitlements, schedule snapshots, allocation limits, permissions, RTL/LTR, and reduced motion.
 - Keep this product-specific polish outside the shared Design System release contract.
 
+## UI-15 — Settings, Team, and Activity Workspace Polish
+
+Status: **implemented**
+
+- Apply one compact administration rhythm to company settings, employee access, and the audit log.
+- Tighten company fields, identity preview, employee editor, directory actions, activity metrics, and log browsing.
+- Replace crowded English activity counters and page metadata with clear Arabic operational summaries.
+- Preserve company updates, owner protections, access roles, employee profiles, audit queries, pagination, RTL/LTR, and reduced motion.
+- Keep this product-specific polish outside the shared Design System release contract.
+
 ## Release gate for every stage
 
 - Lint

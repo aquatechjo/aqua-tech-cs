@@ -239,7 +239,7 @@ export default function TeamClient({
   }
 
   return (
-    <div className="aqua-team-page">
+    <div className="aqua-compact-page aqua-team-page aqua-admin-governance-page">
       <AquaPageHeader
         badge="People & Access"
         title="الفريق والموظفون"
@@ -247,7 +247,7 @@ export default function TeamClient({
         brandValue="People"
       />
 
-      <div className="aqua-workforce-actions">
+      <div className="aqua-workforce-actions aqua-admin-actions">
         <Link href="/dashboard/organization" className="btn aqua-btn-ghost">
           إدارة الهيكل التنظيمي والفرق
         </Link>
@@ -257,10 +257,10 @@ export default function TeamClient({
         <div className="alert alert-danger rounded-4 border-0">{error}</div>
       ) : null}
 
-      <div className="row g-4 aqua-team-workspace">
+      <div className="row g-3 aqua-team-workspace aqua-team-admin-workspace">
         {manager ? (
           <div className="col-12 col-xl-4">
-            <div className="aqua-card p-4 aqua-team-editor">
+            <div className="aqua-card p-4 aqua-team-editor aqua-admin-panel">
               <div className="d-flex align-items-start justify-content-between gap-3 mb-4">
                 <div>
                   <h3 className="h5 fw-black mb-1">
@@ -486,7 +486,7 @@ export default function TeamClient({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="btn aqua-btn-primary w-100 py-3 mt-2"
+                  className="btn aqua-btn-primary w-100 mt-2"
                 >
                   {loading
                     ? "جاري الحفظ..."
@@ -500,7 +500,7 @@ export default function TeamClient({
         ) : null}
 
         <div className={manager ? "col-12 col-xl-8" : "col-12"}>
-          <div className="aqua-card p-4 aqua-team-directory">
+          <div className="aqua-card p-4 aqua-team-directory aqua-admin-panel">
             <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
               <div>
                 <h3 className="h5 fw-black mb-1">دليل الموظفين</h3>
