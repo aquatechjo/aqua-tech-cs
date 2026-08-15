@@ -32,7 +32,7 @@ export const aquaRouteDefinitions: readonly AquaRouteDefinition[] = [
   {
     path: "/dashboard/leads",
     title: "العملاء المحتملون",
-    subtitle: "تأهيل Leads وتحديد المسؤول والإجراء التالي",
+    subtitle: "تأهيل العملاء المحتملين وتحديد المسؤول والإجراء التالي",
   },
   {
     path: "/dashboard/discovery",

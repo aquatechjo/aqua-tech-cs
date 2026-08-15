@@ -6,6 +6,10 @@ import { aquaShellDensities } from "../../src/design-system/shell-contracts"
 import { resolveAquaRoute } from "../../src/components/layout/aqua-route-registry"
 
 const shellCss = readFileSync("src/styles/aqua-shell.css", "utf8")
+const densityCleanupCss = readFileSync(
+  "src/styles/aqua-density-cleanup.css",
+  "utf8",
+)
 const dashboardShell = readFileSync(
   "src/components/layout/AquaDashboardShell.tsx",
   "utf8"
@@ -81,4 +85,11 @@ test("canonical shell components use semantic Aqua classes", () => {
   assert.match(sidebar, /<AquaMark size="sm" showTagline=\{false\} \/>/u)
   assert.doesNotMatch(sidebar, /aqua-sidebar__company/u)
   assert.match(topbar, /aqua-topbar__inner/)
+})
+
+test("UI-17A keeps the desktop topbar sticky and the compact sidebar branded", () => {
+  assert.match(densityCleanupCss, /overflow-x: clip/u)
+  assert.match(densityCleanupCss, /background-image: url\("\/aqua-tech-logo\.webp"\)/u)
+  assert.match(densityCleanupCss, /min-block-size: 32px/u)
+  assert.match(densityCleanupCss, /prefers-reduced-motion: reduce/u)
 })

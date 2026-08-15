@@ -1,7 +1,7 @@
 "use client"
 
 import {
-  ArrowUpRight,
+  ArrowLeft,
   CircleCheckBig,
   Clock3,
   CopyCheck,
@@ -35,6 +35,7 @@ import {
   LeadSource,
   LeadStatus,
   ServiceRequestPriority,
+  type ServiceRequestStatus,
 } from "@/generated/prisma/enums"
 import { leadActionBucket } from "@/lib/crm-lead"
 
@@ -76,7 +77,7 @@ type LeadItem = {
   serviceRequest: {
     id: string
     customerName: string
-    status: string
+    status: ServiceRequestStatus
   } | null
   createdAt: string
   updatedAt: string
@@ -237,6 +238,21 @@ function priorityLabel(priority: ServiceRequestPriority) {
   }
 
   return labels[priority]
+}
+
+function serviceRequestStatusLabel(status: ServiceRequestStatus) {
+  const labels: Record<ServiceRequestStatus, string> = {
+    NEW: "جديد",
+    CONTACTED: "تم التواصل",
+    QUALIFIED: "مؤهل",
+    PROPOSAL_SENT: "تم إرسال العرض",
+    APPROVED: "مقبول",
+    REJECTED: "مرفوض",
+    CONVERTED: "تم التحويل",
+    ARCHIVED: "مؤرشف",
+  }
+
+  return labels[status]
 }
 
 function priorityVariant(
@@ -506,7 +522,7 @@ export default function LeadsClient({
     {
       label: "قيد التأهيل",
       value: stats.activeLeads,
-      hint: "Leads مفتوحة",
+      hint: "عملاء محتملون مفتوحون",
       variant: "aqua",
     },
     {
@@ -538,31 +554,32 @@ export default function LeadsClient({
   return (
     <div className="aqua-crm-page">
       <AquaPageHeader
-        badge="Leads CRM"
+        badge="إدارة العملاء المحتملين"
         title="العملاء المحتملون"
         description="استقبال العملاء المحتملين وتأهيلهم وتحديد المسؤول والإجراء التالي قبل تحويلهم إلى فرص مبيعات."
         brandValue="CRM"
+        actions={
+          <div className="aqua-crm-actions">
+            {canManage ? (
+              <AquaButton
+                leadingIcon={<UserRoundPlus />}
+                onClick={startCreate}
+              >
+                إضافة عميل محتمل
+              </AquaButton>
+            ) : null}
+            <AquaLinkButton href="/dashboard/sales" variant="secondary">
+              خط المبيعات
+            </AquaLinkButton>
+            <AquaLinkButton
+              href="/dashboard/service-requests"
+              variant="ghost"
+            >
+              طلبات الخدمة
+            </AquaLinkButton>
+          </div>
+        }
       />
-
-      <div className="aqua-crm-actions">
-        {canManage ? (
-          <AquaButton
-            leadingIcon={<UserRoundPlus />}
-            onClick={startCreate}
-          >
-            إضافة Lead يدوي
-          </AquaButton>
-        ) : null}
-        <AquaLinkButton href="/dashboard/sales" variant="secondary">
-          خط المبيعات
-        </AquaLinkButton>
-        <AquaLinkButton
-          href="/dashboard/service-requests"
-          variant="ghost"
-        >
-          طلبات الخدمة
-        </AquaLinkButton>
-      </div>
 
       {error ? (
         <AquaAlert
@@ -732,7 +749,7 @@ export default function LeadsClient({
                 colSpan={7}
                 variant="empty"
                 icon={<UsersRound />}
-                title="لا توجد Leads مطابقة"
+                title="لا يوجد عملاء محتملون مطابقون"
                 description="غيّر معايير البحث أو أضف عميلًا محتملًا يدويًا."
               />
             ) : (
@@ -813,7 +830,7 @@ export default function LeadsClient({
                     </div>
                     <div className="aqua-table__secondary">
                       {lead.serviceRequest
-                        ? `طلب خدمة: ${lead.serviceRequest.status}`
+                        ? `طلب خدمة: ${serviceRequestStatusLabel(lead.serviceRequest.status)}`
                         : lead.campaign || "إدخال مباشر"}
                     </div>
                   </td>
@@ -864,7 +881,7 @@ export default function LeadsClient({
                           href={`/dashboard/sales/opportunities/${lead.opportunity.id}`}
                           variant="secondary"
                           size="sm"
-                          trailingIcon={<ArrowUpRight />}
+                          trailingIcon={<ArrowLeft />}
                         >
                           فتح الفرصة
                         </AquaLinkButton>
@@ -883,7 +900,7 @@ export default function LeadsClient({
         onClose={() => {
           if (!loading) setFormOpen(false)
         }}
-        title={editingLead ? "مراجعة العميل المحتمل" : "إضافة Lead يدوي"}
+        title={editingLead ? "مراجعة العميل المحتمل" : "إضافة عميل محتمل"}
         description={
           editingLead
             ? "حدّث بيانات التأهيل والمسؤول والإجراء التالي. سيتم مزامنة طلب الخدمة المرتبط إن وجد."
@@ -906,7 +923,7 @@ export default function LeadsClient({
               loading={loading}
               loadingLabel="جارٍ الحفظ"
             >
-              {editingLead ? "حفظ المراجعة" : "إضافة Lead"}
+              {editingLead ? "حفظ المراجعة" : "إضافة العميل المحتمل"}
             </AquaButton>
           </div>
         }

@@ -5,17 +5,30 @@
   --aqua-shell-content-gutter: clamp(14px, 1.45vw, 24px);
 }
 
+/* `hidden` creates a scroll container that breaks sticky topbars. */
+.aqua-shell.aqua-page:not(.aqua-shell--showcase) {
+  overflow-x: clip;
+}
+
 .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar {
-  gap: var(--at-space-2);
-  padding: 10px;
+  gap: 6px;
+  padding: 8px;
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__header {
-  min-block-size: 38px;
+  min-block-size: 34px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar .aqua-mark--image {
+  inline-size: 36px;
+  block-size: 36px;
+  background-image: url("/aqua-tech-logo.webp");
+  background-position: center;
+  background-size: cover;
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar-nav {
-  gap: 10px;
+  gap: 6px;
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar-nav__section {
@@ -23,14 +36,14 @@
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar-nav__label {
-  padding-inline: 9px;
-  font-size: 0.64rem;
+  padding-inline: 8px;
+  font-size: 0.61rem;
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-nav-link {
-  min-block-size: 36px;
-  padding: 4px 7px;
-  font-size: 0.78rem;
+  min-block-size: 32px;
+  padding: 3px 6px;
+  font-size: 0.75rem;
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-nav-link__content {
@@ -38,8 +51,8 @@
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-nav-link__icon {
-  inline-size: 26px;
-  block-size: 26px;
+  inline-size: 24px;
+  block-size: 24px;
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__inner {

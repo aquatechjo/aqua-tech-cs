@@ -707,6 +707,17 @@ Status: **implemented**
 - Normalize the remaining oversized primary actions without changing their hierarchy or behavior.
 - Preserve queries, filters, pagination, forms, permissions, data transitions, responsive behavior, and reduced motion.
 
+## UI-17A — Screenshot QA Corrections
+
+Status: **implemented**
+
+- Correct issues confirmed through the final 1920×1080 Dashboard and Leads screenshots.
+- Keep the operational topbar sticky after vertical scrolling and provide a direct sidebar logo fallback.
+- Compress sidebar navigation so more destinations remain visible without sacrificing labels or focus targets.
+- Move Leads actions into the canonical page header and remove unnecessary vertical separation.
+- Translate remaining mixed Lead and Service Request states and replace the diagonal opportunity arrow with the approved horizontal RTL action.
+- Preserve CRM data, qualification, conversion, filters, routes, permissions, responsive behavior, and reduced motion.
+
 ## Release gate for every stage
 
 - Lint
