@@ -294,7 +294,7 @@ export default function OrganizationClient({
   )
 
   return (
-    <div>
+    <div className="aqua-organization-page">
       <AquaPageHeader
         badge="Organization"
         title="الهيكل التنظيمي"
@@ -302,13 +302,13 @@ export default function OrganizationClient({
         brandValue="Structure"
       />
 
-      <div className="d-flex flex-wrap justify-content-end gap-2 mb-4">
+      <div className="aqua-people-actions">
         <Link href="/dashboard/team" className="btn aqua-btn-ghost">
           إدارة حسابات الموظفين
         </Link>
       </div>
 
-      <div className="row g-3 mb-4">
+      <div className="row g-3 aqua-people-metrics">
         {[
           ["الأقسام", departments.length, "Departments"],
           ["المسميات", jobRoles.length, "Job roles"],
@@ -316,7 +316,7 @@ export default function OrganizationClient({
           ["التوزيعات", totalMemberships, "Allocations"],
         ].map(([label, value, hint]) => (
           <div className="col-6 col-xl-3" key={String(label)}>
-            <div className="aqua-card p-4 h-100">
+            <div className="aqua-card p-4 h-100 aqua-people-metric">
               <div className="small aqua-muted">{label}</div>
               <div className="display-6 fw-black aqua-text-gradient mt-2">
                 {value}
@@ -334,7 +334,7 @@ export default function OrganizationClient({
       ) : null}
 
       {canManage ? (
-        <div className="row g-4 mb-4">
+        <div className="row g-4 aqua-organization-editors">
           <div className="col-12 col-xl-4">
             <form onSubmit={submitDepartment} className="aqua-card p-4 h-100">
               <FormHeading
@@ -482,7 +482,7 @@ export default function OrganizationClient({
         </div>
       ) : null}
 
-      <div className="row g-4 mb-4">
+      <div className="row g-4 aqua-organization-registers">
         <div className="col-12 col-xl-6">
           <div className="aqua-card p-4 h-100">
             <SectionHeading
@@ -603,7 +603,7 @@ export default function OrganizationClient({
         </div>
       </div>
 
-      <div className="aqua-card p-4 mb-4">
+      <div className="aqua-card p-4 aqua-organization-teams">
         <SectionHeading title="الفرق" hint={`${teams.length} فريق`} />
         {teams.length === 0 ? (
           <div className="aqua-card-soft p-5 text-center aqua-soft">

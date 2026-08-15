@@ -667,6 +667,16 @@ Status: **implemented**
 - Hide redundant single-page pagination metadata and increase secondary-text readability inside the application shell.
 - Preserve routes, tasks, dashboard data, shell behavior, keyboard focus, responsive behavior, and reduced motion.
 
+## UI-14 — HR and Organization Workspace Polish
+
+Status: **implemented**
+
+- Apply one product-specific people-operations rhythm to HR and Organization workspaces.
+- Tighten attendance, leave, schedules, holidays, balances, departments, job roles, teams, memberships, and allocations.
+- Align operational metrics, tabs, editors, registers, tables, and capacity progress.
+- Preserve attendance calculations, leave entitlements, schedule snapshots, allocation limits, permissions, RTL/LTR, and reduced motion.
+- Keep this product-specific polish outside the shared Design System release contract.
+
 ## Release gate for every stage
 
 - Lint

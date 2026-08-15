@@ -561,7 +561,7 @@ export default function HrClient({
   }
 
   return (
-    <div className="aqua-compact-page">
+    <div className="aqua-compact-page aqua-hr-page">
       <AquaPageHeader
         badge="People Operations"
         title="الموارد البشرية والحضور"
@@ -569,7 +569,7 @@ export default function HrClient({
         brandValue="People"
       />
 
-      <div className="d-flex flex-wrap gap-2 mb-4">
+      <div className="aqua-people-tabs">
         {([
           ["overview", "اليوم"],
           ["leave", `الإجازات${stats.pendingRequests ? ` (${stats.pendingRequests})` : ""}`],
@@ -592,7 +592,7 @@ export default function HrClient({
 
       {tab === "overview" ? (
         <>
-          <div className="row g-3 mb-4">
+          <div className="row g-3 aqua-people-metrics">
             {[
               ["الموظفون النشطون", stats.employees],
               ["الحاضرون اليوم", stats.presentToday],
@@ -600,7 +600,7 @@ export default function HrClient({
               ["لم يسجلوا", stats.missingToday],
             ].map(([label, value]) => (
               <div className="col-6 col-xl-3" key={label}>
-                <div className="aqua-card p-4 h-100">
+                <div className="aqua-card p-4 h-100 aqua-people-metric">
                   <div className="small aqua-muted">{label}</div>
                   <div className="display-6 fw-black aqua-text-gradient mt-2">{value}</div>
                 </div>

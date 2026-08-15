@@ -1,4 +1,5 @@
 import assert from "node:assert/strict"
+import { readFileSync } from "node:fs"
 import test from "node:test"
 import {
   attendanceMetrics,
@@ -10,6 +11,43 @@ import {
   normalizeWorkingDays,
   parseClockMinute,
 } from "../../src/lib/hr"
+
+const peopleCss = readFileSync("src/styles/aqua-people-operations.css", "utf8")
+const rootLayout = readFileSync("src/app/layout.tsx", "utf8")
+const hrPage = readFileSync("src/app/dashboard/hr/HrClient.tsx", "utf8")
+const organizationPage = readFileSync(
+  "src/app/dashboard/organization/OrganizationClient.tsx",
+  "utf8",
+)
+
+test("UI-14 applies one HR and Organization workspace contract", () => {
+  assert.match(rootLayout, /@\/styles\/aqua-people-operations\.css/u)
+  assert.match(hrPage, /aqua-hr-page/u)
+  assert.match(hrPage, /aqua-people-tabs/u)
+  assert.match(hrPage, /aqua-people-metrics/u)
+  assert.match(organizationPage, /aqua-organization-page/u)
+  assert.match(organizationPage, /aqua-organization-editors/u)
+  assert.match(organizationPage, /aqua-organization-registers/u)
+  assert.match(organizationPage, /aqua-organization-teams/u)
+
+  for (const contract of [
+    ".aqua-hr-page",
+    ".aqua-organization-page",
+    ".aqua-people-actions",
+    ".aqua-people-tabs",
+    ".aqua-people-metric",
+    ".aqua-organization-editors",
+    "inset-inline-end",
+    "min-inline-size",
+    "@media (max-width: 767.98px)",
+    "@media (prefers-reduced-motion: reduce)",
+  ]) {
+    assert.match(
+      peopleCss,
+      new RegExp(contract.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"), "u"),
+    )
+  }
+})
 
 test("working days are unique sorted ISO weekdays", () => {
   assert.deepEqual(normalizeWorkingDays([7, 1, 2, 2, 4, 3]), [1, 2, 3, 4, 7])

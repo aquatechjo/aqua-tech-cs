@@ -1,0 +1,134 @@
+/* Aqua Tech CS — UI-14 HR and Organization workspace polish */
+
+.aqua-hr-page,
+.aqua-organization-page {
+  display: grid;
+  gap: var(--at-space-3);
+  min-inline-size: 0;
+}
+
+.aqua-people-actions,
+.aqua-people-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--at-space-2);
+}
+
+.aqua-people-actions {
+  justify-content: flex-end;
+}
+
+.aqua-people-tabs {
+  padding: var(--at-space-1);
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-md);
+  background: rgba(var(--at-product-accent-rgb), 0.03);
+}
+
+.aqua-people-tabs .btn {
+  min-block-size: 34px;
+}
+
+.aqua-people-metrics {
+  margin-block: 0;
+}
+
+.aqua-people-metric {
+  position: relative;
+  min-block-size: 88px;
+  padding: var(--at-space-3) !important;
+  overflow: hidden;
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-people-metric::after {
+  position: absolute;
+  inset-block: var(--at-space-3);
+  inset-inline-end: 0;
+  inline-size: 3px;
+  border-radius: var(--at-radius-pill);
+  background: var(--at-product-accent);
+  content: "";
+  opacity: 0.78;
+}
+
+.aqua-people-metric .display-6 {
+  margin-block: var(--at-space-1) 0 !important;
+  font-family: var(--at-font-mono);
+  font-size: var(--at-text-xl);
+  line-height: var(--at-leading-tight);
+}
+
+.aqua-hr-page .aqua-card,
+.aqua-organization-page .aqua-card,
+.aqua-organization-editors form,
+.aqua-organization-registers > div > .aqua-card,
+.aqua-organization-teams {
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-hr-page .row,
+.aqua-organization-page .row {
+  --bs-gutter-x: var(--at-space-3);
+  --bs-gutter-y: var(--at-space-3);
+}
+
+.aqua-hr-page .aqua-card,
+.aqua-organization-page .aqua-card {
+  padding: var(--at-space-4) !important;
+}
+
+.aqua-hr-page .aqua-card-soft,
+.aqua-organization-page .aqua-card-soft {
+  border-radius: var(--at-radius-md);
+}
+
+.aqua-hr-page .table-responsive,
+.aqua-organization-page .table-responsive {
+  border: 1px solid var(--at-product-border);
+  border-radius: var(--at-radius-md);
+}
+
+.aqua-hr-page table,
+.aqua-organization-page table {
+  margin-block-end: 0;
+}
+
+.aqua-hr-page textarea,
+.aqua-organization-page textarea {
+  min-block-size: 84px;
+  resize: vertical;
+}
+
+.aqua-organization-editors,
+.aqua-organization-registers {
+  margin-block: 0;
+}
+
+.aqua-organization-teams {
+  margin-block: 0 !important;
+}
+
+.aqua-organization-page .progress {
+  block-size: 7px !important;
+  border-radius: var(--at-radius-pill);
+}
+
+@media (max-width: 767.98px) {
+  .aqua-people-actions,
+  .aqua-people-actions > *,
+  .aqua-people-tabs > * {
+    inline-size: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aqua-hr-page *,
+  .aqua-organization-page * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
