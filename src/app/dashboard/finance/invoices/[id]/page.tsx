@@ -143,6 +143,10 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           reversalReason: payment.reversalReason,
           recordedBy: payment.recordedBy,
           reversedBy: payment.reversedBy,
+          receiptRecipientEmail: payment.receiptRecipientEmail,
+          receiptSentAt: payment.receiptSentAt?.toISOString() ?? null,
+          receiptFailedAt: payment.receiptFailedAt?.toISOString() ?? null,
+          receiptDeliveryAttemptCount: payment.receiptDeliveryAttemptCount,
         })),
       }}
     />

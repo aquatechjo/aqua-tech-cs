@@ -624,6 +624,9 @@ enum ActivityAction {
   INVOICE_CANCELLED
   PAYMENT_RECORDED
   PAYMENT_REVERSED
+  PAYMENT_RECEIPT_DELIVERY_PREPARED
+  PAYMENT_RECEIPT_DELIVERY_FAILED
+  PAYMENT_RECEIPT_SENT
   EXPENSE_CREATED
   EXPENSE_UPDATED
   EXPENSE_SUBMITTED
@@ -2465,6 +2468,15 @@ model Payment {
 
   reversedAt     DateTime?
   reversalReason String?
+
+  receiptRecipientName String?
+  receiptRecipientEmail String?
+  receiptProviderId String?
+  receiptPreparedAt DateTime?
+  receiptSentAt DateTime?
+  receiptFailedAt DateTime?
+  receiptFailureReason String?
+  receiptDeliveryAttemptCount Int @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

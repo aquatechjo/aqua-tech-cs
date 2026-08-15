@@ -6,6 +6,7 @@ import { logActivity } from "@/lib/activity"
 import { getRequestMeta, requireAuth } from "@/lib/auth"
 import { refreshInvoicePaymentState } from "@/lib/finance-server"
 import { prisma } from "@/lib/prisma"
+import { paymentReceiptAttemptInProgress } from "@/lib/payment-receipt"
 import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
 
 const reverseSchema = z.object({
@@ -69,6 +70,10 @@ export async function POST(
 
       if (payment.status === "REVERSED") {
         throw new ApiError("تم عكس هذه الدفعة سابقًا", 409, "PAYMENT_ALREADY_REVERSED")
+      }
+
+      if (paymentReceiptAttemptInProgress({ preparedAt: payment.receiptPreparedAt, failedAt: payment.receiptFailedAt, sentAt: payment.receiptSentAt })) {
+        throw new ApiError("لا يمكن عكس الدفعة أثناء إرسال إيصالها", 409, "PAYMENT_RECEIPT_DELIVERY_IN_PROGRESS")
       }
 
       const reversed = await tx.payment.update({

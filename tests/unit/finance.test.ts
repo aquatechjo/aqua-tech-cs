@@ -12,6 +12,8 @@ import {
   parseScaledDecimal,
   paymentAdjustedInvoiceStatus,
 } from "../../src/lib/finance"
+import { buildPaymentReceiptEmail } from "../../src/lib/email-templates"
+import { paymentReceiptDeliveryIssues, paymentReceiptReference, safePaymentReceiptFailure } from "../../src/lib/payment-receipt"
 
 const financeCss = readFileSync("src/styles/aqua-finance.css", "utf8")
 const rootLayout = readFileSync("src/app/layout.tsx", "utf8")
@@ -186,4 +188,28 @@ test("company timezone date keys are stable", () => {
     businessDate(instant, "Asia/Amman").toISOString(),
     "2026-07-25T00:00:00.000Z",
   )
+})
+
+test("PROJ-24 payment receipt references and delivery rules are deterministic", () => {
+  assert.equal(paymentReceiptReference("abc123"), "RCPT-ABC123")
+  assert.deepEqual(paymentReceiptDeliveryIssues({ status: "POSTED", clientName: "Client", clientEmail: "client@example.com", preparedAt: null, failedAt: null, sentAt: null }), [])
+  assert.ok(paymentReceiptDeliveryIssues({ status: "REVERSED", clientName: "Client", clientEmail: "client@example.com", preparedAt: null, failedAt: null, sentAt: null }).length)
+  assert.equal(safePaymentReceiptFailure(new Error("RESEND_EMAIL_FAILED:429:private")), "EMAIL_PROVIDER_FAILED:429")
+})
+
+test("PROJ-24 receipt email is client-safe and delivery is tenant governed", () => {
+  const email = buildPaymentReceiptEmail({ recipientName: "<Client>", receiptReference: "RCPT-1", invoiceNumber: "INV-1", projectName: "Project", amount: "50.00", currency: "JOD", paymentMethod: "حوالة بنكية", paidAt: "2026-08-16", paymentReference: "BANK-1", companyEmail: "info@example.com" })
+  assert.match(email.html, /&lt;Client&gt;/u)
+  assert.doesNotMatch(email.html, /dashboard|payment-receipt/u)
+  const route = readFileSync("src/app/api/finance/payments/[id]/receipt/delivery/route.ts", "utf8")
+  const page = readFileSync("src/app/payment-receipt/[id]/page.tsx", "utf8")
+  assert.match(route, /assertSameOrigin/u)
+  assert.match(route, /financeManagement/u)
+  assert.match(route, /companyId: user\.companyId/u)
+  assert.match(route, /FOR UPDATE/u)
+  assert.match(page, /financeRead/u)
+  assert.match(page, /status: "POSTED"/u)
+  const reverse = readFileSync("src/app/api/finance/payments/[id]/reverse/route.ts", "utf8")
+  assert.match(reverse, /PAYMENT_RECEIPT_DELIVERY_IN_PROGRESS/u)
+  assert.match(route, /PAYMENT_RECEIPT_PREPARATION_CHANGED/u)
 })

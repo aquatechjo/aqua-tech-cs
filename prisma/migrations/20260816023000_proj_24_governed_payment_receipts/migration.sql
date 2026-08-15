@@ -1,0 +1,13 @@
+ALTER TYPE "ActivityAction" ADD VALUE 'PAYMENT_RECEIPT_DELIVERY_PREPARED';
+ALTER TYPE "ActivityAction" ADD VALUE 'PAYMENT_RECEIPT_DELIVERY_FAILED';
+ALTER TYPE "ActivityAction" ADD VALUE 'PAYMENT_RECEIPT_SENT';
+
+ALTER TABLE "Payment"
+ADD COLUMN "receiptRecipientName" TEXT,
+ADD COLUMN "receiptRecipientEmail" TEXT,
+ADD COLUMN "receiptProviderId" TEXT,
+ADD COLUMN "receiptPreparedAt" TIMESTAMP(3),
+ADD COLUMN "receiptSentAt" TIMESTAMP(3),
+ADD COLUMN "receiptFailedAt" TIMESTAMP(3),
+ADD COLUMN "receiptFailureReason" TEXT,
+ADD COLUMN "receiptDeliveryAttemptCount" INTEGER NOT NULL DEFAULT 0;

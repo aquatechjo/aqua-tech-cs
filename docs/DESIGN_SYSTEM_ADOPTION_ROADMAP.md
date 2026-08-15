@@ -866,3 +866,11 @@ Status: **implemented**
 - Preserve the 72-hour cooldown and three-reminder cap while rotating portal links only after successful delivery.
 - Stop scheduling on full payment, inactive portal state, reminder cap, or provider failure.
 - Keep online collection, WhatsApp, automatic retries, and n8n outside this batch.
+
+## PROJ-24 — Governed Payment Receipts
+
+- Provide an authenticated, tenant-scoped, print-ready receipt for each posted invoice payment.
+- Send a client-safe receipt confirmation to the invoice client without exposing an internal application URL.
+- Reject reversed payments and block concurrent delivery attempts under a payment row lock.
+- Preserve recipient, provider id, prepared, sent, failed, bounded failure reason, and attempt-count evidence.
+- Keep public receipt links, attachments, online collection, WhatsApp, and n8n outside this batch.

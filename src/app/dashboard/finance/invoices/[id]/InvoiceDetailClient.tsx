@@ -77,6 +77,10 @@ type Invoice = {
     reversalReason: string | null
     recordedBy: { id: string; name: string } | null
     reversedBy: { id: string; name: string } | null
+    receiptRecipientEmail: string | null
+    receiptSentAt: string | null
+    receiptFailedAt: string | null
+    receiptDeliveryAttemptCount: number
   }>
 }
 
@@ -151,6 +155,7 @@ export default function InvoiceDetailClient({
   )
   const [portalDeliveryConfirmOpen, setPortalDeliveryConfirmOpen] = useState(false)
   const [reminderConfirmOpen, setReminderConfirmOpen] = useState(false)
+  const [receiptPaymentId, setReceiptPaymentId] = useState("")
   const [items, setItems] = useState<Line[]>(
     invoice.items.map((item) => ({
       description: item.description,
@@ -337,6 +342,21 @@ export default function InvoiceDetailClient({
       const payload = await response.json()
       if (!response.ok || !payload.ok) { setError(payload.message || "تعذر تحديث جدولة التذكيرات"); return }
       setSuccess(enabled ? "تم تفعيل جدولة تذكيرات الدفع" : "تم إيقاف جدولة تذكيرات الدفع")
+      router.refresh()
+    } catch { setError("تعذر الاتصال بالخادم") } finally { setBusy("") }
+  }
+
+  async function deliverPaymentReceipt() {
+    if (!receiptPaymentId) return
+    setBusy(`receipt-${receiptPaymentId}`)
+    setError("")
+    setSuccess("")
+    try {
+      const response = await fetch(`/api/finance/payments/${receiptPaymentId}/receipt/delivery`, { method: "POST" })
+      const payload = await response.json()
+      if (!response.ok || !payload.ok) { setError(payload.message || "تعذر إرسال إيصال الدفعة"); return }
+      setSuccess(`تم إرسال إيصال الدفعة ${payload.data.receiptReference} إلى العميل`)
+      setReceiptPaymentId("")
       router.refresh()
     } catch { setError("تعذر الاتصال بالخادم") } finally { setBusy("") }
   }
@@ -698,7 +718,7 @@ export default function InvoiceDetailClient({
                         {payment.status === "REVERSED" ? <div className="small text-danger mt-2">معكوسة: {payment.reversalReason}</div> : null}
                       </div>
                       {canManage && payment.status === "POSTED" ? (
-                        <button className="btn btn-sm btn-outline-danger" disabled={Boolean(busy)} type="button" onClick={() => reversePayment(payment.id)}>{busy === `reverse-${payment.id}` ? "..." : "عكس"}</button>
+                        <div className="d-flex flex-wrap gap-2"><Link className="btn btn-sm btn-outline-info" href={`/payment-receipt/${payment.id}`} target="_blank">عرض الإيصال</Link><button className="btn btn-sm btn-outline-success" disabled={Boolean(busy) || !invoice.client?.email} type="button" onClick={() => setReceiptPaymentId(payment.id)}>{busy === `receipt-${payment.id}` ? "..." : "إرسال الإيصال"}</button><button className="btn btn-sm btn-outline-danger" disabled={Boolean(busy)} type="button" onClick={() => reversePayment(payment.id)}>{busy === `reverse-${payment.id}` ? "..." : "عكس"}</button></div>
                       ) : <span className={`badge ${payment.status === "POSTED" ? "text-bg-success" : "text-bg-danger"}`}>{payment.status === "POSTED" ? "مرحّلة" : "معكوسة"}</span>}
                     </div>
                   </div>
@@ -728,6 +748,15 @@ export default function InvoiceDetailClient({
         }
         confirmLabel="إصدار الفاتورة"
         loading={busy === "issue"}
+      />
+      <AquaConfirmDialog
+        open={Boolean(receiptPaymentId)}
+        onClose={() => setReceiptPaymentId("")}
+        onConfirm={deliverPaymentReceipt}
+        title="إرسال إيصال الدفعة"
+        description={`سيُرسل تأكيد استلام الدفعة إلى ${invoice.client?.email ?? "بريد العميل"}. لن تتضمن الرسالة رابطًا للنظام الداخلي.`}
+        confirmLabel="إرسال الإيصال"
+        loading={busy.startsWith("receipt-")}
       />
       <AquaConfirmDialog
         open={reminderConfirmOpen}
