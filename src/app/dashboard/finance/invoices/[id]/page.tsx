@@ -11,12 +11,13 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
   assertRole(user.role, ACCESS_ROLES.financeRead)
   const { id } = await params
 
-  const invoice = await prisma.invoice.findFirst({
+  const [invoice, collectionOwners] = await Promise.all([prisma.invoice.findFirst({
     where: { id, companyId: user.companyId },
     include: {
       client: { select: { id: true, name: true, email: true, phone: true } },
       project: { select: { id: true, name: true, code: true } },
       createdBy: { select: { id: true, name: true, email: true } },
+      collectionOwner: { select: { id: true, name: true, email: true } },
       contractAmendment: true,
       items: { orderBy: { sortOrder: "asc" } },
       payments: {
@@ -27,7 +28,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         },
       },
     },
-  })
+  }), prisma.user.findMany({ where: { companyId: user.companyId, isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true, email: true } })])
 
   if (!invoice) notFound()
 
@@ -35,6 +36,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
     <InvoiceDetailClient
       canManage={hasRole(user.role, ACCESS_ROLES.financeManagement)}
       defaultDate={localDateKey(new Date(), user.company.timezone)}
+      collectionOwners={collectionOwners}
       invoice={{
         id: invoice.id,
         invoiceNumber: invoice.invoiceNumber,
@@ -59,6 +61,13 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         client: invoice.client,
         project: invoice.project,
         createdBy: invoice.createdBy,
+        collectionOwner: invoice.collectionOwner,
+        collectionStatus: invoice.collectionStatus,
+        collectionNextAction: invoice.collectionNextAction,
+        collectionNextActionAt: invoice.collectionNextActionAt?.toISOString() ?? null,
+        collectionPromiseDate: invoice.collectionPromiseDate?.toISOString() ?? null,
+        collectionNotes: invoice.collectionNotes,
+        collectionUpdatedAt: invoice.collectionUpdatedAt?.toISOString() ?? null,
         contractAmendment: invoice.contractAmendment
           ? {
               id: invoice.contractAmendment.id,

@@ -231,6 +231,15 @@ enum InvoiceStatus {
   CANCELLED
 }
 
+enum InvoiceCollectionStatus {
+  NEW
+  CONTACTED
+  PROMISED
+  DISPUTED
+  ESCALATED
+  CLOSED
+}
+
 enum PaymentMethod {
   CASH
   BANK_TRANSFER
@@ -627,6 +636,7 @@ enum ActivityAction {
   PAYMENT_RECEIPT_DELIVERY_PREPARED
   PAYMENT_RECEIPT_DELIVERY_FAILED
   PAYMENT_RECEIPT_SENT
+  INVOICE_COLLECTION_UPDATED
   EXPENSE_CREATED
   EXPENSE_UPDATED
   EXPENSE_SUBMITTED
@@ -783,6 +793,7 @@ model User {
   reportedTaskBlockers                     TaskBlocker[]            @relation("TaskBlockerReporter")
   resolvedTaskBlockers                     TaskBlocker[]            @relation("TaskBlockerResolver")
   createdInvoices                          Invoice[]                @relation("InvoiceCreator")
+  ownedInvoiceCollections                  Invoice[]                @relation("InvoiceCollectionOwner")
   recordedPayments                         Payment[]                @relation("PaymentRecorder")
   reversedPayments                         Payment[]                @relation("PaymentReverser")
   createdExpenses                          Expense[]                @relation("ExpenseCreator")
@@ -2387,6 +2398,15 @@ model Invoice {
   createdById String?
   createdBy   User?   @relation("InvoiceCreator", fields: [createdById], references: [id], onDelete: SetNull)
 
+  collectionOwnerId String?
+  collectionOwner User? @relation("InvoiceCollectionOwner", fields: [collectionOwnerId], references: [id], onDelete: SetNull)
+  collectionStatus InvoiceCollectionStatus @default(NEW)
+  collectionNextAction String?
+  collectionNextActionAt DateTime?
+  collectionPromiseDate DateTime?
+  collectionNotes String?
+  collectionUpdatedAt DateTime?
+
   invoiceNumber String
   status        InvoiceStatus @default(DRAFT)
   currency      String        @default("JOD")
@@ -2416,6 +2436,8 @@ model Invoice {
   @@index([projectId])
   @@index([serviceRequestId])
   @@index([createdById])
+  @@index([collectionOwnerId])
+  @@index([companyId, collectionStatus, collectionNextActionAt], map: "invoice_collection_queue_idx")
   @@index([status])
   @@index([issueDate])
   @@index([dueDate])

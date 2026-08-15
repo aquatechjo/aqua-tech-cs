@@ -92,6 +92,10 @@ export async function POST(
         payment.invoiceId,
       )
 
+      if (["ISSUED", "PARTIALLY_PAID"].includes(invoice.status)) {
+        await tx.invoice.update({ where: { id: invoice.id }, data: { collectionStatus: "NEW", collectionNextAction: "مراجعة أثر عكس الدفعة والتواصل مع العميل", collectionNextActionAt: new Date(), collectionUpdatedAt: new Date() } })
+      }
+
       await logActivity({
         db: tx,
         companyId: user.companyId,

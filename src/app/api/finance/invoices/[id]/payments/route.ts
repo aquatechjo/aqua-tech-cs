@@ -146,6 +146,16 @@ export async function POST(
       )
 
       if (updatedInvoice.status === "PAID") {
+        await tx.invoice.update({
+          where: { id: invoice.id },
+          data: {
+            collectionStatus: "CLOSED",
+            collectionNextAction: null,
+            collectionNextActionAt: null,
+            collectionPromiseDate: null,
+            collectionUpdatedAt: new Date(),
+          },
+        })
         await tx.projectContractAmendment.updateMany({
           where: { companyId: user.companyId, invoiceId: invoice.id },
           data: {

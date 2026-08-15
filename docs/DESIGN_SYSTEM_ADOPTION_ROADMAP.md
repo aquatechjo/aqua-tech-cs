@@ -882,3 +882,11 @@ Status: **implemented**
 - Keep totals separated by currency rather than producing a misleading cross-currency sum.
 - Provide tenant-scoped Finance access, bucket filters, bounded detail rows, reminder status, and direct invoice navigation.
 - Keep accounting-ledger exports, exchange-rate conversion, online collection, and external BI outside this batch.
+
+## PROJ-26 — Invoice Collection Follow-up
+
+- Assign an active company user as the collection owner for each open invoice.
+- Track collection status, next action and date, payment promise date, notes, and latest update timestamp.
+- Require a next action for open follow-up and a promise date for promised-payment status.
+- Record every update as immutable Activity evidence and automatically close follow-up on full payment.
+- Reopen collection follow-up when a posted payment is reversed and the invoice becomes outstanding again.

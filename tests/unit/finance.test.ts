@@ -15,6 +15,7 @@ import {
 import { buildPaymentReceiptEmail } from "../../src/lib/email-templates"
 import { paymentReceiptDeliveryIssues, paymentReceiptReference, safePaymentReceiptFailure } from "../../src/lib/payment-receipt"
 import { isReceivableBucket, receivableAgeBucket, receivableBucketWhere } from "../../src/lib/receivables-aging"
+import { invoiceCollectionIssues, invoiceCollectionSchema } from "../../src/lib/invoice-collection"
 
 const financeCss = readFileSync("src/styles/aqua-finance.css", "utf8")
 const rootLayout = readFileSync("src/app/layout.tsx", "utf8")
@@ -236,4 +237,24 @@ test("PROJ-25 aging page is tenant-scoped, currency-aware, and bounded", () => {
   assert.match(page, /by: \["currency"\]/u)
   assert.match(page, /take: 100/u)
   assert.match(page, /invoiceReminderScheduleEnabled/u)
+})
+
+test("PROJ-26 collection follow-up validates open balances and promises", () => {
+  assert.equal(invoiceCollectionSchema.safeParse({ status: "CONTACTED", ownerId: "user-1", nextAction: "Call client", nextActionAt: "2026-08-18", promiseDate: null, notes: "Reached finance" }).success, true)
+  assert.deepEqual(invoiceCollectionIssues({ invoiceStatus: "ISSUED", amountOutstanding: 100, status: "CONTACTED", nextAction: "Call client", nextActionAt: "2026-08-18", promiseDate: null }), [])
+  assert.ok(invoiceCollectionIssues({ invoiceStatus: "PAID", amountOutstanding: 0, status: "CLOSED", nextAction: null, nextActionAt: null, promiseDate: null }).length)
+  assert.ok(invoiceCollectionIssues({ invoiceStatus: "ISSUED", amountOutstanding: 100, status: "PROMISED", nextAction: "Verify payment", nextActionAt: "2026-08-18", promiseDate: null }).length)
+})
+
+test("PROJ-26 collection updates are tenant-governed and payment-aware", () => {
+  const route = readFileSync("src/app/api/finance/invoices/[id]/collection/route.ts", "utf8")
+  const payments = readFileSync("src/app/api/finance/invoices/[id]/payments/route.ts", "utf8")
+  const reverse = readFileSync("src/app/api/finance/payments/[id]/reverse/route.ts", "utf8")
+  assert.match(route, /assertSameOrigin/u)
+  assert.match(route, /financeManagement/u)
+  assert.match(route, /companyId: user\.companyId/u)
+  assert.match(route, /FOR UPDATE/u)
+  assert.match(route, /INVOICE_COLLECTION_UPDATED/u)
+  assert.match(payments, /collectionStatus: "CLOSED"/u)
+  assert.match(reverse, /collectionStatus: "NEW"/u)
 })

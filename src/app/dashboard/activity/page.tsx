@@ -126,6 +126,7 @@ function actionLabel(action: ActivityAction) {
     PAYMENT_RECEIPT_DELIVERY_PREPARED: "تجهيز إرسال إيصال دفعة",
     PAYMENT_RECEIPT_DELIVERY_FAILED: "فشل إرسال إيصال دفعة",
     PAYMENT_RECEIPT_SENT: "إرسال إيصال دفعة للعميل",
+    INVOICE_COLLECTION_UPDATED: "تحديث متابعة تحصيل فاتورة",
     EXPENSE_CREATED: "إنشاء مصروف",
     EXPENSE_UPDATED: "تعديل مصروف",
     EXPENSE_SUBMITTED: "إرسال مصروف للاعتماد",

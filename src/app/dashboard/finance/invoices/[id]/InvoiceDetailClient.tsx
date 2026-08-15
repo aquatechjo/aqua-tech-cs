@@ -25,6 +25,13 @@ type Invoice = {
   client: { id: string; name: string; email: string | null; phone: string | null } | null
   project: { id: string; name: string; code: string | null } | null
   createdBy: { id: string; name: string; email: string } | null
+  collectionOwner: { id: string; name: string; email: string } | null
+  collectionStatus: "NEW" | "CONTACTED" | "PROMISED" | "DISPUTED" | "ESCALATED" | "CLOSED"
+  collectionNextAction: string | null
+  collectionNextActionAt: string | null
+  collectionPromiseDate: string | null
+  collectionNotes: string | null
+  collectionUpdatedAt: string | null
   contractAmendment: {
     id: string
     amendmentNumber: string
@@ -116,10 +123,12 @@ export default function InvoiceDetailClient({
   invoice,
   canManage,
   defaultDate,
+  collectionOwners,
 }: {
   invoice: Invoice
   canManage: boolean
   defaultDate: string
+  collectionOwners: Array<{ id: string; name: string; email: string }>
 }) {
   const router = useRouter()
   const [busy, setBusy] = useState("")
@@ -156,6 +165,12 @@ export default function InvoiceDetailClient({
   const [portalDeliveryConfirmOpen, setPortalDeliveryConfirmOpen] = useState(false)
   const [reminderConfirmOpen, setReminderConfirmOpen] = useState(false)
   const [receiptPaymentId, setReceiptPaymentId] = useState("")
+  const [collectionStatus, setCollectionStatus] = useState(invoice.collectionStatus)
+  const [collectionOwnerId, setCollectionOwnerId] = useState(invoice.collectionOwner?.id ?? "")
+  const [collectionNextAction, setCollectionNextAction] = useState(invoice.collectionNextAction ?? "")
+  const [collectionNextActionAt, setCollectionNextActionAt] = useState(invoice.collectionNextActionAt?.slice(0, 10) ?? "")
+  const [collectionPromiseDate, setCollectionPromiseDate] = useState(invoice.collectionPromiseDate?.slice(0, 10) ?? "")
+  const [collectionNotes, setCollectionNotes] = useState(invoice.collectionNotes ?? "")
   const [items, setItems] = useState<Line[]>(
     invoice.items.map((item) => ({
       description: item.description,
@@ -357,6 +372,20 @@ export default function InvoiceDetailClient({
       if (!response.ok || !payload.ok) { setError(payload.message || "تعذر إرسال إيصال الدفعة"); return }
       setSuccess(`تم إرسال إيصال الدفعة ${payload.data.receiptReference} إلى العميل`)
       setReceiptPaymentId("")
+      router.refresh()
+    } catch { setError("تعذر الاتصال بالخادم") } finally { setBusy("") }
+  }
+
+  async function saveCollection(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setBusy("collection")
+    setError("")
+    setSuccess("")
+    try {
+      const response = await fetch(`/api/finance/invoices/${invoice.id}/collection`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: collectionStatus, ownerId: collectionOwnerId || null, nextAction: collectionNextAction || null, nextActionAt: collectionNextActionAt || null, promiseDate: collectionPromiseDate || null, notes: collectionNotes || null }) })
+      const payload = await response.json()
+      if (!response.ok || !payload.ok) { setError(payload.message || "تعذر تحديث متابعة التحصيل"); return }
+      setSuccess("تم تحديث متابعة التحصيل وتسجيلها في سجل النشاط")
       router.refresh()
     } catch { setError("تعذر الاتصال بالخادم") } finally { setBusy("") }
   }
@@ -575,6 +604,8 @@ export default function InvoiceDetailClient({
           </div>
         </div>
       ) : null}
+
+      {canManage && ["ISSUED", "PARTIALLY_PAID"].includes(invoice.status) && outstanding > 0 ? <form className="aqua-card p-4 d-print-none" onSubmit={saveCollection}><div className="d-flex flex-wrap justify-content-between gap-2 mb-3"><div><h2 className="h5 fw-black mb-1">متابعة التحصيل</h2><div className="small aqua-muted">كل حفظ ينشئ حدثًا زمنيًا في سجل النشاط.</div></div>{invoice.collectionUpdatedAt ? <div className="small aqua-muted">آخر تحديث: <bdi dir="ltr">{dateOnly(invoice.collectionUpdatedAt)}</bdi></div> : null}</div><div className="row g-3"><div className="col-12 col-md-4"><label className="form-label">الحالة</label><select className="form-select" value={collectionStatus} onChange={(event) => setCollectionStatus(event.target.value as typeof collectionStatus)}><option value="NEW">جديدة</option><option value="CONTACTED">تم التواصل</option><option value="PROMISED">وعد بالدفع</option><option value="DISPUTED">اعتراض</option><option value="ESCALATED">مصعّدة</option><option value="CLOSED">مغلقة</option></select></div><div className="col-12 col-md-4"><label className="form-label">مسؤول المتابعة</label><select className="form-select" value={collectionOwnerId} onChange={(event) => setCollectionOwnerId(event.target.value)}><option value="">غير محدد</option>{collectionOwners.map((owner) => <option key={owner.id} value={owner.id}>{owner.name}</option>)}</select></div><div className="col-12 col-md-4"><label className="form-label">تاريخ الإجراء القادم</label><AquaDatePicker value={collectionNextActionAt} onChange={setCollectionNextActionAt}/></div><div className="col-12 col-md-8"><label className="form-label">الإجراء القادم</label><input className="form-control" maxLength={500} value={collectionNextAction} onChange={(event) => setCollectionNextAction(event.target.value)}/></div><div className="col-12 col-md-4"><label className="form-label">تاريخ وعد الدفع</label><AquaDatePicker value={collectionPromiseDate} onChange={setCollectionPromiseDate}/></div><div className="col-12"><label className="form-label">ملاحظات المتابعة</label><textarea className="form-control" rows={3} maxLength={2000} value={collectionNotes} onChange={(event) => setCollectionNotes(event.target.value)}/></div></div><button className="btn btn-info fw-bold mt-3" type="submit" disabled={Boolean(busy)}>{busy === "collection" ? "جارٍ الحفظ..." : "حفظ المتابعة"}</button></form> : null}
 
       {invoice.status === "DRAFT" && canManage ? (
         <form className="aqua-card p-4" onSubmit={saveDraft}>
