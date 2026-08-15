@@ -6,6 +6,7 @@ import {
   buildProjectFeedbackReminderEmail,
   buildProposalDeliveryEmail,
   buildAmendmentInvoiceDeliveryEmail,
+  buildAmendmentInvoicePortalDeliveryEmail,
 } from "@/lib/email-templates"
 
 function requiredEmailEnv(
@@ -34,6 +35,22 @@ export async function sendAmendmentInvoiceDeliveryEmail(input: {
 }) {
   const from = requiredEmailEnv("INVOICE_FROM")
   const email = buildAmendmentInvoiceDeliveryEmail(input)
+  return sendTransactionalEmail({ from, to: input.to, ...email })
+}
+
+export async function sendAmendmentInvoicePortalDeliveryEmail(input: {
+  to: string
+  recipientName: string
+  invoiceNumber: string
+  projectName: string
+  totalAmount: string
+  currency: string
+  dueDate: string
+  portalUrl: string
+  validUntilLabel: string
+}) {
+  const from = requiredEmailEnv("INVOICE_FROM")
+  const email = buildAmendmentInvoicePortalDeliveryEmail(input)
   return sendTransactionalEmail({ from, to: input.to, ...email })
 }
 

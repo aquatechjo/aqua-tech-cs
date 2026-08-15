@@ -44,6 +44,11 @@ type Invoice = {
     invoicePortalFirstViewedAt: string | null
     invoicePortalLastViewedAt: string | null
     invoicePortalViewCount: number
+    invoicePortalDeliveryRecipientName: string | null
+    invoicePortalDeliveryRecipientEmail: string | null
+    invoicePortalDeliverySentAt: string | null
+    invoicePortalDeliveryFailedAt: string | null
+    invoicePortalDeliveryAttemptCount: number
   } | null
   items: Array<{
     id: string
@@ -132,6 +137,13 @@ export default function InvoiceDetailClient({
   const [deliveryConfirmOpen, setDeliveryConfirmOpen] = useState(false)
   const [portalDays, setPortalDays] = useState("14")
   const [portalPath, setPortalPath] = useState("")
+  const [portalRecipientName, setPortalRecipientName] = useState(
+    invoice.contractAmendment?.invoicePortalDeliveryRecipientName ?? invoice.client?.name ?? "",
+  )
+  const [portalRecipientEmail, setPortalRecipientEmail] = useState(
+    invoice.contractAmendment?.invoicePortalDeliveryRecipientEmail ?? invoice.client?.email ?? "",
+  )
+  const [portalDeliveryConfirmOpen, setPortalDeliveryConfirmOpen] = useState(false)
   const [items, setItems] = useState<Line[]>(
     invoice.items.map((item) => ({
       description: item.description,
@@ -262,6 +274,36 @@ export default function InvoiceDetailClient({
       setSuccess(action === "ISSUE" ? "تم إصدار رابط جديد. انسخه الآن؛ لا يُخزن الرمز بصورته الأصلية." : "تم إلغاء رابط الفاتورة")
       router.refresh()
     } catch { setError("تعذر الاتصال بالخادم") } finally { setBusy("") }
+  }
+
+  async function deliverPortal() {
+    setBusy("portal-delivery")
+    setError("")
+    setSuccess("")
+    try {
+      const response = await fetch(`/api/finance/invoices/${invoice.id}/portal/delivery`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipientName: portalRecipientName,
+          recipientEmail: portalRecipientEmail,
+          validDays: Number(portalDays),
+        }),
+      })
+      const payload = await response.json()
+      if (!response.ok || !payload.ok) {
+        setError(payload.message || "تعذر إرسال رابط الفاتورة")
+        return
+      }
+      setSuccess("تم إرسال رابط جديد وتفعيله بعد قبول مزود البريد")
+      setPortalPath("")
+      setPortalDeliveryConfirmOpen(false)
+      router.refresh()
+    } catch {
+      setError("تعذر الاتصال بالخادم")
+    } finally {
+      setBusy("")
+    }
   }
 
   async function recordPayment(event: React.FormEvent<HTMLFormElement>) {
@@ -454,6 +496,17 @@ export default function InvoiceDetailClient({
             <button className="btn btn-info fw-bold" type="button" disabled={Boolean(busy) || Number(portalDays) < 1 || Number(portalDays) > 30} onClick={() => managePortal("ISSUE")}>{busy === "portal-issue" ? "جارٍ الإصدار..." : "إصدار / تدوير الرابط"}</button>
             {invoice.contractAmendment.invoicePortalIssuedAt && !invoice.contractAmendment.invoicePortalRevokedAt ? <button className="btn btn-outline-danger" type="button" disabled={Boolean(busy)} onClick={() => managePortal("REVOKE")}>{busy === "portal-revoke" ? "جارٍ الإلغاء..." : "إلغاء الرابط"}</button> : null}
           </div>
+          <div className="aqua-card-soft p-3 mt-3">
+            <h3 className="h6 fw-black mb-2">إرسال الرابط الآمن</h3>
+            <p className="small aqua-muted">يُفعّل الرابط الجديد فقط بعد قبول البريد، ويبقى الرابط السابق فعالًا إذا فشلت المحاولة.</p>
+            {invoice.contractAmendment.invoicePortalDeliveryFailedAt ? <AquaAlert variant="warning" title="فشلت المحاولة السابقة">تم توثيق الفشل ويمكن إعادة المحاولة دون تعطيل الرابط السابق.</AquaAlert> : null}
+            {invoice.contractAmendment.invoicePortalDeliverySentAt ? <AquaAlert variant="success" title="آخر إرسال ناجح">أُرسل الرابط إلى {invoice.contractAmendment.invoicePortalDeliveryRecipientEmail} — المحاولات: {invoice.contractAmendment.invoicePortalDeliveryAttemptCount}.</AquaAlert> : null}
+            <div className="row g-2 align-items-end">
+              <div className="col-12 col-md-5"><label className="form-label">اسم المستلم</label><input className="form-control" maxLength={120} value={portalRecipientName} onChange={(event) => setPortalRecipientName(event.target.value)} /></div>
+              <div className="col-12 col-md-5"><label className="form-label">بريد المستلم</label><input className="form-control" type="email" maxLength={254} dir="ltr" value={portalRecipientEmail} onChange={(event) => setPortalRecipientEmail(event.target.value)} /></div>
+              <div className="col-12 col-md-2"><button className="btn btn-info fw-bold w-100" type="button" disabled={Boolean(busy) || !portalRecipientName.trim() || !portalRecipientEmail.trim() || Number(portalDays) < 1 || Number(portalDays) > 30} onClick={() => setPortalDeliveryConfirmOpen(true)}>إرسال الرابط</button></div>
+            </div>
+          </div>
         </div>
       ) : null}
 
@@ -629,6 +682,15 @@ export default function InvoiceDetailClient({
         }
         confirmLabel="إصدار الفاتورة"
         loading={busy === "issue"}
+      />
+      <AquaConfirmDialog
+        open={portalDeliveryConfirmOpen}
+        onClose={() => setPortalDeliveryConfirmOpen(false)}
+        onConfirm={deliverPortal}
+        title="إرسال بوابة الفاتورة"
+        description={`سيُرسل رابط جديد للفاتورة ${invoice.invoiceNumber} إلى ${portalRecipientEmail}. سيصبح الرابط فعالًا ويلغي السابق بعد نجاح الإرسال فقط.`}
+        confirmLabel="إرسال الرابط الآمن"
+        loading={busy === "portal-delivery"}
       />
       <AquaConfirmDialog
         open={deliveryConfirmOpen}

@@ -499,6 +499,9 @@ enum ActivityAction {
   PROJECT_AMENDMENT_INVOICE_PORTAL_ISSUED
   PROJECT_AMENDMENT_INVOICE_PORTAL_REVOKED
   PROJECT_AMENDMENT_INVOICE_PORTAL_VIEWED
+  PROJECT_AMENDMENT_INVOICE_PORTAL_DELIVERY_PREPARED
+  PROJECT_AMENDMENT_INVOICE_PORTAL_DELIVERY_FAILED
+  PROJECT_AMENDMENT_INVOICE_PORTAL_SENT
   PROJECT_RISK_CREATED
   PROJECT_RISK_UPDATED
   PROJECT_RISK_MATERIALIZED
@@ -1605,6 +1608,14 @@ model ProjectContractAmendment {
   invoicePortalFirstViewedAt DateTime?
   invoicePortalLastViewedAt DateTime?
   invoicePortalViewCount Int @default(0)
+  invoicePortalDeliveryRecipientName String?
+  invoicePortalDeliveryRecipientEmail String?
+  invoicePortalDeliveryProviderId String?
+  invoicePortalDeliveryPreparedAt DateTime?
+  invoicePortalDeliverySentAt DateTime?
+  invoicePortalDeliveryFailedAt DateTime?
+  invoicePortalDeliveryFailureReason String?
+  invoicePortalDeliveryAttemptCount Int @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

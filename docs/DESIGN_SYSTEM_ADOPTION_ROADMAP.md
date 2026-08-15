@@ -840,3 +840,13 @@ Status: **implemented**
 - Store only its hash and preserve issue, expiry, revocation, first-view, last-view, view-count, and Activity evidence.
 - Show a client-safe, no-index, no-referrer invoice document without any internal route or dashboard data.
 - Keep automatic link delivery, online collection, payment reminders, WhatsApp, and n8n outside this batch.
+
+## PROJ-21 — Secure Invoice Portal Delivery
+
+Status: **implemented**
+
+- Send a freshly generated 1–30 day invoice portal link to an explicit normalized recipient through the configured invoice email channel.
+- Prepare and audit each attempt under Finance authority, tenant-scoped row locks, and concurrent-send protection.
+- Activate the new token only after the email provider accepts the message, preserving the previous portal link when delivery fails.
+- Record recipient, provider id, prepared, sent, failed, bounded failure reason, expiry, and attempt-count evidence.
+- Keep payment reminders, online collection, WhatsApp, automatic retries, and n8n outside this batch.

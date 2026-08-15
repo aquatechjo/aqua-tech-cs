@@ -7,6 +7,54 @@ export type TransactionalEmail = {
   html: string
 }
 
+export function buildAmendmentInvoicePortalDeliveryEmail({
+  recipientName,
+  invoiceNumber,
+  projectName,
+  totalAmount,
+  currency,
+  dueDate,
+  portalUrl,
+  validUntilLabel,
+}: {
+  recipientName: string
+  invoiceNumber: string
+  projectName: string
+  totalAmount: string
+  currency: string
+  dueDate: string
+  portalUrl: string
+  validUntilLabel: string
+}): TransactionalEmail {
+  const normalizedPortalUrl = requireSafeWebUrl(portalUrl)
+  const safe = {
+    name: escapeHtml(recipientName),
+    invoice: escapeHtml(invoiceNumber),
+    project: escapeHtml(projectName),
+    total: escapeHtml(totalAmount),
+    currency: escapeHtml(currency),
+    due: escapeHtml(dueDate),
+    url: escapeHtml(normalizedPortalUrl),
+    expiry: escapeHtml(validUntilLabel),
+  }
+  const subject = `رابط الفاتورة ${invoiceNumber} من Aqua Tech`
+  return {
+    subject,
+    text: [
+      `مرحبًا ${recipientName}،`,
+      "",
+      `يمكنك مراجعة الفاتورة ${invoiceNumber} للمشروع ${projectName} عبر الرابط الآمن التالي:`,
+      normalizedPortalUrl,
+      `الإجمالي: ${totalAmount} ${currency}`,
+      `تاريخ الاستحقاق: ${dueDate}`,
+      `صلاحية الرابط حتى: ${validUntilLabel}`,
+      "",
+      "لا تشارك هذا الرابط؛ فهو يمنح وصولًا مباشرًا إلى نسخة الفاتورة المخصصة للعميل.",
+    ].join("\n"),
+    html: `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${escapeHtml(subject)}</title></head><body style="margin:0;background:#f1f5f9;color:#0f172a;font-family:Arial,'Segoe UI',Tahoma,sans-serif"><table role="presentation" width="100%"><tr><td align="center" style="padding:32px 14px"><table role="presentation" width="620" style="width:100%;max-width:620px;background:#fff;border:1px solid #dbe4ee;border-radius:22px;overflow:hidden"><tr><td style="height:5px;background:#0e7490"></td></tr><tr><td style="padding:30px 34px;text-align:right"><div style="font-size:13px;font-weight:800;color:#0e7490" dir="ltr">Aqua.Tech · ${safe.invoice}</div><h1 style="margin:12px 0 18px;font-size:26px">بوابة الفاتورة الآمنة</h1><p style="font-size:16px;line-height:1.9">مرحبًا ${safe.name}،</p><p style="font-size:15px;line-height:1.9;color:#475569">يمكنك مراجعة فاتورة مشروع <strong>${safe.project}</strong> عبر الرابط الآمن.</p><p style="margin:24px 0"><a href="${safe.url}" style="display:inline-block;padding:13px 22px;border-radius:12px;background:#0e7490;color:#fff;font-weight:800;text-decoration:none">فتح الفاتورة</a></p><p style="font-size:14px;color:#475569">الإجمالي: <strong dir="ltr">${safe.total} ${safe.currency}</strong><br/>الاستحقاق: <span dir="ltr">${safe.due}</span><br/>صلاحية الرابط حتى: ${safe.expiry}</p><p style="font-size:13px;line-height:1.8;color:#64748b">لا تشارك هذا الرابط؛ فهو يمنح وصولًا مباشرًا إلى نسخة الفاتورة المخصصة للعميل.</p></td></tr></table></td></tr></table></body></html>`,
+  }
+}
+
 export function buildAmendmentInvoiceDeliveryEmail({
   recipientName,
   invoiceNumber,
