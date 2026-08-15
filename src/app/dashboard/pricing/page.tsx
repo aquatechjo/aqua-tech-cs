@@ -308,11 +308,6 @@ export default async function PricingQueuePage({
       <AquaDataPanel
         title="قائمة التسعير"
         description={`عرض ${from}–${to} من أصل ${totalSessions} نتيجة`}
-        meta={
-          <span dir="ltr">
-            Page {currentPage} / {totalPages}
-          </span>
-        }
         footer={
           <AquaPagination
             basePath="/dashboard/pricing"

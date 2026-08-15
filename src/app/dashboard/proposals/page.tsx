@@ -367,11 +367,6 @@ export default async function ProposalQueuePage({
       <AquaDataPanel
         title="قائمة العروض"
         description={`عرض ${from}–${to} من أصل ${totalSessions} نتيجة`}
-        meta={
-          <span dir="ltr">
-            Page {currentPage} / {totalPages}
-          </span>
-        }
         footer={
           <AquaPagination
             basePath="/dashboard/proposals"

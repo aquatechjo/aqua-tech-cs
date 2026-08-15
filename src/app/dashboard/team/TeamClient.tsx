@@ -570,7 +570,7 @@ export default function TeamClient({
                       <td className="small aqua-muted" dir="ltr">
                         {user.lastLoginAt
                           ? new Date(user.lastLoginAt).toLocaleString("en-GB")
-                          : "Never"}
+                          : "لم يسجل الدخول"}
                       </td>
                       {manager ? (
                         <td>

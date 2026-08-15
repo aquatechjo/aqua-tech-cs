@@ -697,7 +697,7 @@ export default function ServiceRequestsClient({
               <button
                 type="submit"
                 disabled={loading}
-                className="btn aqua-btn-primary w-100 py-3 mt-3"
+                className="btn aqua-btn-primary w-100 mt-3"
               >
                 {loading
                   ? "جاري الحفظ..."
@@ -727,9 +727,6 @@ export default function ServiceRequestsClient({
                 </span>
                 <span className="aqua-badge">
                   المقبولة {stats.approvedRequests}
-                </span>
-                <span className="small aqua-soft ms-2" dir="ltr">
-                  Page {stats.currentPage} / {stats.totalPages}
                 </span>
               </div>
             </div>

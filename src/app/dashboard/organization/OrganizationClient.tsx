@@ -959,7 +959,7 @@ function SubmitButton({
     <button
       type="submit"
       disabled={loading}
-      className="btn aqua-btn-primary w-100 py-3"
+      className="btn aqua-btn-primary w-100"
     >
       {loading ? "جاري الحفظ..." : label}
     </button>

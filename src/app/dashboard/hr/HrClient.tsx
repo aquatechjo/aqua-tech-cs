@@ -819,7 +819,7 @@ export default function HrClient({
                       <tr key={request.id}>
                         <td>{request.user.name}</td>
                         <td>{request.leaveType.name}</td>
-                        <td dir="ltr">{dateOnly(request.startDate)} → {dateOnly(request.endDate)}</td>
+                        <td dir="ltr">{dateOnly(request.startDate)} – {dateOnly(request.endDate)}</td>
                         <td>{request.totalDays}</td>
                         <td>
                           <span className={`badge ${leaveStatusClass(request.status)}`}>{leaveLabels[request.status]}</span>

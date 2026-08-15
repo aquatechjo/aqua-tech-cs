@@ -312,11 +312,6 @@ export default function DiscoverySessionsClient({
       <AquaDataPanel
         title="جلسات جمع المتطلبات"
         description={`عرض ${stats.from}–${stats.to} من أصل ${stats.totalSessions} جلسة`}
-        meta={
-          <span dir="ltr">
-            Page {stats.currentPage} / {stats.totalPages}
-          </span>
-        }
         footer={pagination}
       >
         <AquaFilterBar

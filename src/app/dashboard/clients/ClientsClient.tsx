@@ -477,11 +477,6 @@ export default function ClientsClient({
           <AquaDataPanel
             title="قائمة العملاء"
             description={`عرض ${stats.from}–${stats.to} من أصل ${stats.totalClients} عميل`}
-            meta={
-              <span dir="ltr">
-                Page {stats.currentPage} / {stats.totalPages}
-              </span>
-            }
             actions={
               <>
                 <AquaBadge>الكل {stats.totalClients}</AquaBadge>

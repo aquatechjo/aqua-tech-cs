@@ -602,11 +602,6 @@ export default function LeadsClient({
       <AquaDataPanel
         title="قائمة العملاء المحتملين"
         description={`عرض ${stats.from}–${stats.to} من أصل ${stats.totalLeads} نتيجة`}
-        meta={
-          <span dir="ltr">
-            Page {stats.currentPage} / {stats.totalPages}
-          </span>
-        }
         footer={pagination}
       >
         <AquaFilterBar

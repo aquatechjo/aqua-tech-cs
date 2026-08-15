@@ -607,7 +607,7 @@ export default function TimeCapacityClient({
           <div>
             <div className="small aqua-muted">الأسبوع التشغيلي</div>
             <div className="fw-bold mt-1" dir="ltr">
-              {currentWeekStart} → {currentWeekEnd}
+              {currentWeekStart} – {currentWeekEnd}
             </div>
           </div>
           <div className="d-flex flex-wrap gap-2">

@@ -280,14 +280,14 @@ export default function SettingsClient({
             <div className="aqua-card-soft p-3 mb-3">
               <div className="small aqua-muted">Email</div>
               <div className="fw-black text-truncate" dir="ltr">
-                {email || "Not set"}
+                {email || "غير محدد"}
               </div>
             </div>
 
             <div className="aqua-card-soft p-3 mb-3">
               <div className="small aqua-muted">Website</div>
               <div className="fw-black text-truncate" dir="ltr">
-                {website || "Not set"}
+                {website || "غير محدد"}
               </div>
             </div>
 
@@ -313,7 +313,7 @@ export default function SettingsClient({
 
             <div className="aqua-card-soft p-3 mt-3">
               <div className="small fw-bold text-info mb-2" dir="ltr">
-                System note
+                ملاحظة النظام
               </div>
               <p className="small aqua-muted mb-0">
                 ستستخدم هذه البيانات لاحقًا في الفواتير، العروض، العقود،

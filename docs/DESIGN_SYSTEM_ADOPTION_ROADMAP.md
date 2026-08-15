@@ -697,6 +697,16 @@ Status: **implemented**
 - Preserve notification ownership, read transitions, pagination, login, reset-token security, session revocation, accessibility, RTL/LTR, and reduced motion.
 - Keep the product-specific notification layer separate from the shared public Design System contract.
 
+## UI-17 — Cross-Workspace Visual Closure
+
+Status: **implemented**
+
+- Complete a bounded cross-workspace audit after the page-specific polish batches.
+- Remove redundant page counters where the governed pagination component already communicates position and totals.
+- Replace mixed-language empty values and ambiguous RTL range arrows with clear Arabic and direction-neutral notation.
+- Normalize the remaining oversized primary actions without changing their hierarchy or behavior.
+- Preserve queries, filters, pagination, forms, permissions, data transitions, responsive behavior, and reduced motion.
+
 ## Release gate for every stage
 
 - Lint
