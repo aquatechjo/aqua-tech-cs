@@ -14,6 +14,7 @@ import {
 } from "../../src/lib/finance"
 import { buildPaymentReceiptEmail } from "../../src/lib/email-templates"
 import { paymentReceiptDeliveryIssues, paymentReceiptReference, safePaymentReceiptFailure } from "../../src/lib/payment-receipt"
+import { isReceivableBucket, receivableAgeBucket, receivableBucketWhere } from "../../src/lib/receivables-aging"
 
 const financeCss = readFileSync("src/styles/aqua-finance.css", "utf8")
 const rootLayout = readFileSync("src/app/layout.tsx", "utf8")
@@ -212,4 +213,27 @@ test("PROJ-24 receipt email is client-safe and delivery is tenant governed", () 
   const reverse = readFileSync("src/app/api/finance/payments/[id]/reverse/route.ts", "utf8")
   assert.match(reverse, /PAYMENT_RECEIPT_DELIVERY_IN_PROGRESS/u)
   assert.match(route, /PAYMENT_RECEIPT_PREPARATION_CHANGED/u)
+})
+
+test("PROJ-25 assigns stable receivable aging buckets at exact boundaries", () => {
+  const asOf = new Date("2026-08-16T00:00:00Z")
+  assert.equal(receivableAgeBucket(new Date("2026-08-16T00:00:00Z"), asOf), "CURRENT")
+  assert.equal(receivableAgeBucket(new Date("2026-08-15T00:00:00Z"), asOf), "DUE_1_30")
+  assert.equal(receivableAgeBucket(new Date("2026-07-17T00:00:00Z"), asOf), "DUE_1_30")
+  assert.equal(receivableAgeBucket(new Date("2026-07-16T00:00:00Z"), asOf), "DUE_31_60")
+  assert.equal(receivableAgeBucket(new Date("2026-05-17T00:00:00Z"), asOf), "OVER_90")
+  assert.equal(receivableAgeBucket(null, asOf), "UNSCHEDULED")
+  assert.equal(isReceivableBucket("OVER_90"), true)
+  assert.equal(isReceivableBucket("INVALID"), false)
+  assert.deepEqual(receivableBucketWhere("UNSCHEDULED", asOf), { dueDate: null })
+})
+
+test("PROJ-25 aging page is tenant-scoped, currency-aware, and bounded", () => {
+  const page = readFileSync("src/app/dashboard/finance/receivables/page.tsx", "utf8")
+  assert.match(page, /ACCESS_ROLES\.financeRead/u)
+  assert.match(page, /companyId: user\.companyId/u)
+  assert.match(page, /groupBy/u)
+  assert.match(page, /by: \["currency"\]/u)
+  assert.match(page, /take: 100/u)
+  assert.match(page, /invoiceReminderScheduleEnabled/u)
 })

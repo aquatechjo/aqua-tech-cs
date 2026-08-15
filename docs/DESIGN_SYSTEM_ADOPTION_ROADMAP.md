@@ -874,3 +874,11 @@ Status: **implemented**
 - Reject reversed payments and block concurrent delivery attempts under a payment row lock.
 - Preserve recipient, provider id, prepared, sent, failed, bounded failure reason, and attempt-count evidence.
 - Keep public receipt links, attachments, online collection, WhatsApp, and n8n outside this batch.
+
+## PROJ-25 — Receivables Aging and Collections View
+
+- Compute current, 1–30, 31–60, 61–90, over-90-day, and missing-due-date buckets from live invoice state.
+- Include only issued or partially paid invoices and calculate outstanding balances from frozen totals and posted payment state.
+- Keep totals separated by currency rather than producing a misleading cross-currency sum.
+- Provide tenant-scoped Finance access, bucket filters, bounded detail rows, reminder status, and direct invoice navigation.
+- Keep accounting-ledger exports, exchange-rate conversion, online collection, and external BI outside this batch.

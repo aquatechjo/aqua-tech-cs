@@ -100,6 +100,11 @@ export const aquaRouteDefinitions: readonly AquaRouteDefinition[] = [
     subtitle: "إدارة المصروفات ودورة الاعتماد والدفع",
   },
   {
+    path: "/dashboard/finance/receivables",
+    title: "أعمار الذمم والتحصيل",
+    subtitle: "تصنيف أرصدة الفواتير المفتوحة حسب عمر الاستحقاق",
+  },
+  {
     path: "/dashboard/activity",
     title: "النشاطات",
     subtitle: "سجل العمليات الداخلية داخل Aqua tech CS",

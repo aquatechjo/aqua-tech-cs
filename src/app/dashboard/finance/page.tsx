@@ -143,6 +143,9 @@ export default async function FinanceDashboardPage() {
         <Link className="btn btn-outline-info fw-bold" href="/dashboard/finance/expenses">
           إدارة المصروفات
         </Link>
+        <Link className="btn btn-outline-info fw-bold" href="/dashboard/finance/receivables">
+          أعمار الذمم
+        </Link>
       </div>
 
       <div className="row g-3 aqua-finance-metrics">
