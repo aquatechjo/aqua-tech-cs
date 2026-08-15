@@ -687,6 +687,16 @@ Status: **implemented**
 - Preserve company updates, owner protections, access roles, employee profiles, audit queries, pagination, RTL/LTR, and reduced motion.
 - Keep this product-specific polish outside the shared Design System release contract.
 
+## UI-16 — Notifications and Authentication Polish
+
+Status: **implemented**
+
+- Apply one compact operational rhythm to the notification center and internal authentication journey.
+- Replace mixed English notification counters and states with clear Arabic summaries and timestamps.
+- Tighten login, password recovery, reset guidance, security messaging, and the supporting product story.
+- Preserve notification ownership, read transitions, pagination, login, reset-token security, session revocation, accessibility, RTL/LTR, and reduced motion.
+- Keep the product-specific notification layer separate from the shared public Design System contract.
+
 ## Release gate for every stage
 
 - Lint

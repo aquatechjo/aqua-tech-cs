@@ -99,7 +99,7 @@ export default function ResetPasswordForm({ token }: { token: string }) {
           </AquaLinkButton>
         </div>
       ) : (
-        <form className="aqua-auth-form" onSubmit={handleSubmit} noValidate>
+        <form className="aqua-auth-form aqua-auth-form--reset" onSubmit={handleSubmit} noValidate>
           <PasswordInput
             id="new-password"
             label="كلمة المرور الجديدة"

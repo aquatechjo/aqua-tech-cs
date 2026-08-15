@@ -40,7 +40,7 @@ export default function AuthShell({
   eyebrow = "Aqua tech CS",
 }: AuthShellProps) {
   return (
-    <main className="aqua-public-surface aqua-public-surface--auth">
+    <main className="aqua-public-surface aqua-public-surface--auth aqua-auth-workspace">
       <a className="aqua-public-skip-link" href="#aqua-auth-content">
         الانتقال إلى النموذج
       </a>
@@ -50,7 +50,7 @@ export default function AuthShell({
       <div className="container aqua-public-surface__container">
         <div className="aqua-public-surface__layout">
           <section
-            className="aqua-public-story"
+            className="aqua-public-story aqua-auth-story"
             aria-labelledby="aqua-public-story-title"
           >
             <AquaBadge dot>{eyebrow}</AquaBadge>
@@ -86,7 +86,7 @@ export default function AuthShell({
 
           <section
             id="aqua-auth-content"
-            className="aqua-public-auth"
+            className="aqua-public-auth aqua-auth-panel"
             aria-labelledby="aqua-auth-title"
             tabIndex={-1}
           >
@@ -94,7 +94,7 @@ export default function AuthShell({
               variant="surface"
               padding="lg"
               glow
-              className="aqua-public-auth__card"
+              className="aqua-public-auth__card aqua-auth-panel__card"
             >
               <header className="aqua-public-auth__brand">
                 <AquaMark size="md" />

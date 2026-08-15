@@ -63,7 +63,7 @@ export default function ForgotPasswordForm() {
           </p>
         </div>
       ) : (
-        <form className="aqua-auth-form" onSubmit={handleSubmit} noValidate>
+        <form className="aqua-auth-form aqua-auth-form--recovery" onSubmit={handleSubmit} noValidate>
           <AquaInput
             id="forgot-email"
             label="البريد الإلكتروني"

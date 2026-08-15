@@ -90,7 +90,7 @@ export default async function NotificationsPage({
   const to = Math.min(skip + notifications.length, totalNotifications)
 
   return (
-    <div className="aqua-notifications-page">
+    <div className="aqua-compact-page aqua-notifications-page">
       <div className="mb-3">
         <AquaPageHeader
           badge="Notifications Center"
@@ -99,6 +99,25 @@ export default async function NotificationsPage({
           brandValue="Alerts"
         />
       </div>
+
+      <section className="aqua-notification-metrics" aria-label="ملخص التنبيهات">
+        <div className="aqua-card aqua-notification-metric">
+          <span>كل التنبيهات</span>
+          <strong>{totalNotifications}</strong>
+        </div>
+        <div className="aqua-card aqua-notification-metric aqua-notification-metric--unread">
+          <span>غير المقروءة</span>
+          <strong>{unreadCount}</strong>
+        </div>
+        <div className="aqua-card aqua-notification-metric">
+          <span>الناجحة</span>
+          <strong>{typeCounts.SUCCESS}</strong>
+        </div>
+        <div className="aqua-card aqua-notification-metric aqua-notification-metric--attention">
+          <span>تحتاج انتباهًا</span>
+          <strong>{typeCounts.WARNING + typeCounts.ERROR}</strong>
+        </div>
+      </section>
 
       <div className="aqua-card aqua-notifications-list-card p-4">
         <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
@@ -109,17 +128,7 @@ export default async function NotificationsPage({
             </p>
           </div>
 
-          <div className="d-flex flex-wrap align-items-center gap-2">
-            <span className="aqua-badge">Total {totalNotifications}</span>
-            <span className="aqua-badge">Unread {unreadCount}</span>
-            <span className="aqua-badge">Success {typeCounts.SUCCESS}</span>
-            <span className="aqua-badge">
-              Warning/Error {typeCounts.WARNING + typeCounts.ERROR}
-            </span>
-            <span className="small aqua-soft ms-2" dir="ltr">
-              Page {currentPage} / {totalPages}
-            </span>
-          </div>
+          <span className="aqua-badge">{PAGE_SIZE} تنبيهًا لكل صفحة</span>
         </div>
 
         <NotificationsClient notifications={notifications} />

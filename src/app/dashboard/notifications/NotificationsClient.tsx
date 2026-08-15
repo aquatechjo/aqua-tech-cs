@@ -24,6 +24,17 @@ function typeBadge(type: NotificationType) {
   return "text-bg-info";
 }
 
+function typeLabel(type: NotificationType) {
+  const labels: Record<NotificationType, string> = {
+    INFO: "معلومة",
+    SUCCESS: "نجاح",
+    WARNING: "تنبيه",
+    ERROR: "خطأ",
+  };
+
+  return labels[type];
+}
+
 export default function NotificationsClient({
   notifications,
 }: {
@@ -63,15 +74,15 @@ export default function NotificationsClient({
 
   if (notifications.length === 0) {
     return (
-      <div className="aqua-card-soft p-5 text-center aqua-soft">
+      <div className="aqua-card-soft aqua-notifications-empty text-center aqua-soft">
         لا توجد تنبيهات حتى الآن.
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="d-flex justify-content-end mb-3">
+    <div className="aqua-notification-feed">
+      <div className="aqua-notification-toolbar">
         <button
           type="button"
           onClick={readAll}
@@ -82,25 +93,25 @@ export default function NotificationsClient({
         </button>
       </div>
 
-      <div className="d-flex flex-column gap-3">
+      <div className="aqua-notification-list">
         {notifications.map((notification) => (
           <div
             key={notification.id}
-            className={`aqua-card-soft p-3 ${
-              notification.isRead ? "opacity-75" : ""
+            className={`aqua-card-soft aqua-notification-item ${
+              notification.isRead ? "" : "aqua-notification-item--unread"
             }`}
           >
             <div className="d-flex flex-wrap align-items-start justify-content-between gap-3">
               <div className="flex-grow-1">
                 <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
                   <span className={`badge ${typeBadge(notification.type)}`}>
-                    {notification.type}
+                    {typeLabel(notification.type)}
                   </span>
 
                   {!notification.isRead ? (
-                    <span className="aqua-badge">Unread</span>
+                    <span className="aqua-badge">غير مقروء</span>
                   ) : (
-                    <span className="badge text-bg-secondary">Read</span>
+                    <span className="badge text-bg-secondary">مقروء</span>
                   )}
 
                   {notification.entityType ? (
@@ -115,9 +126,11 @@ export default function NotificationsClient({
                   {notification.message}
                 </p>
 
-                <div className="small aqua-soft mt-2" dir="ltr">
-                  Created:{" "}
-                  {new Date(notification.createdAt).toLocaleString("en-GB")}
+                <div className="small aqua-soft mt-2 aqua-notification-time">
+                  <span>وقت الإنشاء</span>
+                  <time dir="ltr" dateTime={new Date(notification.createdAt).toISOString()}>
+                    {new Date(notification.createdAt).toLocaleString("en-GB")}
+                  </time>
                 </div>
               </div>
 

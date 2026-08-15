@@ -52,7 +52,7 @@ export default function LoginForm() {
       title="تسجيل الدخول"
       description="استخدم حساب Aqua.Tech المصرّح له للوصول إلى مساحة التشغيل."
     >
-      <form className="aqua-auth-form" onSubmit={handleSubmit} noValidate>
+      <form className="aqua-auth-form aqua-auth-form--login" onSubmit={handleSubmit} noValidate>
         <AquaInput
           id="login-email"
           label="البريد الإلكتروني"

@@ -1,0 +1,223 @@
+/* Aqua Tech CS — UI-16 Notifications and authentication polish */
+
+.aqua-notifications-page {
+  display: grid;
+  min-inline-size: 0;
+  gap: var(--at-space-3);
+}
+
+.aqua-notification-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--at-space-3);
+}
+
+.aqua-notification-metric {
+  position: relative;
+  display: flex;
+  min-block-size: 76px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--at-space-3);
+  padding: var(--at-space-3) var(--at-space-4) !important;
+  overflow: hidden;
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-notification-metric::after {
+  position: absolute;
+  inset-block: var(--at-space-3);
+  inset-inline-end: 0;
+  inline-size: 3px;
+  border-radius: var(--at-radius-pill);
+  background: var(--at-product-accent);
+  content: "";
+  opacity: 0.78;
+}
+
+.aqua-notification-metric--unread::after {
+  background: var(--at-info);
+}
+
+.aqua-notification-metric--attention::after {
+  background: var(--at-warning);
+}
+
+.aqua-notification-metric span {
+  color: var(--at-product-muted);
+  font-size: var(--at-text-sm);
+}
+
+.aqua-notification-metric strong {
+  font-family: var(--at-font-mono);
+  font-size: var(--at-text-xl);
+  line-height: var(--at-leading-tight);
+}
+
+.aqua-notifications-list-card {
+  min-inline-size: 0;
+  padding: var(--at-space-4) !important;
+  border-radius: var(--at-radius-lg);
+  box-shadow: var(--at-shadow-sm);
+}
+
+.aqua-notification-feed,
+.aqua-notification-list {
+  display: grid;
+  gap: var(--at-space-2);
+}
+
+.aqua-notification-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.aqua-notification-item {
+  position: relative;
+  padding: var(--at-space-3) var(--at-space-4) !important;
+  overflow: hidden;
+  border-radius: var(--at-radius-md);
+  opacity: 0.74;
+}
+
+.aqua-notification-item--unread {
+  border-color: rgba(var(--at-product-accent-rgb), 0.28);
+  background: rgba(var(--at-product-accent-rgb), 0.055);
+  opacity: 1;
+}
+
+.aqua-notification-item--unread::after {
+  position: absolute;
+  inset-block: var(--at-space-3);
+  inset-inline-end: 0;
+  inline-size: 3px;
+  border-radius: var(--at-radius-pill);
+  background: var(--at-product-accent);
+  content: "";
+}
+
+.aqua-notification-time {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--at-space-2);
+  align-items: center;
+}
+
+.aqua-notification-time time {
+  font-family: var(--at-font-mono);
+}
+
+.aqua-notifications-empty {
+  padding: var(--at-space-8) var(--at-space-4) !important;
+  border-radius: var(--at-radius-md);
+}
+
+.aqua-auth-workspace .aqua-public-surface__container {
+  padding-block: clamp(var(--at-space-6), 4vw, var(--at-space-12));
+}
+
+.aqua-auth-workspace .aqua-public-surface__layout {
+  grid-template-columns: minmax(0, 1fr) minmax(400px, 480px);
+  gap: clamp(var(--at-space-8), 5vw, var(--at-space-16));
+}
+
+.aqua-auth-story .aqua-public-story__title {
+  margin-block: var(--at-space-4) var(--at-space-3);
+  font-size: clamp(2.5rem, 4.8vw, 4.6rem);
+}
+
+.aqua-auth-story .aqua-public-story__description {
+  max-inline-size: 600px;
+  font-size: var(--at-text-lg);
+  line-height: 1.8;
+}
+
+.aqua-auth-story .aqua-public-story__pillars {
+  gap: var(--at-space-2);
+  margin-block-start: var(--at-space-6);
+}
+
+.aqua-auth-story .aqua-public-pillar {
+  max-inline-size: 600px;
+  padding: var(--at-space-3);
+  border-radius: var(--at-radius-md);
+}
+
+.aqua-auth-story .aqua-public-pillar__icon {
+  inline-size: 38px;
+  block-size: 38px;
+}
+
+.aqua-auth-story .aqua-public-story__signature {
+  margin-block-start: var(--at-space-6);
+}
+
+.aqua-auth-panel__card {
+  padding: var(--at-space-6) !important;
+  border-radius: var(--at-radius-xl) !important;
+  box-shadow: var(--at-shadow-md);
+}
+
+.aqua-auth-panel__card .aqua-public-auth__brand {
+  margin-block-end: var(--at-space-6);
+}
+
+.aqua-auth-panel__card .aqua-public-auth__heading {
+  margin-block-end: var(--at-space-4);
+}
+
+.aqua-auth-panel__card .aqua-public-auth__heading h1 {
+  font-size: var(--at-text-2xl);
+}
+
+.aqua-auth-panel__card .aqua-auth-form,
+.aqua-auth-panel__card .aqua-auth-result {
+  gap: var(--at-space-3);
+}
+
+.aqua-auth-panel__card .aqua-public-auth__footer {
+  margin-block-start: var(--at-space-6);
+}
+
+@media (max-width: 1199.98px) {
+  .aqua-notification-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 991.98px) {
+  .aqua-auth-workspace .aqua-public-surface__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 767.98px) {
+  .aqua-notification-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .aqua-notification-toolbar,
+  .aqua-notification-toolbar .btn {
+    inline-size: 100%;
+  }
+
+  .aqua-notification-metric {
+    min-block-size: 68px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .aqua-auth-panel__card {
+    padding: var(--at-space-4) !important;
+    border-radius: var(--at-radius-lg) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aqua-notifications-page *,
+  .aqua-auth-workspace * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

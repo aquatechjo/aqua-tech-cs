@@ -11,6 +11,19 @@ import {
 import { buildPasswordResetEmail } from "../../src/lib/email-templates"
 
 const publicCss = readFileSync("src/styles/aqua-public.css", "utf8")
+const authNotificationsCss = readFileSync(
+  "src/styles/aqua-auth-notifications.css",
+  "utf8",
+)
+const rootLayout = readFileSync("src/app/layout.tsx", "utf8")
+const notificationsPage = readFileSync(
+  "src/app/dashboard/notifications/page.tsx",
+  "utf8",
+)
+const notificationsClient = readFileSync(
+  "src/app/dashboard/notifications/NotificationsClient.tsx",
+  "utf8",
+)
 const authShell = readFileSync("src/components/auth/AuthShell.tsx", "utf8")
 const passwordInput = readFileSync(
   "src/components/auth/PasswordInput.tsx",
@@ -123,4 +136,21 @@ test("system documents use the shared brand and approved density contract", () =
   assert.match(systemDocument, /AquaMark/u)
   assert.match(systemDocument, /aqua-system-document__header/u)
   assert.match(systemDocument, /aqua-system-document__footer/u)
+})
+
+test("UI-16 aligns notifications and authentication with the compact public contract", () => {
+  assert.match(rootLayout, /aqua-auth-notifications\.css/u)
+  assert.match(authShell, /aqua-auth-workspace/u)
+  assert.match(loginForm, /aqua-auth-form--login/u)
+  assert.match(forgotPasswordForm, /aqua-auth-form--recovery/u)
+  assert.match(resetPasswordForm, /aqua-auth-form--reset/u)
+  assert.match(notificationsPage, /aqua-notification-metrics/u)
+  assert.doesNotMatch(
+    notificationsPage,
+    /Page \{currentPage\} \/ \{totalPages\}/u,
+  )
+  assert.match(notificationsClient, /غير مقروء/u)
+  assert.match(notificationsClient, /وقت الإنشاء/u)
+  assert.match(authNotificationsCss, /inset-inline-end: 0/u)
+  assert.match(authNotificationsCss, /prefers-reduced-motion: reduce/u)
 })
