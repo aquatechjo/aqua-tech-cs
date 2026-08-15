@@ -850,3 +850,11 @@ Status: **implemented**
 - Activate the new token only after the email provider accepts the message, preserving the previous portal link when delivery fails.
 - Record recipient, provider id, prepared, sent, failed, bounded failure reason, expiry, and attempt-count evidence.
 - Keep payment reminders, online collection, WhatsApp, automatic retries, and n8n outside this batch.
+
+## PROJ-22 — Governed Invoice Payment Reminders
+
+- Send a manual audited reminder only for an unpaid or partially paid amendment invoice whose secure portal was delivered successfully.
+- Require 72 hours between successful contacts and stop after three successful reminders.
+- Prepare a fresh opaque portal token in memory, activate it only after provider acceptance, and preserve the previous link on failure.
+- Record prepared, sent, and failed outcomes with bounded provider evidence and block concurrent attempts.
+- Keep automatic scheduling, online collection, WhatsApp, automatic retries, and n8n outside this batch.

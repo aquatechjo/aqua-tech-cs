@@ -49,6 +49,10 @@ type Invoice = {
     invoicePortalDeliverySentAt: string | null
     invoicePortalDeliveryFailedAt: string | null
     invoicePortalDeliveryAttemptCount: number
+    invoiceReminderSentAt: string | null
+    invoiceReminderFailedAt: string | null
+    invoiceReminderAttemptCount: number
+    invoiceReminderCount: number
   } | null
   items: Array<{
     id: string
@@ -144,6 +148,7 @@ export default function InvoiceDetailClient({
     invoice.contractAmendment?.invoicePortalDeliveryRecipientEmail ?? invoice.client?.email ?? "",
   )
   const [portalDeliveryConfirmOpen, setPortalDeliveryConfirmOpen] = useState(false)
+  const [reminderConfirmOpen, setReminderConfirmOpen] = useState(false)
   const [items, setItems] = useState<Line[]>(
     invoice.items.map((item) => ({
       description: item.description,
@@ -304,6 +309,21 @@ export default function InvoiceDetailClient({
     } finally {
       setBusy("")
     }
+  }
+
+  async function sendPaymentReminder() {
+    setBusy("invoice-reminder")
+    setError("")
+    setSuccess("")
+    try {
+      const response = await fetch(`/api/finance/invoices/${invoice.id}/portal/reminder`, { method: "POST" })
+      const payload = await response.json()
+      if (!response.ok || !payload.ok) { setError(payload.message || "تعذر إرسال تذكير الدفع"); return }
+      setSuccess(`تم إرسال تذكير الدفع رقم ${payload.data.reminderNumber} وتدوير الرابط بأمان`)
+      setPortalPath("")
+      setReminderConfirmOpen(false)
+      router.refresh()
+    } catch { setError("تعذر الاتصال بالخادم") } finally { setBusy("") }
   }
 
   async function recordPayment(event: React.FormEvent<HTMLFormElement>) {
@@ -506,6 +526,16 @@ export default function InvoiceDetailClient({
               <div className="col-12 col-md-5"><label className="form-label">بريد المستلم</label><input className="form-control" type="email" maxLength={254} dir="ltr" value={portalRecipientEmail} onChange={(event) => setPortalRecipientEmail(event.target.value)} /></div>
               <div className="col-12 col-md-2"><button className="btn btn-info fw-bold w-100" type="button" disabled={Boolean(busy) || !portalRecipientName.trim() || !portalRecipientEmail.trim() || Number(portalDays) < 1 || Number(portalDays) > 30} onClick={() => setPortalDeliveryConfirmOpen(true)}>إرسال الرابط</button></div>
             </div>
+            {invoice.contractAmendment.invoicePortalDeliverySentAt && outstanding > 0 ? (
+              <div className="border-top mt-3 pt-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div>
+                  <div className="fw-bold">تذكير الدفع</div>
+                  <div className="small aqua-muted">72 ساعة بين الرسائل، وبحد أقصى 3 تذكيرات. التذكيرات الناجحة: {invoice.contractAmendment.invoiceReminderCount}/3.</div>
+                  {invoice.contractAmendment.invoiceReminderFailedAt ? <div className="small text-warning">فشلت المحاولة السابقة وبقي الرابط السابق فعالًا.</div> : null}
+                </div>
+                <button className="btn btn-outline-info fw-bold" type="button" disabled={Boolean(busy) || invoice.contractAmendment.invoiceReminderCount >= 3} onClick={() => setReminderConfirmOpen(true)}>إرسال تذكير</button>
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -682,6 +712,15 @@ export default function InvoiceDetailClient({
         }
         confirmLabel="إصدار الفاتورة"
         loading={busy === "issue"}
+      />
+      <AquaConfirmDialog
+        open={reminderConfirmOpen}
+        onClose={() => setReminderConfirmOpen(false)}
+        onConfirm={sendPaymentReminder}
+        title="إرسال تذكير دفع"
+        description={`سيُرسل تذكير إلى ${invoice.contractAmendment?.invoicePortalDeliveryRecipientEmail ?? "العميل"}. سيتفعّل رابط جديد بعد نجاح البريد فقط، وسيبقى الرابط السابق فعالًا عند الفشل.`}
+        confirmLabel="إرسال التذكير"
+        loading={busy === "invoice-reminder"}
       />
       <AquaConfirmDialog
         open={portalDeliveryConfirmOpen}

@@ -4,6 +4,8 @@ import test from "node:test"
 import { invoicePortalExpiry, invoicePortalIsActive, invoicePortalIssues, invoicePortalPath, isValidInvoicePortalToken } from "../../src/lib/project-amendment-invoice-portal"
 import { invoicePortalDeliveryIssues, invoicePortalDeliverySchema, portalDeliveryAttemptInProgress, safeInvoicePortalDeliveryFailure } from "../../src/lib/project-amendment-invoice-portal-delivery"
 import { buildAmendmentInvoicePortalDeliveryEmail } from "../../src/lib/email-templates"
+import { INVOICE_REMINDER_MAX_COUNT, invoiceReminderIssues } from "../../src/lib/project-amendment-invoice-reminder"
+import { buildAmendmentInvoicePaymentReminderEmail } from "../../src/lib/email-templates"
 
 test("portal tokens and paths are opaque and bounded", () => {
   const token = "A".repeat(43)
@@ -71,6 +73,27 @@ test("PROJ-21 delivery route activates the new token only after email success", 
   assert.match(route, /ACCESS_ROLES\.financeManagement/u)
   assert.match(route, /INVOICE_PORTAL_DELIVERY_IN_PROGRESS/u)
   assert.match(route, /sendAmendmentInvoicePortalDeliveryEmail/u)
+  assert.match(route, /invoicePortalTokenHash: access\.tokenHash/u)
+  assert.match(route, /بقي الرابط السابق فعالًا/u)
+})
+
+test("PROJ-22 payment reminders enforce active delivery, balance, cooldown, and cap", () => {
+  const now = new Date("2026-08-16T00:00:00Z")
+  const valid = { invoiceStatus: "PARTIALLY_PAID", amountOutstanding: 50, portalTokenHash: "hash", portalExpiresAt: new Date("2026-08-30T00:00:00Z"), portalRevokedAt: null, deliverySentAt: new Date("2026-08-12T00:00:00Z"), reminderSentAt: null, reminderCount: 0, reminderPreparedAt: null, reminderFailedAt: null, now }
+  assert.deepEqual(invoiceReminderIssues(valid), [])
+  assert.ok(invoiceReminderIssues({ ...valid, amountOutstanding: 0 }).length)
+  assert.ok(invoiceReminderIssues({ ...valid, reminderSentAt: new Date("2026-08-15T00:00:00Z") }).length)
+  assert.ok(invoiceReminderIssues({ ...valid, reminderCount: INVOICE_REMINDER_MAX_COUNT }).length)
+})
+
+test("PROJ-22 reminder email and route preserve the old portal on failure", () => {
+  const email = buildAmendmentInvoicePaymentReminderEmail({ recipientName: "Client", invoiceNumber: "INV-22", projectName: "Project", outstandingAmount: "50.00", currency: "JOD", dueDate: "2026-08-20", portalUrl: "https://app.example.com/invoice/token", validUntilLabel: "30 August" })
+  assert.match(email.html, /https:\/\/app\.example\.com\/invoice\/token/u)
+  assert.doesNotMatch(email.html, /dashboard/u)
+  const route = readFileSync("src/app/api/finance/invoices/[id]/portal/reminder/route.ts", "utf8")
+  assert.match(route, /assertSameOrigin/u)
+  assert.match(route, /financeManagement/u)
+  assert.match(route, /invoiceReminderPendingTokenHash: access\.tokenHash/u)
   assert.match(route, /invoicePortalTokenHash: access\.tokenHash/u)
   assert.match(route, /بقي الرابط السابق فعالًا/u)
 })
