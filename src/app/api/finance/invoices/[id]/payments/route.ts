@@ -145,6 +145,17 @@ export async function POST(
         invoice.id,
       )
 
+      if (updatedInvoice.status === "PAID") {
+        await tx.projectContractAmendment.updateMany({
+          where: { companyId: user.companyId, invoiceId: invoice.id },
+          data: {
+            invoiceReminderScheduleEnabled: false,
+            invoiceReminderNextAt: null,
+            invoiceReminderScheduleUpdatedAt: new Date(),
+          },
+        })
+      }
+
       await logActivity({
         db: tx,
         companyId: user.companyId,

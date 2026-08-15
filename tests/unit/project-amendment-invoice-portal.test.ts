@@ -4,7 +4,7 @@ import test from "node:test"
 import { invoicePortalExpiry, invoicePortalIsActive, invoicePortalIssues, invoicePortalPath, isValidInvoicePortalToken } from "../../src/lib/project-amendment-invoice-portal"
 import { invoicePortalDeliveryIssues, invoicePortalDeliverySchema, portalDeliveryAttemptInProgress, safeInvoicePortalDeliveryFailure } from "../../src/lib/project-amendment-invoice-portal-delivery"
 import { buildAmendmentInvoicePortalDeliveryEmail } from "../../src/lib/email-templates"
-import { INVOICE_REMINDER_MAX_COUNT, invoiceReminderIssues } from "../../src/lib/project-amendment-invoice-reminder"
+import { INVOICE_REMINDER_COOLDOWN_MS, INVOICE_REMINDER_MAX_COUNT, invoiceReminderIssues, invoiceReminderScheduleSchema, nextInvoiceReminderAt } from "../../src/lib/project-amendment-invoice-reminder"
 import { buildAmendmentInvoicePaymentReminderEmail } from "../../src/lib/email-templates"
 
 test("portal tokens and paths are opaque and bounded", () => {
@@ -96,4 +96,25 @@ test("PROJ-22 reminder email and route preserve the old portal on failure", () =
   assert.match(route, /invoiceReminderPendingTokenHash: access\.tokenHash/u)
   assert.match(route, /invoicePortalTokenHash: access\.tokenHash/u)
   assert.match(route, /بقي الرابط السابق فعالًا/u)
+})
+
+test("PROJ-23 schedules reminders explicitly and at least 72 hours after contact", () => {
+  const contact = new Date("2026-08-16T00:00:00Z")
+  assert.equal(invoiceReminderScheduleSchema.safeParse({ enabled: true }).success, true)
+  assert.equal(invoiceReminderScheduleSchema.safeParse({ enabled: "true" }).success, false)
+  assert.equal(nextInvoiceReminderAt(contact, contact).getTime(), contact.getTime() + INVOICE_REMINDER_COOLDOWN_MS)
+})
+
+test("PROJ-23 cron is secret-protected, bounded, and stops unsafe scheduling", () => {
+  const cron = readFileSync("src/app/api/cron/invoice-payment-reminders/route.ts", "utf8")
+  const worker = readFileSync("src/lib/scheduled-invoice-reminder-server.ts", "utf8")
+  const schedule = readFileSync("src/app/api/finance/invoices/[id]/portal/reminder-schedule/route.ts", "utf8")
+  const payments = readFileSync("src/app/api/finance/invoices/[id]/payments/route.ts", "utf8")
+  assert.match(cron, /safeEqualSecrets/u)
+  assert.match(cron, /INVOICE_REMINDER_BATCH_SIZE/u)
+  assert.match(schedule, /assertSameOrigin/u)
+  assert.match(schedule, /financeManagement/u)
+  assert.match(worker, /invoiceReminderScheduleEnabled: false/u)
+  assert.match(worker, /invoiceReminderPendingTokenHash: access\.tokenHash/u)
+  assert.match(payments, /updatedInvoice\.status === "PAID"/u)
 })

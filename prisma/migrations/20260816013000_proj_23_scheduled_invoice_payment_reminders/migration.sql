@@ -1,0 +1,12 @@
+ALTER TYPE "ActivityAction" ADD VALUE 'PROJECT_AMENDMENT_INVOICE_REMINDER_SCHEDULE_ENABLED';
+ALTER TYPE "ActivityAction" ADD VALUE 'PROJECT_AMENDMENT_INVOICE_REMINDER_SCHEDULE_DISABLED';
+ALTER TYPE "ActivityAction" ADD VALUE 'PROJECT_AMENDMENT_INVOICE_SCHEDULED_REMINDER_SENT';
+ALTER TYPE "ActivityAction" ADD VALUE 'PROJECT_AMENDMENT_INVOICE_SCHEDULED_REMINDER_FAILED';
+
+ALTER TABLE "ProjectContractAmendment"
+ADD COLUMN "invoiceReminderScheduleEnabled" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN "invoiceReminderNextAt" TIMESTAMP(3),
+ADD COLUMN "invoiceReminderScheduleUpdatedAt" TIMESTAMP(3);
+
+CREATE INDEX "amendment_invoice_reminder_schedule_idx"
+ON "ProjectContractAmendment"("invoiceReminderScheduleEnabled", "invoiceReminderNextAt");

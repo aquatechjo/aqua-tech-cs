@@ -1,6 +1,15 @@
+import { z } from "zod"
+
 export const INVOICE_REMINDER_COOLDOWN_MS = 72 * 60 * 60 * 1000
 export const INVOICE_REMINDER_MAX_COUNT = 3
 export const INVOICE_REMINDER_PREPARATION_TIMEOUT_MS = 15 * 60 * 1000
+export const INVOICE_REMINDER_BATCH_SIZE = 20
+
+export const invoiceReminderScheduleSchema = z.object({ enabled: z.boolean() })
+
+export function nextInvoiceReminderAt(lastContactAt: Date, now = new Date()) {
+  return new Date(Math.max(lastContactAt.getTime(), now.getTime()) + INVOICE_REMINDER_COOLDOWN_MS)
+}
 
 export function invoiceReminderIssues(input: {
   invoiceStatus: string

@@ -505,6 +505,10 @@ enum ActivityAction {
   PROJECT_AMENDMENT_INVOICE_REMINDER_PREPARED
   PROJECT_AMENDMENT_INVOICE_REMINDER_FAILED
   PROJECT_AMENDMENT_INVOICE_REMINDER_SENT
+  PROJECT_AMENDMENT_INVOICE_REMINDER_SCHEDULE_ENABLED
+  PROJECT_AMENDMENT_INVOICE_REMINDER_SCHEDULE_DISABLED
+  PROJECT_AMENDMENT_INVOICE_SCHEDULED_REMINDER_SENT
+  PROJECT_AMENDMENT_INVOICE_SCHEDULED_REMINDER_FAILED
   PROJECT_RISK_CREATED
   PROJECT_RISK_UPDATED
   PROJECT_RISK_MATERIALIZED
@@ -1628,6 +1632,9 @@ model ProjectContractAmendment {
   invoiceReminderCount Int @default(0)
   invoiceReminderPendingTokenHash String? @unique
   invoiceReminderPendingExpiresAt DateTime?
+  invoiceReminderScheduleEnabled Boolean @default(false)
+  invoiceReminderNextAt DateTime?
+  invoiceReminderScheduleUpdatedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1642,6 +1649,7 @@ model ProjectContractAmendment {
   @@index([impactAppliedById])
   @@index([invoiceCreatedById])
   @@index([invoiceIssuedById])
+  @@index([invoiceReminderScheduleEnabled, invoiceReminderNextAt], map: "amendment_invoice_reminder_schedule_idx")
 }
 
 model ProjectChangeRequestItem {

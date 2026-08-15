@@ -53,6 +53,8 @@ type Invoice = {
     invoiceReminderFailedAt: string | null
     invoiceReminderAttemptCount: number
     invoiceReminderCount: number
+    invoiceReminderScheduleEnabled: boolean
+    invoiceReminderNextAt: string | null
   } | null
   items: Array<{
     id: string
@@ -326,6 +328,19 @@ export default function InvoiceDetailClient({
     } catch { setError("تعذر الاتصال بالخادم") } finally { setBusy("") }
   }
 
+  async function updateReminderSchedule(enabled: boolean) {
+    setBusy("invoice-reminder-schedule")
+    setError("")
+    setSuccess("")
+    try {
+      const response = await fetch(`/api/finance/invoices/${invoice.id}/portal/reminder-schedule`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled }) })
+      const payload = await response.json()
+      if (!response.ok || !payload.ok) { setError(payload.message || "تعذر تحديث جدولة التذكيرات"); return }
+      setSuccess(enabled ? "تم تفعيل جدولة تذكيرات الدفع" : "تم إيقاف جدولة تذكيرات الدفع")
+      router.refresh()
+    } catch { setError("تعذر الاتصال بالخادم") } finally { setBusy("") }
+  }
+
   async function recordPayment(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setBusy("payment")
@@ -531,9 +546,10 @@ export default function InvoiceDetailClient({
                 <div>
                   <div className="fw-bold">تذكير الدفع</div>
                   <div className="small aqua-muted">72 ساعة بين الرسائل، وبحد أقصى 3 تذكيرات. التذكيرات الناجحة: {invoice.contractAmendment.invoiceReminderCount}/3.</div>
+                  {invoice.contractAmendment.invoiceReminderScheduleEnabled && invoice.contractAmendment.invoiceReminderNextAt ? <div className="small text-info">الجدولة مفعّلة — الموعد التالي: <bdi dir="ltr">{new Intl.DateTimeFormat("ar-JO-u-nu-latn", { dateStyle: "medium", timeStyle: "short" }).format(new Date(invoice.contractAmendment.invoiceReminderNextAt))}</bdi></div> : null}
                   {invoice.contractAmendment.invoiceReminderFailedAt ? <div className="small text-warning">فشلت المحاولة السابقة وبقي الرابط السابق فعالًا.</div> : null}
                 </div>
-                <button className="btn btn-outline-info fw-bold" type="button" disabled={Boolean(busy) || invoice.contractAmendment.invoiceReminderCount >= 3} onClick={() => setReminderConfirmOpen(true)}>إرسال تذكير</button>
+                <div className="d-flex gap-2"><button className="btn btn-outline-info fw-bold" type="button" disabled={Boolean(busy) || invoice.contractAmendment.invoiceReminderCount >= 3} onClick={() => setReminderConfirmOpen(true)}>إرسال تذكير</button><button className="btn btn-outline-secondary fw-bold" type="button" disabled={Boolean(busy) || invoice.contractAmendment.invoiceReminderCount >= 3} onClick={() => void updateReminderSchedule(!invoice.contractAmendment!.invoiceReminderScheduleEnabled)}>{invoice.contractAmendment.invoiceReminderScheduleEnabled ? "إيقاف الجدولة" : "تفعيل الجدولة"}</button></div>
               </div>
             ) : null}
           </div>

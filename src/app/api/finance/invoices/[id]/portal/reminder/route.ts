@@ -4,7 +4,7 @@ import { logActivity } from "@/lib/activity"
 import { ApiError, ok, withApiHandler } from "@/lib/api-response"
 import { getRequestMeta, requireAuth } from "@/lib/auth"
 import { sendAmendmentInvoicePaymentReminderEmail } from "@/lib/email"
-import { invoiceReminderIssues } from "@/lib/project-amendment-invoice-reminder"
+import { INVOICE_REMINDER_MAX_COUNT, invoiceReminderIssues, nextInvoiceReminderAt } from "@/lib/project-amendment-invoice-reminder"
 import { invoicePortalPath } from "@/lib/project-amendment-invoice-portal"
 import { createInvoicePortalAccess } from "@/lib/project-amendment-invoice-portal-server"
 import { safeInvoicePortalDeliveryFailure } from "@/lib/project-amendment-invoice-portal-delivery"
@@ -51,13 +51,15 @@ async function remind(request: Request, context: { params: Promise<{ id: string 
       await tx.$queryRaw`SELECT "id" FROM "ProjectContractAmendment" WHERE "id" = ${prepared.amendment.id} AND "companyId" = ${user.companyId} FOR UPDATE`
       const current = await tx.projectContractAmendment.findUnique({ where: { id: prepared.amendment.id } })
       if (!current || current.invoiceReminderPendingTokenHash !== access.tokenHash) throw new ApiError("تغيّرت محاولة التذكير قبل اعتمادها", 409, "INVOICE_REMINDER_PREPARATION_CHANGED")
-      await tx.projectContractAmendment.update({ where: { id: current.id }, data: { invoicePortalTokenHash: access.tokenHash, invoicePortalExpiresAt: access.expiresAt, invoicePortalIssuedAt: now, invoicePortalRevokedAt: null, invoicePortalFirstViewedAt: null, invoicePortalLastViewedAt: null, invoicePortalViewCount: 0, invoiceReminderProviderId: providerId, invoiceReminderPreparedAt: null, invoiceReminderSentAt: now, invoiceReminderFailedAt: null, invoiceReminderFailureReason: null, invoiceReminderCount: { increment: 1 }, invoiceReminderPendingTokenHash: null, invoiceReminderPendingExpiresAt: null } })
+      const nextCount = current.invoiceReminderCount + 1
+      const keepSchedule = current.invoiceReminderScheduleEnabled && nextCount < INVOICE_REMINDER_MAX_COUNT
+      await tx.projectContractAmendment.update({ where: { id: current.id }, data: { invoicePortalTokenHash: access.tokenHash, invoicePortalExpiresAt: access.expiresAt, invoicePortalIssuedAt: now, invoicePortalRevokedAt: null, invoicePortalFirstViewedAt: null, invoicePortalLastViewedAt: null, invoicePortalViewCount: 0, invoiceReminderProviderId: providerId, invoiceReminderPreparedAt: null, invoiceReminderSentAt: now, invoiceReminderFailedAt: null, invoiceReminderFailureReason: null, invoiceReminderCount: { increment: 1 }, invoiceReminderPendingTokenHash: null, invoiceReminderPendingExpiresAt: null, invoiceReminderScheduleEnabled: keepSchedule, invoiceReminderNextAt: keepSchedule ? nextInvoiceReminderAt(now, now) : null, invoiceReminderScheduleUpdatedAt: current.invoiceReminderScheduleEnabled ? now : current.invoiceReminderScheduleUpdatedAt } })
       await logActivity({ db: tx, companyId: user.companyId, userId: user.id, action: ActivityAction.PROJECT_AMENDMENT_INVOICE_REMINDER_SENT, entityType: "ProjectContractAmendment", entityId: current.id, message: `تم إرسال تذكير دفع الفاتورة ${prepared.invoice.invoiceNumber}`, metadata: { invoiceId: prepared.invoice.id, recipientEmail: current.invoicePortalDeliveryRecipientEmail, providerId, expiresAt: access.expiresAt.toISOString(), linkRotated: true }, ...meta })
     })
   } catch (error) {
     const failureReason = safeInvoicePortalDeliveryFailure(error)
     await prisma.$transaction(async (tx) => {
-      const failed = await tx.projectContractAmendment.updateMany({ where: { id: prepared.amendment.id, companyId: user.companyId, invoiceReminderPendingTokenHash: access.tokenHash }, data: { invoiceReminderPreparedAt: null, invoiceReminderFailedAt: now, invoiceReminderFailureReason: failureReason, invoiceReminderPendingTokenHash: null, invoiceReminderPendingExpiresAt: null } })
+      const failed = await tx.projectContractAmendment.updateMany({ where: { id: prepared.amendment.id, companyId: user.companyId, invoiceReminderPendingTokenHash: access.tokenHash }, data: { invoiceReminderPreparedAt: null, invoiceReminderFailedAt: now, invoiceReminderFailureReason: failureReason, invoiceReminderPendingTokenHash: null, invoiceReminderPendingExpiresAt: null, invoiceReminderScheduleEnabled: false, invoiceReminderNextAt: null, invoiceReminderScheduleUpdatedAt: now } })
       if (failed.count) await logActivity({ db: tx, companyId: user.companyId, userId: user.id, action: ActivityAction.PROJECT_AMENDMENT_INVOICE_REMINDER_FAILED, entityType: "ProjectContractAmendment", entityId: prepared.amendment.id, message: `فشل تذكير دفع الفاتورة ${prepared.invoice.invoiceNumber}`, metadata: { invoiceId: prepared.invoice.id, failureReason }, ...meta })
     })
     throw new ApiError("تعذر إرسال تذكير الدفع. بقي الرابط السابق فعالًا إن وجد.", 502, "INVOICE_REMINDER_FAILED")

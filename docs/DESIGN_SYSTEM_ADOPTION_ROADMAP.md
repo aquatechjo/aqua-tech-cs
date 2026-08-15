@@ -858,3 +858,11 @@ Status: **implemented**
 - Prepare a fresh opaque portal token in memory, activate it only after provider acceptance, and preserve the previous link on failure.
 - Record prepared, sent, and failed outcomes with bounded provider evidence and block concurrent attempts.
 - Keep automatic scheduling, online collection, WhatsApp, automatic retries, and n8n outside this batch.
+
+## PROJ-23 — Scheduled Invoice Payment Reminder Operations
+
+- Add explicit finance-controlled opt-in and stop controls for invoice reminder scheduling.
+- Process due schedules through a `CRON_SECRET`-protected bounded worker.
+- Preserve the 72-hour cooldown and three-reminder cap while rotating portal links only after successful delivery.
+- Stop scheduling on full payment, inactive portal state, reminder cap, or provider failure.
+- Keep online collection, WhatsApp, automatic retries, and n8n outside this batch.
