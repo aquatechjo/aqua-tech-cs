@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+build
+coverage
+src/generated
+packages/aqua-design-system/src
+packages/aqua-design-system/styles
+prisma/migrations
+package-lock.json
+tsconfig.tsbuildinfo

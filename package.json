@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate \u0026\u0026 next build",
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
-    "typecheck": "next typegen && tsc --noEmit --pretty false",
+    "typecheck": "next typegen \u0026\u0026 tsc --noEmit --pretty false",
     "test:unit": "node --import tsx --test tests/unit/access-control.test.ts tests/unit/organization.test.ts tests/unit/project-execution.test.ts tests/unit/project-workflow.test.ts tests/unit/project-readiness.test.ts tests/unit/project-deliverable.test.ts tests/unit/project-change-request.test.ts tests/unit/project-governance.test.ts tests/unit/finance.test.ts tests/unit/sales.test.ts tests/unit/crm-lead.test.ts tests/unit/crm-lead-management.test.ts tests/unit/client-contact.test.ts tests/unit/discovery-intake.test.ts tests/unit/discovery-conversation.test.ts tests/unit/discovery-report.test.ts tests/unit/pricing.test.ts tests/unit/proposal.test.ts tests/unit/proposal-delivery.test.ts tests/unit/project-conversion.test.ts tests/unit/time.test.ts tests/unit/hr.test.ts tests/unit/task-scope.test.ts tests/unit/project-scope.test.ts tests/unit/request-security.test.ts tests/unit/session.test.ts tests/unit/technical-identity.test.ts tests/unit/password-reset.test.ts tests/unit/design-system.test.ts tests/unit/design-system-primitives.test.ts tests/unit/design-system-shell.test.ts tests/unit/design-system-patterns.test.ts tests/unit/design-system-public.test.ts tests/unit/design-system-package.test.ts tests/unit/design-system-visual.test.ts tests/unit/design-system-showcase-ux.test.ts tests/unit/design-system-dashboard-adoption.test.ts tests/unit/design-system-my-day-adoption.test.ts tests/unit/design-system-compact-shell-my-day-polish.test.ts tests/unit/design-system-operational-density-dynamic-states.test.ts tests/unit/design-system-tasks-adoption.test.ts tests/unit/design-system-projects-adoption.test.ts tests/unit/design-system-project-workflow-adoption.test.ts",
     "test:closure": "node --import tsx --test tests/unit/project-closure.test.ts",
     "test:feedback": "node --import tsx --test tests/unit/project-feedback.test.ts",
@@ -24,7 +24,7 @@
     "test:amendment-invoice-delivery": "node --import tsx --test tests/unit/project-amendment-invoice-delivery.test.ts",
     "test:amendment-invoice-document": "node --import tsx --test tests/unit/project-amendment-invoice-document.test.ts",
     "test:amendment-invoice-portal": "node --import tsx --test tests/unit/project-amendment-invoice-portal.test.ts",
-    "check": "npm run prisma:generate && npm run ds:check && npm run lint && npm run typecheck && npm run test:unit && npm run test:closure && npm run test:feedback && npm run test:feedback-handoff && npm run test:feedback-public && npm run test:feedback-delivery && npm run test:feedback-reminder && npm run test:feedback-reminder-schedule && npm run test:change-finance && npm run test:contract-amendment && npm run test:contract-amendment-impact && npm run test:amendment-invoice && npm run test:amendment-invoice-issuance && npm run test:amendment-invoice-delivery && npm run test:amendment-invoice-document && npm run test:amendment-invoice-portal && npm run build",
+    "check": "npm run prisma:generate \u0026\u0026 npm run ds:check \u0026\u0026 npm run lint \u0026\u0026 npm run typecheck \u0026\u0026 npm run test:unit \u0026\u0026 npm run test:closure \u0026\u0026 npm run test:feedback \u0026\u0026 npm run test:feedback-handoff \u0026\u0026 npm run test:feedback-public \u0026\u0026 npm run test:feedback-delivery \u0026\u0026 npm run test:feedback-reminder \u0026\u0026 npm run test:feedback-reminder-schedule \u0026\u0026 npm run test:change-finance \u0026\u0026 npm run test:contract-amendment \u0026\u0026 npm run test:contract-amendment-impact \u0026\u0026 npm run test:amendment-invoice \u0026\u0026 npm run test:amendment-invoice-issuance \u0026\u0026 npm run test:amendment-invoice-delivery \u0026\u0026 npm run test:amendment-invoice-document \u0026\u0026 npm run test:amendment-invoice-portal \u0026\u0026 npm run build",
     "prisma:generate": "prisma generate",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
@@ -33,7 +33,10 @@
     "ds:check": "node scripts/sync-aqua-design-system.mjs --check",
     "ds:starter": "node scripts/create-aqua-product-starter.mjs",
     "ds:visual:update": "node scripts/update-aqua-visual-baseline.mjs",
-    "test:visual": "node --import tsx --test tests/unit/design-system-visual.test.ts"
+    "test:visual": "node --import tsx --test tests/unit/design-system-visual.test.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.9.0",
@@ -61,6 +64,10 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.11",
+    "eslint-config-prettier": "^9.1.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
+    "prettier": "^3.9.6",
     "prisma": "7.9.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
@@ -71,5 +78,14 @@
     "find-my-way": "9.7.0",
     "postcss": "8.5.22",
     "sharp": "0.35.3"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,css,scss,md,mdx,yml,yaml}": [
+      "prettier --write"
+    ]
   }
 }
