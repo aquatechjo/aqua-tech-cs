@@ -69,7 +69,6 @@ test("AD-02.6 dashboard uses canonical Aqua components without alert duplication
     "AquaBadge",
     "AquaCard",
     "AquaDataPanel",
-    "AquaEmptyState",
     "AquaLinkButton",
   ]) {
     assert.match(dashboardPage, new RegExp(component, "u"))
@@ -105,7 +104,7 @@ test("AD-02.6 dashboard is employee-first, role-aware, and timezone-aware", () =
   assert.match(dashboardPage, /user\.role === "OWNER"/u)
   assert.match(dashboardPage, /ar-JO-u-nu-latn/u)
   assert.match(dashboardPage, /recentActivities\.length === 0/u)
-  assert.match(dashboardPage, /take: 5/u)
+  assert.match(dashboardPage, /take: 3/u)
   assert.match(dashboardPage, /user\?\.name \?\? "النظام"/u)
   assert.match(dashboardPage, /مهامي قيد التنفيذ/u)
   assert.match(dashboardPage, /مشاريعي الجارية/u)
@@ -115,7 +114,7 @@ test("AD-02.6 dashboard is employee-first, role-aware, and timezone-aware", () =
 
 test("dashboard adoption CSS covers responsive, logical, and reduced-motion states", () => {
   for (const contract of [
-    ".aqua-dashboard-summary",
+    ".aqua-dashboard-metric-link",
     ".aqua-dashboard-metrics",
     ".aqua-dashboard-workspace",
     ".aqua-dashboard-focus-item",
@@ -135,13 +134,12 @@ test("dashboard adoption CSS covers responsive, logical, and reduced-motion stat
   assert.match(rootLayout, /@\/styles\/aqua-dashboard\.css/u)
 })
 
-test("UI-08 gives the dashboard one final operational hierarchy", () => {
+test("UI-18 keeps the dashboard compact and operational", () => {
   for (const token of [
-    "UI-08 — Dashboard final operational hierarchy",
-    "min-block-size: 120px",
-    "min-block-size: 92px",
-    "font-size: var(--at-text-display)",
-    ".aqua-dashboard-metric > .aqua-button .aqua-button__label",
+    ".aqua-dashboard-metric-link",
+    "min-block-size: 64px",
+    ".aqua-dashboard-quiet-state",
+    ".aqua-dashboard-metric-link:focus-visible",
     "grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.5fr)",
   ]) {
     assert.match(
@@ -149,6 +147,12 @@ test("UI-08 gives the dashboard one final operational hierarchy", () => {
       new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "u")
     )
   }
+
+  assert.doesNotMatch(dashboardPage, /ما يحتاج انتباهك اليوم/u)
+  assert.doesNotMatch(dashboardPage, /ملخص التشغيل/u)
+  assert.match(dashboardCss, /font-family: var\(--at-font-latin\)/u)
+  assert.match(dashboardPage, /actions=\{/u)
+  assert.doesNotMatch(dashboardPage, /عرض سجل النشاط/u)
 })
 
 test("UI-09 applies one CRM and Sales workspace contract", () => {

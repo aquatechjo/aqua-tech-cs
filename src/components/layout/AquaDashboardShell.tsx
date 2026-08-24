@@ -117,8 +117,6 @@ export default function AquaDashboardShell({
         الانتقال إلى المحتوى الرئيسي
       </a>
 
-      <div className="aqua-grid" aria-hidden="true" />
-
       <div className="aqua-layer aqua-shell__layer">
         <AquaSidebar sections={sections} />
 

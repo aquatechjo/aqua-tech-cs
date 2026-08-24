@@ -6,10 +6,8 @@ import {
   CalendarCheck,
   CalendarClock,
   CalendarOff,
-  CheckCircle2,
   CircleDollarSign,
   ClipboardCheck,
-  Clock3,
   FolderKanban,
   Inbox,
   ListTodo,
@@ -17,12 +15,12 @@ import {
   ReceiptText,
   type LucideIcon,
 } from "lucide-react"
+import Link from "next/link"
 
 import {
   AquaBadge,
   AquaCard,
   AquaDataPanel,
-  AquaEmptyState,
   AquaLinkButton,
 } from "@/components/aqua"
 import type { AquaBadgeVariant } from "@/design-system"
@@ -40,7 +38,6 @@ import { followUpBucket, OPEN_SALES_STAGES } from "@/lib/sales"
 type DashboardMetric = {
   label: string
   value: number
-  hint: string
   href: string
   icon: LucideIcon
   tone: "aqua" | "blue" | "success" | "warning" | "danger"
@@ -49,7 +46,6 @@ type DashboardMetric = {
 type DashboardAttentionItem = {
   label: string
   value: number
-  hint: string
   href: string
   icon: LucideIcon
   variant: AquaBadgeVariant
@@ -74,16 +70,6 @@ function formatActivityTimestamp(value: Date, timeZone: string) {
   return new Intl.DateTimeFormat("ar-JO-u-nu-latn", {
     dateStyle: "medium",
     timeStyle: "short",
-    timeZone,
-  }).format(value)
-}
-
-function formatOperationalDay(value: Date, timeZone: string) {
-  return new Intl.DateTimeFormat("ar-JO-u-nu-latn", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
     timeZone,
   }).format(value)
 }
@@ -342,7 +328,7 @@ export default async function DashboardPage() {
         ...(canViewCompanyActivity ? {} : { userId: user.id }),
       },
       orderBy: { createdAt: "desc" },
-      take: 5,
+      take: 3,
       select: {
         id: true,
         message: true,
@@ -462,10 +448,6 @@ export default async function DashboardPage() {
     {
       label: canViewCompanyTasks ? "مهام متأخرة" : "مهامي المتأخرة",
       value: overdueTaskCount,
-      hint:
-        overdueTaskCount > 0
-          ? "تحتاج تحديثًا أو إغلاقًا"
-          : "لا يوجد تأخير حاليًا",
       href: "/dashboard/tasks",
       icon: AlertTriangle,
       tone: overdueTaskCount > 0 ? "danger" : "success",
@@ -473,10 +455,6 @@ export default async function DashboardPage() {
     {
       label: canViewCompanyTasks ? "مستحقة اليوم" : "مستحقة لي اليوم",
       value: todayTaskCount,
-      hint:
-        todayTaskCount > 0
-          ? "ضمن تركيز يوم العمل"
-          : "لا توجد استحقاقات اليوم",
       href: "/dashboard/my-day",
       icon: CalendarClock,
       tone: todayTaskCount > 0 ? "warning" : "success",
@@ -484,10 +462,6 @@ export default async function DashboardPage() {
     {
       label: canViewCompanyTasks ? "مهام قيد التنفيذ" : "مهامي قيد التنفيذ",
       value: inProgressTaskCount,
-      hint:
-        inProgressTaskCount > 0
-          ? "عمل جارٍ يحتاج متابعة"
-          : "لا توجد مهام قيد التنفيذ",
       href: "/dashboard/tasks",
       icon: ListTodo,
       tone: "aqua",
@@ -497,10 +471,6 @@ export default async function DashboardPage() {
         ? "مشاريع قيد التنفيذ"
         : "مشاريعي الجارية",
       value: activeProjectCount,
-      hint:
-        activeProjectCount > 0
-          ? "مشاريع تتحرك حاليًا"
-          : "لا توجد مشاريع جارية",
       href: "/dashboard/projects",
       icon: FolderKanban,
       tone: "blue",
@@ -511,7 +481,6 @@ export default async function DashboardPage() {
     {
       label: "مهام متعطلة",
       value: blockedTaskCount,
-      hint: "عوائق مفتوحة أو حالة تنفيذ متعطلة",
       href: "/dashboard/tasks",
       icon: Ban,
       variant: blockedTaskCount > 0 ? "danger" : "success",
@@ -519,7 +488,6 @@ export default async function DashboardPage() {
     {
       label: "مهام دون موعد",
       value: unscheduledTaskCount,
-      hint: "تحتاج تاريخًا واضحًا أو قرارًا",
       href: "/dashboard/tasks",
       icon: CalendarOff,
       variant: unscheduledTaskCount > 0 ? "warning" : "success",
@@ -530,7 +498,6 @@ export default async function DashboardPage() {
           {
             label: "طلبات خدمة جديدة",
             value: newServiceRequestCount,
-            hint: "لم يبدأ التواصل معها بعد",
             href: "/dashboard/service-requests",
             icon: Inbox,
             variant:
@@ -544,7 +511,6 @@ export default async function DashboardPage() {
           {
             label: "متابعات مبيعات متأخرة",
             value: overdueSalesFollowUps,
-            hint: "فرص مفتوحة تجاوزت موعد المتابعة",
             href: "/dashboard/sales",
             icon: PhoneCall,
             variant:
@@ -560,7 +526,6 @@ export default async function DashboardPage() {
           {
             label: "فواتير متأخرة",
             value: overdueInvoiceCount,
-            hint: "صادرة أو مدفوعة جزئيًا بعد الاستحقاق",
             href: "/dashboard/finance/invoices",
             icon: CircleDollarSign,
             variant:
@@ -575,7 +540,6 @@ export default async function DashboardPage() {
           {
             label: "سجلات ساعات معلقة",
             value: submittedTimesheetCount,
-            hint: "بانتظار الاعتماد أو الإرجاع",
             href: "/dashboard/time",
             icon: ClipboardCheck,
             variant: "warning" as const,
@@ -587,7 +551,6 @@ export default async function DashboardPage() {
           {
             label: "طلبات إجازة معلقة",
             value: pendingLeaveRequestCount,
-            hint: "بانتظار قرار الإدارة",
             href: "/dashboard/hr",
             icon: CalendarCheck,
             variant: "warning" as const,
@@ -599,7 +562,6 @@ export default async function DashboardPage() {
           {
             label: "مصروفات معلقة",
             value: submittedExpenseCount,
-            hint: "مرسلة للاعتماد المالي",
             href: "/dashboard/finance/expenses",
             icon: ReceiptText,
             variant: "warning" as const,
@@ -613,72 +575,32 @@ export default async function DashboardPage() {
 
   return (
     <div className="aqua-dashboard-overview">
-      <AquaCard
-        variant="surface"
-        padding="md"
-        glow
-        className="aqua-dashboard-summary"
-      >
-        <div className="aqua-dashboard-summary__copy">
-          <span className="aqua-dashboard-summary__eyebrow">ملخص التشغيل</span>
-          <h1>ما يحتاج انتباهك اليوم</h1>
-          <p>
-            المهام والاستحقاقات والطوابير التي تحتاج قرارًا، مرتبة قبل التفاصيل
-            والسجل التاريخي.
-          </p>
-        </div>
-
-        <div className="aqua-dashboard-summary__context">
-          <div className="aqua-dashboard-summary__date">
-            <Clock3 aria-hidden="true" />
-            <span>{formatOperationalDay(now, timeZone)}</span>
-          </div>
-
-          <div className="aqua-dashboard-summary__actions">
-            <AquaLinkButton
-              href="/dashboard/my-day"
-              variant="primary"
-              size="sm"
-              trailingIcon={<ArrowLeft />}
-            >
-              افتح يومي
-            </AquaLinkButton>
-          </div>
-        </div>
-      </AquaCard>
-
       <section className="aqua-dashboard-metrics" aria-label="مؤشرات اليوم">
         {metrics.map((metric) => {
           const MetricIcon = metric.icon
 
           return (
-            <AquaCard
+            <Link
               key={metric.label}
-              variant="soft"
-              padding="sm"
-              className="aqua-dashboard-metric"
-              data-tone={metric.tone}
+              href={metric.href}
+              className="aqua-dashboard-metric-link"
+              aria-label={`${metric.label}: ${metric.value}`}
             >
-              <span className="aqua-dashboard-metric__icon" aria-hidden="true">
-                <MetricIcon />
-              </span>
-
-              <div className="aqua-dashboard-metric__copy">
-                <span>{metric.label}</span>
-                <strong>{metric.value}</strong>
-                <small>{metric.hint}</small>
-              </div>
-
-              <AquaLinkButton
-                href={metric.href}
-                variant="ghost"
-                size="sm"
-                trailingIcon={<ArrowLeft />}
-                aria-label={`فتح ${metric.label}`}
+              <AquaCard
+                variant="soft"
+                padding="sm"
+                className="aqua-dashboard-metric"
+                data-tone={metric.tone}
               >
-                عرض
-              </AquaLinkButton>
-            </AquaCard>
+                <span className="aqua-dashboard-metric__icon" aria-hidden="true">
+                  <MetricIcon />
+                </span>
+                <div className="aqua-dashboard-metric__copy">
+                  <span>{metric.label}</span>
+                  <strong>{metric.value}</strong>
+                </div>
+              </AquaCard>
+            </Link>
           )
         })}
       </section>
@@ -686,11 +608,6 @@ export default async function DashboardPage() {
       <div className="aqua-dashboard-workspace">
         <AquaDataPanel
           title="تركيز اليوم"
-          description={
-            canViewCompanyTasks
-              ? "أقرب مهام الفريق المتأخرة أو المستحقة أو المتعطلة."
-              : "أقرب مهامك المتأخرة أو المستحقة أو المتعطلة."
-          }
           meta={
             <AquaBadge
               variant={focusTasks.length > 0 ? "warning" : "success"}
@@ -698,27 +615,12 @@ export default async function DashboardPage() {
             >
               {focusTasks.length > 0
                 ? `${focusTasks.length} ظاهرة`
-                : "لا يوجد ضغط عاجل"}
+                : "لا مهام عاجلة"}
             </AquaBadge>
-          }
-          footer={
-            <AquaLinkButton
-              href="/dashboard/my-day"
-              variant="ghost"
-              size="sm"
-              trailingIcon={<ArrowLeft />}
-            >
-              فتح تفاصيل يومي
-            </AquaLinkButton>
           }
         >
           {focusTasks.length === 0 ? (
-            <AquaEmptyState
-              compact
-              icon={<CheckCircle2 />}
-              title="لا توجد مهام عاجلة"
-              description="المهام المتأخرة ومستحقات اليوم والعوائق ستظهر هنا."
-            />
+            <p className="aqua-dashboard-quiet-state">لا توجد مهام عاجلة.</p>
           ) : (
             <ol className="aqua-dashboard-focus-list">
               {focusTasks.map((task) => {
@@ -768,7 +670,6 @@ export default async function DashboardPage() {
 
         <AquaDataPanel
           title="يحتاج إجراء"
-          description="طوابير تشغيلية مجمعة حسب صلاحيات حسابك."
           className="aqua-dashboard-attention-panel"
           meta={
             <AquaBadge
@@ -780,12 +681,7 @@ export default async function DashboardPage() {
           }
         >
           {attentionItems.length === 0 ? (
-            <AquaEmptyState
-              compact
-              icon={<CheckCircle2 />}
-              title="لا توجد طوابير معلقة"
-              description="ستظهر هنا فقط البنود التي تحتاج إجراءً فعليًا."
-            />
+            <p className="aqua-dashboard-quiet-state">لا توجد إجراءات معلقة.</p>
           ) : (
             <div className="aqua-dashboard-attention-list">
               {attentionItems.map((item) => {
@@ -812,7 +708,6 @@ export default async function DashboardPage() {
                           {item.value}
                         </AquaBadge>
                       </div>
-                      <span>{item.hint}</span>
                     </div>
 
                     <AquaLinkButton
@@ -833,36 +728,21 @@ export default async function DashboardPage() {
       </div>
 
       <AquaDataPanel
-        title="آخر 5 أنشطة"
-        description={
-          canViewCompanyActivity
-            ? "أحدث التغييرات المسجلة على مستوى الشركة."
-            : "أحدث التغييرات المرتبطة بحسابك."
-        }
-        footer={
+        title="آخر النشاطات"
+        actions={
           canViewCompanyActivity ? (
             <AquaLinkButton
               href="/dashboard/activity"
               variant="ghost"
               size="sm"
-              trailingIcon={<ArrowLeft />}
             >
-              عرض سجل النشاط
+              السجل
             </AquaLinkButton>
-          ) : (
-            <span className="aqua-dashboard-panel-note">
-              يظهر لك نشاط حسابك فقط وفق الصلاحيات الحالية.
-            </span>
-          )
+          ) : null
         }
       >
         {recentActivities.length === 0 ? (
-          <AquaEmptyState
-            compact
-            icon={<Activity />}
-            title="لا توجد نشاطات بعد"
-            description="ستظهر هنا أحدث العمليات بعد بدء استخدام النظام."
-          />
+          <p className="aqua-dashboard-quiet-state">لا يوجد نشاط مسجل.</p>
         ) : (
           <ol className="aqua-dashboard-activity-list">
             {recentActivities.map((activity) => (

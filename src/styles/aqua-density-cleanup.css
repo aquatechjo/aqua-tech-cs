@@ -12,7 +12,7 @@
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar {
   gap: 6px;
-  padding: 8px;
+  padding: 6px;
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar__header {
@@ -37,13 +37,13 @@
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar-nav__label {
   padding-inline: 8px;
-  font-size: 0.61rem;
+  font-size: var(--at-text-xs);
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-nav-link {
-  min-block-size: 32px;
+  min-block-size: 34px;
   padding: 3px 6px;
-  font-size: 0.75rem;
+  font-size: var(--at-text-sm);
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-nav-link__content {
@@ -56,7 +56,21 @@
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__inner {
-  min-block-size: 54px;
+  min-block-size: 48px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__email {
+  display: none;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__identity {
+  min-inline-size: 136px;
+  max-inline-size: 176px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__logout .aqua-button,
+.aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__language {
+  min-block-size: 32px;
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__project-name,
@@ -85,11 +99,11 @@
 }
 
 .aqua-dashboard-metric {
-  min-block-size: 84px;
+  min-block-size: 72px;
 }
 
 .aqua-dashboard-workspace {
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: minmax(0, 1fr) 340px;
 }
 
 .aqua-dashboard-attention-panel .aqua-data-panel__body {
@@ -98,6 +112,14 @@
 
 .aqua-dashboard-attention-item {
   padding: var(--at-space-2);
+}
+
+.aqua-dashboard-activity-item {
+  min-block-size: 52px;
+}
+
+.aqua-dashboard-overview .aqua-data-panel__actions .aqua-button {
+  min-block-size: 32px;
 }
 
 .aqua-dashboard-attention-panel .aqua-empty-state,
@@ -182,6 +204,13 @@
   .aqua-my-day-hero,
   .aqua-my-day-workspace {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-topbar__identity {
+    min-inline-size: 40px;
+    max-inline-size: 40px;
   }
 }
 

@@ -101,11 +101,6 @@ export default async function DashboardLayout({
           enabled: hasRole(user.role, ACCESS_ROLES.activityLog),
         },
         {
-          label: "نظام التصميم",
-          href: "/dashboard/design-system",
-          enabled: hasRole(user.role, ACCESS_ROLES.companySettings),
-        },
-        {
           label: "التنبيهات",
           href: "/dashboard/notifications",
           enabled: true,
