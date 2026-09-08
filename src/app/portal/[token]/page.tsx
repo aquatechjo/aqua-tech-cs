@@ -18,6 +18,13 @@ const INVOICE_STATUS_LABEL: Record<string, string> = {
   PARTIALLY_PAID: 'مدفوعة جزئياً',
   PAID: 'مدفوعة بالكامل',
 };
+const PROPOSAL_STATUS_LABEL: Record<string, string> = {
+  SENT: 'بانتظار ردك',
+  CHANGES_REQUESTED: 'بانتظار ردك',
+  CLIENT_CHANGES_REQUESTED: 'طلبت تعديلات',
+  ACCEPTED: 'تم القبول',
+  REJECTED: 'تم الرفض',
+};
 
 export default async function ClientPortalPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -36,7 +43,7 @@ export default async function ClientPortalPage({ params }: { params: Promise<{ t
     );
   }
 
-  const { client } = access;
+  const { client, activeProposals } = access;
 
   return (
     <main dir="rtl" className="container py-5" data-client-portal>
@@ -44,6 +51,26 @@ export default async function ClientPortalPage({ params }: { params: Promise<{ t
         <p className="text-secondary mb-1">{client.company.name}</p>
         <h1 className="h3">مرحباً {client.name}</h1>
       </header>
+
+      {activeProposals.length > 0 ? (
+        <section className="mb-5">
+          <h2 className="h5 mb-3">العروض</h2>
+          <div className="list-group">
+            {activeProposals.map((proposal) => (
+              <Link
+                key={proposal.id}
+                href={`/portal/${token}/proposals/${proposal.id}`}
+                className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+              >
+                <strong>{proposal.proposalNumber}</strong>
+                <span className="badge bg-info-subtle text-info-emphasis">
+                  {PROPOSAL_STATUS_LABEL[proposal.status] ?? proposal.status}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section>
         <h2 className="h5 mb-3">الفواتير</h2>

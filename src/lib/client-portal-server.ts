@@ -7,6 +7,11 @@ import {
   clientPortalIsActive,
   isValidClientPortalToken,
 } from '@/lib/client-portal';
+import { isProposalPublicAccessActive } from '@/lib/proposal-delivery';
+import {
+  publicProposalDeliverySelect,
+  serializePublicProposal,
+} from '@/lib/proposal-delivery-server';
 
 export function createClientPortalAccess() {
   const token = crypto.randomBytes(CLIENT_PORTAL_TOKEN_BYTES).toString('base64url');
@@ -30,6 +35,34 @@ export async function findClientPortalByToken(token: string, now = new Date()) {
                 where: { status: { in: ['ISSUED', 'PARTIALLY_PAID', 'PAID'] } },
                 orderBy: { issueDate: 'desc' },
               },
+              leads: {
+                select: {
+                  intakeSession: {
+                    select: {
+                      proposalWorkspace: {
+                        select: {
+                          id: true,
+                          proposalNumber: true,
+                          status: true,
+                          sentVersion: true,
+                          sentClientContentHash: true,
+                          deliveries: {
+                            orderBy: { version: 'desc' },
+                            take: 1,
+                            select: {
+                              status: true,
+                              version: true,
+                              clientContentHash: true,
+                              expiresAt: true,
+                              revokedAt: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -44,7 +77,32 @@ export async function findClientPortalByToken(token: string, now = new Date()) {
         where: { id: access.id },
         data: { lastAccessedAt: now, accessCount: { increment: 1 } },
       });
-      return access;
+
+      const activeProposals = access.client.leads
+        .map((lead) => lead.intakeSession?.proposalWorkspace)
+        .filter((workspace): workspace is NonNullable<typeof workspace> => Boolean(workspace))
+        .filter((workspace) => {
+          const delivery = workspace.deliveries[0];
+          if (!delivery) return false;
+          return isProposalPublicAccessActive({
+            deliveryStatus: delivery.status,
+            revokedAt: delivery.revokedAt,
+            expiresAt: delivery.expiresAt,
+            workspaceStatus: workspace.status,
+            deliveryVersion: delivery.version,
+            sentVersion: workspace.sentVersion,
+            deliveryClientContentHash: delivery.clientContentHash,
+            sentClientContentHash: workspace.sentClientContentHash,
+            now,
+          });
+        })
+        .map((workspace) => ({
+          id: workspace.id,
+          proposalNumber: workspace.proposalNumber,
+          status: workspace.status,
+        }));
+
+      return { ...access, activeProposals };
     },
     { isolationLevel: 'Serializable' },
   );
@@ -72,4 +130,29 @@ export async function findClientPortalInvoice(token: string, invoiceId: string) 
       items: { orderBy: { sortOrder: 'asc' } },
     },
   });
+}
+
+export async function findClientPortalProposal(token: string, workspaceId: string) {
+  if (!isValidClientPortalToken(token)) return null;
+  const tokenHash = hashOpaqueValue(token);
+  const access = await prisma.clientPortalAccess.findUnique({
+    where: { tokenHash },
+    select: { clientId: true, revokedAt: true },
+  });
+  if (!access || access.revokedAt) return null;
+
+  const delivery = await prisma.proposalDelivery.findFirst({
+    where: {
+      workspace: { id: workspaceId, intakeSession: { lead: { clientId: access.clientId } } },
+    },
+    orderBy: { version: 'desc' },
+    select: publicProposalDeliverySelect,
+  });
+  if (!delivery) return null;
+
+  try {
+    return serializePublicProposal(delivery);
+  } catch {
+    return null;
+  }
 }
