@@ -23,7 +23,7 @@ function findFilesRecursively(
 test('every emitted domain event type has a registered handler', () => {
   const routeFiles = findFilesRecursively('src/app/api', (name) => name === 'route.ts');
   const emittedTypes = new Set<string>();
-  const typePattern = /type:\s*"([a-z0-9_.]+)"/g;
+  const typePattern = /type:\s*['"]([a-z0-9_.]+)['"]/g;
 
   for (const file of routeFiles) {
     const content = read(file);
@@ -36,7 +36,7 @@ test('every emitted domain event type has a registered handler', () => {
   const registry = read('src/lib/domain-events.ts');
   for (const type of emittedTypes) {
     assert.ok(
-      registry.includes(`"${type}": handle`),
+      registry.includes(`"${type}": handle`) || registry.includes(`'${type}': handle`),
       `event type "${type}" is emitted but has no entry in the domainEventHandlers registry`,
     );
   }
@@ -64,7 +64,9 @@ test('the feedback follow-up task is created through the domain event pipe, not 
     'expected the feedback route to dispatch the event synchronously after commit',
   );
   assert.ok(
-    !/if \(status === "ACTION_REQUIRED"\) \{\s*const task = await tx\.task\.create/.test(route),
+    !/if \(status === ['"]ACTION_REQUIRED['"]\) \{\s*const task = await tx\.task\.create/.test(
+      route,
+    ),
     'the follow-up task should no longer be created inline inside the feedback transaction',
   );
 });
