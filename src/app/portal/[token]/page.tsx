@@ -25,6 +25,12 @@ const PROPOSAL_STATUS_LABEL: Record<string, string> = {
   ACCEPTED: 'تم القبول',
   REJECTED: 'تم الرفض',
 };
+const DISCOVERY_STATUS_LABEL: Record<string, string> = {
+  COLLECTING: 'قيد التقدم',
+  NEEDS_INFO: 'بانتظار معلومات إضافية منك',
+  READY_FOR_REVIEW: 'قيد المراجعة الداخلية',
+  COMPLETED: 'مكتملة',
+};
 
 export default async function ClientPortalPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
@@ -43,7 +49,7 @@ export default async function ClientPortalPage({ params }: { params: Promise<{ t
     );
   }
 
-  const { client, activeProposals } = access;
+  const { client, activeProposals, discoverySessions, feedbackRequests } = access;
 
   return (
     <main dir="rtl" className="container py-5" data-client-portal>
@@ -51,6 +57,25 @@ export default async function ClientPortalPage({ params }: { params: Promise<{ t
         <p className="text-secondary mb-1">{client.company.name}</p>
         <h1 className="h3">مرحباً {client.name}</h1>
       </header>
+
+      {discoverySessions.length > 0 ? (
+        <section className="mb-5">
+          <h2 className="h5 mb-3">جلسات الاكتشاف</h2>
+          <div className="list-group">
+            {discoverySessions.map((session) => (
+              <div
+                key={session.id}
+                className="list-group-item d-flex justify-content-between align-items-center"
+              >
+                <span>جلسة اكتشاف الخدمة</span>
+                <span className="badge bg-secondary-subtle text-secondary-emphasis">
+                  {DISCOVERY_STATUS_LABEL[session.status] ?? session.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {activeProposals.length > 0 ? (
         <section className="mb-5">
@@ -72,7 +97,7 @@ export default async function ClientPortalPage({ params }: { params: Promise<{ t
         </section>
       ) : null}
 
-      <section>
+      <section className="mb-5">
         <h2 className="h5 mb-3">الفواتير</h2>
         {client.invoices.length === 0 ? (
           <p className="text-secondary">لا توجد فواتير متاحة حالياً.</p>
@@ -96,6 +121,35 @@ export default async function ClientPortalPage({ params }: { params: Promise<{ t
           </div>
         )}
       </section>
+
+      {feedbackRequests.length > 0 ? (
+        <section>
+          <h2 className="h5 mb-3">تقييم المشاريع</h2>
+          <div className="list-group">
+            {feedbackRequests.map((feedback) => (
+              <div
+                key={feedback.projectId}
+                className="list-group-item d-flex justify-content-between align-items-center"
+              >
+                <span>{feedback.projectName}</span>
+                {feedback.pendingSubmission ? (
+                  <span className="text-secondary small">
+                    بانتظار تقييمك — راجع بريدك الإلكتروني للرابط
+                  </span>
+                ) : feedback.submitted ? (
+                  <span className="badge bg-success-subtle text-success-emphasis">
+                    شكراً لتقييمك
+                  </span>
+                ) : (
+                  <span className="badge bg-secondary-subtle text-secondary-emphasis">
+                    قيد المتابعة الداخلية
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }

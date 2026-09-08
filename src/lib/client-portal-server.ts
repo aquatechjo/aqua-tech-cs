@@ -35,10 +35,29 @@ export async function findClientPortalByToken(token: string, now = new Date()) {
                 where: { status: { in: ['ISSUED', 'PARTIALLY_PAID', 'PAID'] } },
                 orderBy: { issueDate: 'desc' },
               },
+              projects: {
+                select: {
+                  feedback: {
+                    select: {
+                      projectId: true,
+                      status: true,
+                      npsScore: true,
+                      satisfactionScore: true,
+                      publicSubmittedAt: true,
+                      publicTokenHash: true,
+                      publicExpiresAt: true,
+                      publicRevokedAt: true,
+                      project: { select: { name: true } },
+                    },
+                  },
+                },
+              },
               leads: {
                 select: {
                   intakeSession: {
                     select: {
+                      id: true,
+                      status: true,
                       proposalWorkspace: {
                         select: {
                           id: true,
@@ -102,7 +121,31 @@ export async function findClientPortalByToken(token: string, now = new Date()) {
           status: workspace.status,
         }));
 
-      return { ...access, activeProposals };
+      const discoverySessions = access.client.leads
+        .map((lead) => lead.intakeSession)
+        .filter((session): session is NonNullable<typeof session> => Boolean(session))
+        .filter((session) => session.status !== 'ARCHIVED')
+        .map((session) => ({ id: session.id, status: session.status }));
+
+      const feedbackRequests = access.client.projects
+        .map((project) => project.feedback)
+        .filter((feedback): feedback is NonNullable<typeof feedback> => Boolean(feedback))
+        .filter((feedback) => feedback.status !== 'WAIVED')
+        .map((feedback) => ({
+          projectId: feedback.projectId,
+          projectName: feedback.project.name,
+          status: feedback.status,
+          npsScore: feedback.npsScore,
+          satisfactionScore: feedback.satisfactionScore,
+          submitted: Boolean(feedback.publicSubmittedAt),
+          pendingSubmission:
+            !feedback.publicSubmittedAt &&
+            Boolean(feedback.publicTokenHash) &&
+            !feedback.publicRevokedAt &&
+            (feedback.publicExpiresAt ? feedback.publicExpiresAt > now : false),
+        }));
+
+      return { ...access, activeProposals, discoverySessions, feedbackRequests };
     },
     { isolationLevel: 'Serializable' },
   );
