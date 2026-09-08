@@ -130,6 +130,8 @@ function actionLabel(action: ActivityAction) {
     INVOICE_PUBLIC_LINK_ISSUED: 'إصدار رابط عام للفاتورة',
     INVOICE_PUBLIC_LINK_REVOKED: 'إلغاء رابط عام للفاتورة',
     INVOICE_PUBLIC_LINK_VIEWED: 'فتح رابط الفاتورة العام لأول مرة',
+    CLIENT_PORTAL_ACCESS_ISSUED: 'إصدار رابط بوابة العميل',
+    CLIENT_PORTAL_ACCESS_REVOKED: 'إلغاء رابط بوابة العميل',
     EXPENSE_CREATED: 'إنشاء مصروف',
     EXPENSE_UPDATED: 'تعديل مصروف',
     EXPENSE_SUBMITTED: 'إرسال مصروف للاعتماد',

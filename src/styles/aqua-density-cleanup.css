@@ -22,7 +22,7 @@
 .aqua-shell:not(.aqua-shell--showcase) .aqua-sidebar .aqua-mark--image {
   inline-size: 36px;
   block-size: 36px;
-  background-image: url("/aqua-tech-logo.webp");
+  background-image: url('/aqua-tech-logo.webp');
   background-position: center;
   background-size: cover;
 }
@@ -80,6 +80,26 @@
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-page-heading__title {
   font-size: 0.95rem;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-page-header {
+  gap: var(--at-space-2);
+  padding: var(--at-space-4) !important;
+  margin-block-end: var(--at-space-3) !important;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-page-header__main {
+  gap: var(--at-space-3);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-page-header-title {
+  margin-block: var(--at-space-2) var(--at-space-1);
+  font-size: var(--at-text-xl);
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-page-header-desc {
+  max-inline-size: 60rem;
+  line-height: var(--at-leading-normal);
 }
 
 .aqua-shell:not(.aqua-shell--showcase) .aqua-muted,
@@ -174,7 +194,7 @@
   padding: var(--at-space-3) var(--at-space-4);
 }
 
-.aqua-tasks-page > section[aria-label="ملخص المهام"] > .aqua-card {
+.aqua-tasks-page > section[aria-label='ملخص المهام'] > .aqua-card {
   min-block-size: 84px;
 }
 
@@ -194,7 +214,7 @@
   display: none;
 }
 
-.aqua-button svg[data-lucide="arrow-left"] {
+.aqua-button svg[data-lucide='arrow-left'] {
   inline-size: 15px;
   block-size: 15px;
 }
@@ -220,5 +240,93 @@
   .aqua-tasks-page * {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* UI-21 scroll ownership */
+.aqua-shell:not(.aqua-shell--showcase) {
+  block-size: 100dvh;
+  overflow: hidden;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__layer {
+  block-size: 100%;
+  min-block-size: 0;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__main {
+  block-size: 100dvh;
+  min-block-size: 0;
+  overflow-x: clip;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-color: rgba(var(--at-product-accent-rgb), 0.38) transparent;
+  scrollbar-width: thin;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__main::-webkit-scrollbar {
+  inline-size: 7px;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__main::-webkit-scrollbar-thumb {
+  border-radius: var(--at-radius-pill);
+  background: rgba(var(--at-product-accent-rgb), 0.38);
+}
+
+/* UI-21 visible content scrollbar */
+@media (min-width: 1200px) {
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-shell__main {
+    inline-size: calc(100% - var(--aqua-shell-sidebar-width));
+    margin-inline-start: var(--aqua-shell-sidebar-width);
+    padding-inline-start: 0;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-shell__main {
+    inline-size: 100%;
+    margin-inline-start: 0;
+    padding-inline-start: 0;
+    padding-right: 0;
+  }
+}
+
+/* UI-21 native document scrolling */
+html,
+body {
+  min-block-size: 100%;
+  overflow-y: auto;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) {
+  block-size: auto !important;
+  min-block-size: 100vh;
+  overflow-x: clip !important;
+  overflow-y: visible !important;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__layer {
+  block-size: auto !important;
+  min-block-size: 100vh;
+  overflow: visible !important;
+}
+
+.aqua-shell:not(.aqua-shell--showcase) .aqua-shell__main {
+  block-size: auto !important;
+  min-block-size: 100vh;
+  inline-size: auto;
+  margin-inline-start: 0;
+  padding-inline-start: var(--aqua-shell-sidebar-width);
+  overflow: visible !important;
+}
+
+@media (max-width: 1199.98px) {
+  .aqua-shell:not(.aqua-shell--showcase) .aqua-shell__main {
+    min-block-size: 100vh;
+    inline-size: 100%;
+    margin-inline-start: 0;
+    padding-inline-start: 0;
+    padding-right: 0;
   }
 }

@@ -637,6 +637,11 @@ enum ActivityAction {
   PAYMENT_RECEIPT_DELIVERY_FAILED
   PAYMENT_RECEIPT_SENT
   INVOICE_COLLECTION_UPDATED
+  INVOICE_PUBLIC_LINK_ISSUED
+  INVOICE_PUBLIC_LINK_REVOKED
+  INVOICE_PUBLIC_LINK_VIEWED
+  CLIENT_PORTAL_ACCESS_ISSUED
+  CLIENT_PORTAL_ACCESS_REVOKED
   EXPENSE_CREATED
   EXPENSE_UPDATED
   EXPENSE_SUBMITTED
@@ -689,6 +694,7 @@ model Company {
   slug           String          @unique
   email          String?
   phone          String?
+  whatsappBusinessNumber String?
   website        String?
   logoUrl        String?
   address        String?
@@ -727,6 +733,12 @@ model Company {
   workflowApprovals       ProjectWorkflowApproval[]
   workflowRules           ProjectWorkflowRule[]
   workflowEvents          WorkflowEvent[]
+  domainEvents            DomainEvent[]
+  whatsappContacts        WhatsAppContact[]
+  conversations           Conversation[]
+  messages                Message[]
+  messageTemplates        MessageTemplate[]
+  clientPortalAccess      ClientPortalAccess[]
   taskParticipants        TaskParticipant[]
   taskDependencies        TaskDependency[]
   taskBlockers            TaskBlocker[]
@@ -789,6 +801,8 @@ model User {
   assignedTasks                            Task[]                   @relation("TaskAssignee")
   createdTasks                             Task[]                   @relation("TaskCreator")
   assignedServiceRequests                  ServiceRequest[]         @relation("ServiceRequestAssignee")
+  assignedConversations                    Conversation[]           @relation("ConversationAssignee")
+  sentMessages                             Message[]                @relation("MessageSender")
   employeeProfile                          EmployeeProfile?
   reportedTaskBlockers                     TaskBlocker[]            @relation("TaskBlockerReporter")
   resolvedTaskBlockers                     TaskBlocker[]            @relation("TaskBlockerResolver")
@@ -1175,6 +1189,7 @@ model Client {
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   serviceRequests ServiceRequest[]
+  portalAccess    ClientPortalAccess?
 
   @@index([companyId])
   @@index([status])
@@ -1206,6 +1221,8 @@ model ClientContact {
   isDecisionMaker Boolean   @default(false)
   notes           String?
   archivedAt      DateTime?
+
+  whatsappContacts WhatsAppContact[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2041,6 +2058,207 @@ model WorkflowEvent {
   @@index([status, occurredAt])
 }
 
+model DomainEvent {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  type       String
+  payload    Json
+  status     DomainEventStatus @default(PENDING)
+  attempts   Int               @default(0)
+  lastError  String?
+
+  createdAt   DateTime  @default(now())
+  processedAt DateTime?
+
+  @@index([status, createdAt])
+  @@index([companyId, type])
+}
+
+enum DomainEventStatus {
+  PENDING
+  PROCESSED
+  FAILED
+}
+
+/**
+ * Unified client portal (PORTAL-01). One durable, revocable access token
+ * per client — unlike the per-document tokens elsewhere in this codebase,
+ * this one is meant to be reused, not single-use, so the client can return
+ * to it. PORTAL-01 aggregates invoices only; proposals, feedback, and
+ * discovery are staged as separate follow-up batches (PORTAL-02/03) since
+ * each reaches the client through a different, deeper relation chain.
+ */
+model ClientPortalAccess {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  clientId String @unique
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  tokenHash      String?   @unique
+  issuedAt       DateTime  @default(now())
+  revokedAt      DateTime?
+  lastAccessedAt DateTime?
+  accessCount    Int       @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+}
+
+/**
+ * Communication layer (BOA-03 preparation).
+ *
+ * These models are provider-agnostic on purpose (no Twilio- or Meta-specific
+ * fields): they describe a WhatsApp contact, a conversation thread, and the
+ * messages inside it, independent of which WhatsApp Business Solution
+ * Provider ends up sending them. Nothing in this application yet reads or
+ * writes these tables — no webhook, no outbound send call. See
+ * BATCH_BOA_03_PREP for what this batch deliberately does not do.
+ */
+model WhatsAppContact {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  phoneE164   String
+  displayName String?
+
+  leadId String?
+  lead   Lead?   @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  clientContactId String?
+  clientContact   ClientContact? @relation(fields: [clientContactId], references: [id], onDelete: SetNull)
+
+  optedIn    Boolean   @default(true)
+  optedOutAt DateTime?
+
+  conversations Conversation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, phoneE164])
+  @@index([companyId])
+  @@index([leadId])
+  @@index([clientContactId])
+}
+
+enum ConversationStatus {
+  OPEN
+  PENDING_HUMAN
+  CLOSED
+  ARCHIVED
+}
+
+model Conversation {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  whatsappContactId String
+  whatsappContact   WhatsAppContact @relation(fields: [whatsappContactId], references: [id], onDelete: Cascade)
+
+  serviceRequestId String?
+  serviceRequest   ServiceRequest? @relation(fields: [serviceRequestId], references: [id], onDelete: SetNull)
+
+  status ConversationStatus @default(OPEN)
+
+  assignedToId String?
+  assignedTo   User?   @relation("ConversationAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  lastMessageAt  DateTime?
+  lastInboundAt  DateTime?
+  lastOutboundAt DateTime?
+
+  messages Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([whatsappContactId])
+  @@index([status])
+  @@index([assignedToId])
+  @@index([serviceRequestId])
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum MessageStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+  RECEIVED
+}
+
+model Message {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  direction MessageDirection
+  status    MessageStatus    @default(QUEUED)
+
+  body         String?
+  templateName String?
+
+  providerMessageId String?
+
+  sentById String?
+  sentBy   User?   @relation("MessageSender", fields: [sentById], references: [id], onDelete: SetNull)
+
+  errorCode    String?
+  errorMessage String?
+
+  occurredAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@unique([companyId, providerMessageId])
+  @@index([conversationId])
+  @@index([companyId])
+  @@index([status])
+}
+
+enum MessageTemplateApprovalStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+}
+
+model MessageTemplate {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  name        String
+  language    String  @default("ar")
+  category    String?
+  bodyPreview String
+
+  approvalStatus     MessageTemplateApprovalStatus @default(DRAFT)
+  providerTemplateId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, name, language])
+  @@index([companyId])
+}
+
 model TaskParticipant {
   id        String  @id @default(cuid())
   companyId String
@@ -2407,6 +2625,14 @@ model Invoice {
   collectionNotes String?
   collectionUpdatedAt DateTime?
 
+  publicTokenHash     String?   @unique
+  publicExpiresAt     DateTime?
+  publicIssuedAt      DateTime?
+  publicRevokedAt     DateTime?
+  publicFirstViewedAt DateTime?
+  publicLastViewedAt  DateTime?
+  publicViewCount     Int       @default(0)
+
   invoiceNumber String
   status        InvoiceStatus @default(DRAFT)
   currency      String        @default("JOD")
@@ -2587,6 +2813,7 @@ model ServiceRequest {
 
   workflowRunId  String?
   idempotencyKey String?
+  referenceCode  String?
   proposalUrl    String?
 
   proposalSentAt   DateTime?
@@ -2596,11 +2823,13 @@ model ServiceRequest {
   invoices         Invoice[]
   salesOpportunity SalesOpportunity?
   lead             Lead?
+  conversations    Conversation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([companyId, idempotencyKey])
+  @@unique([companyId, referenceCode])
   @@index([companyId])
   @@index([clientId])
   @@index([projectId])
@@ -2657,6 +2886,7 @@ model Lead {
 
   opportunity   SalesOpportunity?
   intakeSession IntakeSession?
+  whatsappContacts WhatsAppContact[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

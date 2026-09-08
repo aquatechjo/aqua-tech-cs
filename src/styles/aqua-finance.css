@@ -36,7 +36,7 @@
   inline-size: 3px;
   border-radius: var(--at-radius-pill);
   background: var(--at-product-accent);
-  content: "";
+  content: '';
   opacity: 0.78;
 }
 
@@ -72,6 +72,21 @@
 .aqua-invoice-detail-page textarea {
   min-block-size: 92px;
   resize: vertical;
+}
+
+.aqua-finance-total {
+  display: flex;
+  align-items: center;
+  border-color: var(--at-product-border);
+  background: var(--at-product-surface-soft);
+  color: var(--at-product-text);
+  font-family: var(--at-font-mono);
+}
+
+.aqua-finance-total--strong {
+  border-color: var(--at-product-accent);
+  color: var(--at-product-text);
+  font-weight: var(--at-weight-black);
 }
 
 .aqua-finance-page .table-responsive,
