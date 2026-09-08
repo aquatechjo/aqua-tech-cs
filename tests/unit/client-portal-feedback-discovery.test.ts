@@ -6,12 +6,12 @@ test('portal feedback and discovery sections exclude waived and archived items',
   const server = readFileSync('src/lib/client-portal-server.ts', 'utf8').replace(/\s+/gu, ' ');
   assert.match(
     server,
-    /feedback\.status !== "WAIVED"/u,
+    /feedback\.status !== ['"]WAIVED['"]/u,
     'waived feedback is an internal decision, not something to show the client',
   );
   assert.match(
     server,
-    /session\.status !== "ARCHIVED"/u,
+    /session\.status !== ['"]ARCHIVED['"]/u,
     'archived discovery sessions should not appear in the portal',
   );
 });
