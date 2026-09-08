@@ -19,7 +19,7 @@ type InvoiceDocumentInput = {
   notes: string | null;
   terms: string | null;
   company: { name: string; email: string | null };
-  project: { name: string; code: string } | null;
+  project: { name: string; code: string | null } | null;
   client: { name: string } | null;
   items: {
     id: string;
