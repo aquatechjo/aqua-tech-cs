@@ -1,24 +1,21 @@
-"use client"
+'use client';
 
-import { useEffect, useRef, useState } from "react"
-import { usePathname } from "next/navigation"
-import type {
-  AquaNavigationSection,
-  AquaShellDensity,
-} from "@/design-system"
+import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import type { AquaNavigationSection, AquaShellDensity } from '@/design-system';
 
-import AquaSidebar from "./AquaSidebar"
-import AquaTopbar from "./AquaTopbar"
+import AquaSidebar from './AquaSidebar';
+import AquaTopbar from './AquaTopbar';
 
 type AquaDashboardShellProps = {
-  children: React.ReactNode
-  projectName: string
-  language: string
-  userEmail: string
-  userRole: string
-  sections: AquaNavigationSection[]
-  density?: AquaShellDensity
-}
+  children: React.ReactNode;
+  projectName: string;
+  language: string;
+  userEmail: string;
+  userRole: string;
+  sections: AquaNavigationSection[];
+  density?: AquaShellDensity;
+};
 
 const focusableSelector = [
   'a[href]',
@@ -27,7 +24,7 @@ const focusableSelector = [
   'select:not([disabled])',
   'textarea:not([disabled])',
   '[tabindex]:not([tabindex="-1"])',
-].join(",")
+].join(',');
 
 export default function AquaDashboardShell({
   children,
@@ -36,80 +33,82 @@ export default function AquaDashboardShell({
   userEmail,
   userRole,
   sections,
-  density = "comfortable",
+  density = 'comfortable',
 }: AquaDashboardShellProps) {
-  const pathname = usePathname()
-  const [navigationOpen, setNavigationOpen] = useState(false)
-  const showcaseMode = pathname === "/dashboard/design-system"
-  const drawerRef = useRef<HTMLDivElement | null>(null)
-  const menuButtonRef = useRef<HTMLButtonElement | null>(null)
-  const closeButtonRef = useRef<HTMLButtonElement | null>(null)
+  const pathname = usePathname();
+  const [navigationOpen, setNavigationOpen] = useState(false);
+  const showcaseMode = pathname === '/dashboard/design-system';
+  const drawerRef = useRef<HTMLDivElement | null>(null);
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [pathname]);
 
   useEffect(() => {
     if (!navigationOpen) {
-      return
+      return;
     }
 
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = "hidden"
-    closeButtonRef.current?.focus()
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeButtonRef.current?.focus();
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        event.preventDefault()
-        setNavigationOpen(false)
-        menuButtonRef.current?.focus()
-        return
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setNavigationOpen(false);
+        menuButtonRef.current?.focus();
+        return;
       }
 
-      if (event.key !== "Tab" || !drawerRef.current) {
-        return
+      if (event.key !== 'Tab' || !drawerRef.current) {
+        return;
       }
 
       const focusableElements = Array.from(
-        drawerRef.current.querySelectorAll<HTMLElement>(focusableSelector)
-      ).filter((element) => !element.hasAttribute("disabled"))
+        drawerRef.current.querySelectorAll<HTMLElement>(focusableSelector),
+      ).filter((element) => !element.hasAttribute('disabled'));
 
       if (focusableElements.length === 0) {
-        event.preventDefault()
-        return
+        event.preventDefault();
+        return;
       }
 
-      const firstElement = focusableElements[0]
-      const lastElement = focusableElements[focusableElements.length - 1]
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
 
       if (event.shiftKey && document.activeElement === firstElement) {
-        event.preventDefault()
-        lastElement.focus()
+        event.preventDefault();
+        lastElement.focus();
       } else if (!event.shiftKey && document.activeElement === lastElement) {
-        event.preventDefault()
-        firstElement.focus()
+        event.preventDefault();
+        firstElement.focus();
       }
     }
 
-    document.addEventListener("keydown", handleKeyDown)
+    document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.body.style.overflow = previousOverflow
-      document.removeEventListener("keydown", handleKeyDown)
-    }
-  }, [navigationOpen])
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [navigationOpen]);
 
   function closeNavigation(options?: { restoreFocus?: boolean }) {
-    const restoreFocus = options?.restoreFocus ?? false
+    const restoreFocus = options?.restoreFocus ?? false;
 
-    setNavigationOpen(false)
+    setNavigationOpen(false);
 
     if (restoreFocus) {
-      window.requestAnimationFrame(() => menuButtonRef.current?.focus())
+      window.requestAnimationFrame(() => menuButtonRef.current?.focus());
     }
   }
 
   return (
     <div
-      className={`aqua-page aqua-shell ${
-        showcaseMode ? "aqua-shell--showcase" : ""
-      }`}
+      className={`aqua-page aqua-shell ${showcaseMode ? 'aqua-shell--showcase' : ''}`}
       dir="rtl"
       data-aqua-density={density}
     >
@@ -139,9 +138,7 @@ export default function AquaDashboardShell({
 
       <div
         id="aqua-mobile-navigation"
-        className={`aqua-mobile-navigation ${
-          navigationOpen ? "aqua-mobile-navigation--open" : ""
-        }`}
+        className={`aqua-mobile-navigation ${navigationOpen ? 'aqua-mobile-navigation--open' : ''}`}
         aria-hidden={!navigationOpen}
       >
         <button
@@ -169,5 +166,5 @@ export default function AquaDashboardShell({
         </div>
       </div>
     </div>
-  )
+  );
 }
