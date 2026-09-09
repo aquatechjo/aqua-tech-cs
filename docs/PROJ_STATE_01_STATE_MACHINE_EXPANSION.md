@@ -148,10 +148,39 @@ notIn ['ACCEPTED', 'CANCELLED']`. Any pending count blocks the update
   blocked while any deliverable is not ACCEPTED or CANCELLED,
   mirroring the closure gate").
 
+## REVISION and CLOSED — decided against adding
+
+**Neither `REVISION` nor `CLOSED` was added to `ProjectStatus`.**
+Investigated as a follow-up to this batch, and both would have recreated
+the exact "two competing sources of truth" problem flagged when this
+batch was first scoped:
+
+- **`REVISION`**: `ProjectChangeRequest` already has a complete,
+  independent lifecycle (`DRAFT → IN_REVIEW → CHANGES_REQUESTED /
+APPROVED → APPLIED`, or `REJECTED` / `CANCELLED` — see
+  `src/lib/project-change-request.ts`). A project-level `REVISION`
+  status would just be a second, easily-stale copy of "does this
+  project have an open change request right now."
+- **`CLOSED`**: `ProjectClosure` (the model backing the closure
+  workflow) already has its own `status` distinct from
+  `Project.status`, and `COMPLETED` on that sub-record already means
+  exactly what a project-level `CLOSED` would have meant — evidence
+  documented, outcome recorded, not yet archived (see
+  `src/lib/project-closure.ts`; `Project.status` only becomes
+  `ARCHIVED` at the final `ARCHIVE` step).
+
+**What was done instead:** the project execution page
+(`src/app/dashboard/projects/[id]/ProjectExecutionClient.tsx`) now
+shows two badges next to the status badge, both computed live from the
+existing records rather than stored as project state — an "open
+change request(s)" badge when any `ProjectChangeRequest` is in
+`DRAFT` / `IN_REVIEW` / `CHANGES_REQUESTED` / `APPROVED`, and a
+"closure completed" badge when `ProjectClosure.status === 'COMPLETED'`.
+Covered by `tests/unit/project-status-expansion.test.ts` ("the project
+execution page surfaces open change requests and closure completion
+without a new project status").
+
 ## Next batch candidates
 
-- Decide and design `REVISION` vs. the existing `ProjectChangeRequest`
-  model, and `CLOSED` vs. the existing `ARCHIVED` semantics — both need a
-  product decision before an engineering one.
 - A dedicated "flag as at risk" UI action, if the generic status dropdown
   proves too buried for how often this needs to happen in practice.

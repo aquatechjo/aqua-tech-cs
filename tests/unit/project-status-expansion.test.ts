@@ -91,3 +91,20 @@ test('READY_FOR_DELIVERY is blocked while any deliverable is not ACCEPTED or CAN
   assert.ok(match, 'the READY_FOR_DELIVERY deliverable-acceptance gate was not found');
   assert.match(match![1], /notIn: \[["']ACCEPTED["'], ["']CANCELLED["']\]/u);
 });
+
+test('the project execution page surfaces open change requests and closure completion without a new project status', () => {
+  const detail = readFileSync(
+    'src/app/dashboard/projects/[id]/ProjectExecutionClient.tsx',
+    'utf8',
+  ).replace(/\s+/gu, ' ');
+  assert.match(
+    detail,
+    /openChangeRequestCount = changeRequests\.filter/u,
+    'open change requests must be derived from the existing changeRequests list, not a stored project status',
+  );
+  assert.match(
+    detail,
+    /closureCompleted = closure\?\.status === ["']COMPLETED["']/u,
+    'closure completion must be read from ProjectClosure.status, not a stored project status',
+  );
+});

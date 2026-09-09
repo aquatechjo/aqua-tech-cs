@@ -384,6 +384,10 @@ export default function ProjectExecutionClient({
     [effectiveSelectedTaskId, tasks],
   );
   const executionActivated = readiness.state === 'ACTIVATED';
+  const openChangeRequestCount = changeRequests.filter((request) =>
+    ['DRAFT', 'IN_REVIEW', 'CHANGES_REQUESTED', 'APPROVED'].includes(request.status),
+  ).length;
+  const closureCompleted = closure?.status === 'COMPLETED';
 
   async function mutate(
     key: string,
@@ -637,6 +641,18 @@ export default function ProjectExecutionClient({
               <AquaBadge variant="muted" size="sm">
                 {scope.label}
               </AquaBadge>
+              {openChangeRequestCount > 0 ? (
+                <AquaBadge variant="warning" size="sm">
+                  {openChangeRequestCount === 1
+                    ? 'طلب تغيير مفتوح'
+                    : `${openChangeRequestCount} طلبات تغيير مفتوحة`}
+                </AquaBadge>
+              ) : null}
+              {closureCompleted ? (
+                <AquaBadge variant="success" size="sm">
+                  الإغلاق مكتمل
+                </AquaBadge>
+              ) : null}
             </div>
             <p>{scope.description}</p>
           </div>
