@@ -1,23 +1,20 @@
-import { notFound, redirect } from "next/navigation"
+import { notFound, redirect } from 'next/navigation';
 
-import { ACCESS_ROLES, hasRole } from "@/lib/access-control"
-import { requireAuth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { ACCESS_ROLES, hasRole } from '@/lib/access-control';
+import { requireAuth } from '@/lib/auth';
+import { clientPortalIsActive } from '@/lib/client-portal';
+import { prisma } from '@/lib/prisma';
 
-import ClientContactsClient from "./ClientContactsClient"
+import ClientContactsClient from './ClientContactsClient';
 
-export default async function ClientDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
-  const user = await requireAuth()
+export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const user = await requireAuth();
 
   if (!hasRole(user.role, ACCESS_ROLES.clientRead)) {
-    redirect("/dashboard")
+    redirect('/dashboard');
   }
 
-  const { id } = await params
+  const { id } = await params;
   const client = await prisma.client.findFirst({
     where: {
       id,
@@ -41,13 +38,13 @@ export default async function ClientDetailPage({
       contacts: {
         orderBy: [
           {
-            archivedAt: "asc",
+            archivedAt: 'asc',
           },
           {
-            isPrimary: "desc",
+            isPrimary: 'desc',
           },
           {
-            createdAt: "asc",
+            createdAt: 'asc',
           },
         ],
         select: {
@@ -66,6 +63,15 @@ export default async function ClientDetailPage({
           updatedAt: true,
         },
       },
+      portalAccess: {
+        select: {
+          tokenHash: true,
+          revokedAt: true,
+          issuedAt: true,
+          lastAccessedAt: true,
+          accessCount: true,
+        },
+      },
       _count: {
         select: {
           projects: true,
@@ -76,10 +82,10 @@ export default async function ClientDetailPage({
         },
       },
     },
-  })
+  });
 
   if (!client) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -94,9 +100,21 @@ export default async function ClientDetailPage({
           createdAt: contact.createdAt.toISOString(),
           updatedAt: contact.updatedAt.toISOString(),
         })),
+        portalAccess: client.portalAccess
+          ? {
+              active: clientPortalIsActive({
+                tokenHash: client.portalAccess.tokenHash,
+                revokedAt: client.portalAccess.revokedAt,
+              }),
+              issuedAt: client.portalAccess.issuedAt?.toISOString() ?? null,
+              revokedAt: client.portalAccess.revokedAt?.toISOString() ?? null,
+              lastAccessedAt: client.portalAccess.lastAccessedAt?.toISOString() ?? null,
+              accessCount: client.portalAccess.accessCount,
+            }
+          : null,
       }}
       canManage={hasRole(user.role, ACCESS_ROLES.clientManagement)}
       timeZone={user.company.timezone}
     />
-  )
+  );
 }
