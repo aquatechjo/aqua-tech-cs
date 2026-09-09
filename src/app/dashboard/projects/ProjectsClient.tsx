@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import {
   Archive,
@@ -14,9 +14,9 @@ import {
   RotateCcw,
   Search,
   UsersRound,
-} from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+} from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 import {
   AquaAlert,
@@ -35,169 +35,163 @@ import {
   AquaTableStateRow,
   AquaTextarea,
   aquaToast,
-} from "@/components/aqua"
-import type { AquaBadgeVariant } from "@/design-system"
-import {
-  ProjectPriority,
-  ProjectStatus,
-} from "@/generated/prisma/enums"
+} from '@/components/aqua';
+import type { AquaBadgeVariant } from '@/design-system';
+import { ProjectPriority, ProjectStatus } from '@/generated/prisma/enums';
 
-import styles from "./Projects.module.css"
+import styles from './Projects.module.css';
 
 type ClientOption = {
-  id: string
-  name: string
-}
+  id: string;
+  name: string;
+};
 
 type WorkflowTemplateOption = {
-  id: string
-  name: string
-  code: string
-  description: string | null
-  version: number
-  isDefault: boolean
-  stageCount: number
-  taskCount: number
-  approvalCount: number
-  ruleCount: number
-}
+  id: string;
+  name: string;
+  code: string;
+  description: string | null;
+  version: number;
+  isDefault: boolean;
+  stageCount: number;
+  taskCount: number;
+  approvalCount: number;
+  ruleCount: number;
+};
 
 type ProjectItem = {
-  id: string
-  clientId: string | null
-  client: ClientOption | null
-  name: string
-  code: string | null
-  description: string | null
-  status: ProjectStatus
-  priority: ProjectPriority
-  budget: string | null
-  budgetDisplay: string | null
-  currency: string
-  startDate: string | null
-  dueDate: string | null
-  dueDisplay: string
-  isOverdue: boolean
-  completedAt: string | null
-  createdAt: string
-  updatedAt: string
-  progress: number
-  totalTasks: number
-  completedTasks: number
-  memberCount: number
-  openBlockers: number
-  canEdit: boolean
+  id: string;
+  clientId: string | null;
+  client: ClientOption | null;
+  name: string;
+  code: string | null;
+  description: string | null;
+  status: ProjectStatus;
+  priority: ProjectPriority;
+  budget: string | null;
+  budgetDisplay: string | null;
+  currency: string;
+  startDate: string | null;
+  dueDate: string | null;
+  dueDisplay: string;
+  isOverdue: boolean;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  progress: number;
+  totalTasks: number;
+  completedTasks: number;
+  memberCount: number;
+  openBlockers: number;
+  canEdit: boolean;
   workflow: {
-    templateName: string
-    templateCode: string
-    templateVersion: number
-    status:
-      | "NOT_STARTED"
-      | "ACTIVE"
-      | "PAUSED"
-      | "COMPLETED"
-      | "CANCELLED"
-  } | null
-}
+    templateName: string;
+    templateCode: string;
+    templateVersion: number;
+    status: 'NOT_STARTED' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
+  } | null;
+};
 
 type Filters = {
-  q: string
-  status: string
-  priority: string
-  clientId: string
-}
+  q: string;
+  status: string;
+  priority: string;
+  clientId: string;
+};
 
 type Stats = {
-  totalProjects: number
-  activeProjects: number
-  completedProjects: number
-  overdueProjects: number
-  filteredProjects: number
-  from: number
-  to: number
-  currentPage: number
-  totalPages: number
-}
+  totalProjects: number;
+  activeProjects: number;
+  completedProjects: number;
+  overdueProjects: number;
+  filteredProjects: number;
+  from: number;
+  to: number;
+  currentPage: number;
+  totalPages: number;
+};
 
 type Scope = {
-  label: string
-  description: string
-  dataScope: "personal" | "team" | "company"
-  canCreate: boolean
-}
+  label: string;
+  description: string;
+  dataScope: 'personal' | 'team' | 'company';
+  canCreate: boolean;
+};
 
 const projectStatuses: ProjectStatus[] = [
-  "PLANNING",
-  "IN_PROGRESS",
-  "ON_HOLD",
-  "COMPLETED",
-  "CANCELLED",
-  "ARCHIVED",
-]
-const projectPriorities: ProjectPriority[] = [
-  "LOW",
-  "MEDIUM",
-  "HIGH",
-  "URGENT",
-]
+  'PLANNING',
+  'IN_PROGRESS',
+  'AT_RISK',
+  'IN_REVIEW',
+  'READY_FOR_DELIVERY',
+  'ON_HOLD',
+  'COMPLETED',
+  'CANCELLED',
+  'ARCHIVED',
+];
+const projectPriorities: ProjectPriority[] = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
 
 function projectStatusLabel(status: ProjectStatus) {
   return (
     {
-      PLANNING: "تخطيط",
-      IN_PROGRESS: "قيد التنفيذ",
-      ON_HOLD: "معلّق",
-      COMPLETED: "مكتمل",
-      CANCELLED: "ملغي",
-      ARCHIVED: "مؤرشف",
+      PLANNING: 'تخطيط',
+      IN_PROGRESS: 'قيد التنفيذ',
+      AT_RISK: 'معرّض للخطر',
+      IN_REVIEW: 'قيد المراجعة',
+      READY_FOR_DELIVERY: 'جاهز للتسليم',
+      ON_HOLD: 'معلّق',
+      COMPLETED: 'مكتمل',
+      CANCELLED: 'ملغي',
+      ARCHIVED: 'مؤرشف',
     } satisfies Record<ProjectStatus, string>
-  )[status]
+  )[status];
 }
 
 function projectPriorityLabel(priority: ProjectPriority) {
   return (
     {
-      LOW: "منخفضة",
-      MEDIUM: "متوسطة",
-      HIGH: "عالية",
-      URGENT: "عاجلة",
+      LOW: 'منخفضة',
+      MEDIUM: 'متوسطة',
+      HIGH: 'عالية',
+      URGENT: 'عاجلة',
     } satisfies Record<ProjectPriority, string>
-  )[priority]
+  )[priority];
 }
 
 function statusVariant(status: ProjectStatus): AquaBadgeVariant {
-  if (status === "COMPLETED") return "success"
-  if (status === "IN_PROGRESS") return "aqua"
-  if (status === "ON_HOLD") return "warning"
-  if (status === "CANCELLED") return "danger"
-  if (status === "ARCHIVED") return "muted"
-  return "blue"
+  if (status === 'COMPLETED') return 'success';
+  if (status === 'READY_FOR_DELIVERY') return 'aqua';
+  if (status === 'IN_PROGRESS') return 'aqua';
+  if (status === 'IN_REVIEW') return 'warning';
+  if (status === 'AT_RISK') return 'danger';
+  if (status === 'ON_HOLD') return 'warning';
+  if (status === 'CANCELLED') return 'danger';
+  if (status === 'ARCHIVED') return 'muted';
+  return 'blue';
 }
 
-function priorityVariant(
-  priority: ProjectPriority
-): AquaBadgeVariant {
-  if (priority === "URGENT") return "danger"
-  if (priority === "HIGH") return "warning"
-  if (priority === "MEDIUM") return "blue"
-  return "muted"
+function priorityVariant(priority: ProjectPriority): AquaBadgeVariant {
+  if (priority === 'URGENT') return 'danger';
+  if (priority === 'HIGH') return 'warning';
+  if (priority === 'MEDIUM') return 'blue';
+  return 'muted';
 }
 
 function dateInputValue(value: string | null) {
-  return value?.slice(0, 10) ?? ""
+  return value?.slice(0, 10) ?? '';
 }
 
 function responseMessage(payload: unknown, fallback: string) {
   if (
     payload &&
-    typeof payload === "object" &&
-    "message" in payload &&
-    typeof payload.message === "string"
+    typeof payload === 'object' &&
+    'message' in payload &&
+    typeof payload.message === 'string'
   ) {
-    return payload.message
+    return payload.message;
   }
 
-  return fallback
+  return fallback;
 }
 
 export default function ProjectsClient({
@@ -209,124 +203,105 @@ export default function ProjectsClient({
   stats,
   pagination,
 }: {
-  projects: ProjectItem[]
-  clients: ClientOption[]
-  workflowTemplates: WorkflowTemplateOption[]
-  scope: Scope
-  filters: Filters
-  stats: Stats
-  pagination: React.ReactNode
+  projects: ProjectItem[];
+  clients: ClientOption[];
+  workflowTemplates: WorkflowTemplateOption[];
+  scope: Scope;
+  filters: Filters;
+  stats: Stats;
+  pagination: React.ReactNode;
 }) {
-  const router = useRouter()
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(
-    null
-  )
-  const [pendingArchive, setPendingArchive] =
-    useState<ProjectItem | null>(null)
-  const [archiveLoading, setArchiveLoading] = useState(false)
-  const [busyProjectId, setBusyProjectId] =
-    useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  const router = useRouter();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [pendingArchive, setPendingArchive] = useState<ProjectItem | null>(null);
+  const [archiveLoading, setArchiveLoading] = useState(false);
+  const [busyProjectId, setBusyProjectId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const [clientId, setClientId] = useState("")
+  const [clientId, setClientId] = useState('');
   const [workflowTemplateId, setWorkflowTemplateId] = useState(
-    workflowTemplates.find((template) => template.isDefault)?.id ??
-      workflowTemplates[0]?.id ??
-      ""
-  )
-  const [name, setName] = useState("")
-  const [code, setCode] = useState("")
-  const [description, setDescription] = useState("")
-  const [status, setStatus] =
-    useState<ProjectStatus>("PLANNING")
-  const [priority, setPriority] =
-    useState<ProjectPriority>("MEDIUM")
-  const [budget, setBudget] = useState("")
-  const [currency, setCurrency] = useState("JOD")
-  const [startDate, setStartDate] = useState("")
-  const [dueDate, setDueDate] = useState("")
+    workflowTemplates.find((template) => template.isDefault)?.id ?? workflowTemplates[0]?.id ?? '',
+  );
+  const [name, setName] = useState('');
+  const [code, setCode] = useState('');
+  const [description, setDescription] = useState('');
+  const [status, setStatus] = useState<ProjectStatus>('PLANNING');
+  const [priority, setPriority] = useState<ProjectPriority>('MEDIUM');
+  const [budget, setBudget] = useState('');
+  const [currency, setCurrency] = useState('JOD');
+  const [startDate, setStartDate] = useState('');
+  const [dueDate, setDueDate] = useState('');
 
-  const activeFilterCount = [
-    filters.q,
-    filters.status,
-    filters.priority,
-    filters.clientId,
-  ].filter(Boolean).length
-  const isEditing = Boolean(editingId)
+  const activeFilterCount = [filters.q, filters.status, filters.priority, filters.clientId].filter(
+    Boolean,
+  ).length;
+  const isEditing = Boolean(editingId);
   const selectedWorkflowTemplate = workflowTemplates.find(
-    (template) => template.id === workflowTemplateId
-  )
+    (template) => template.id === workflowTemplateId,
+  );
   const progressColumnLabel =
-    scope.dataScope === "company"
-      ? "التقدم"
-      : scope.dataScope === "team"
-        ? "تقدم الفريق"
-        : "تقدمي"
+    scope.dataScope === 'company' ? 'التقدم' : scope.dataScope === 'team' ? 'تقدم الفريق' : 'تقدمي';
 
   function clearForm() {
-    setEditingId(null)
-    setClientId("")
+    setEditingId(null);
+    setClientId('');
     setWorkflowTemplateId(
       workflowTemplates.find((template) => template.isDefault)?.id ??
         workflowTemplates[0]?.id ??
-        ""
-    )
-    setName("")
-    setCode("")
-    setDescription("")
-    setStatus("PLANNING")
-    setPriority("MEDIUM")
-    setBudget("")
-    setCurrency("JOD")
-    setStartDate("")
-    setDueDate("")
-    setError("")
+        '',
+    );
+    setName('');
+    setCode('');
+    setDescription('');
+    setStatus('PLANNING');
+    setPriority('MEDIUM');
+    setBudget('');
+    setCurrency('JOD');
+    setStartDate('');
+    setDueDate('');
+    setError('');
   }
 
   function closeModal() {
-    if (loading) return
-    setModalOpen(false)
-    clearForm()
+    if (loading) return;
+    setModalOpen(false);
+    clearForm();
   }
 
   function openCreate() {
-    clearForm()
-    setModalOpen(true)
+    clearForm();
+    setModalOpen(true);
   }
 
   function openEdit(project: ProjectItem) {
-    setEditingId(project.id)
-    setClientId(project.clientId ?? "")
-    setName(project.name)
-    setCode(project.code ?? "")
-    setDescription(project.description ?? "")
-    setStatus(project.status)
-    setPriority(project.priority)
-    setBudget(project.budget ?? "")
-    setCurrency(project.currency)
-    setStartDate(dateInputValue(project.startDate))
-    setDueDate(dateInputValue(project.dueDate))
-    setError("")
-    setModalOpen(true)
+    setEditingId(project.id);
+    setClientId(project.clientId ?? '');
+    setName(project.name);
+    setCode(project.code ?? '');
+    setDescription(project.description ?? '');
+    setStatus(project.status);
+    setPriority(project.priority);
+    setBudget(project.budget ?? '');
+    setCurrency(project.currency);
+    setStartDate(dateInputValue(project.startDate));
+    setDueDate(dateInputValue(project.dueDate));
+    setError('');
+    setModalOpen(true);
   }
 
-  async function submitProject(
-    event: React.FormEvent<HTMLFormElement>
-  ) {
-    event.preventDefault()
-    setError("")
-    setLoading(true)
+  async function submitProject(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError('');
+    setLoading(true);
 
     try {
-      const endpoint = isEditing
-        ? `/api/projects/${editingId}`
-        : "/api/projects"
+      const endpoint = isEditing ? `/api/projects/${editingId}` : '/api/projects';
       const response = await fetch(endpoint, {
-        method: isEditing ? "PATCH" : "POST",
+        method: isEditing ? 'PATCH' : 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           ...(!isEditing ? { workflowTemplateId } : {}),
@@ -341,86 +316,70 @@ export default function ProjectsClient({
           startDate: startDate || null,
           dueDate: dueDate || null,
         }),
-      })
-      const payload = (await response
-        .json()
-        .catch(() => null)) as unknown
+      });
+      const payload = (await response.json().catch(() => null)) as unknown;
 
       if (!response.ok) {
-        setError(
-          responseMessage(payload, "فشل حفظ بيانات المشروع")
-        )
-        return
+        setError(responseMessage(payload, 'فشل حفظ بيانات المشروع'));
+        return;
       }
 
-      aquaToast.success(
-        isEditing ? "تم تحديث المشروع" : "تم إنشاء المشروع"
-      )
-      setModalOpen(false)
-      clearForm()
-      router.refresh()
+      aquaToast.success(isEditing ? 'تم تحديث المشروع' : 'تم إنشاء المشروع');
+      setModalOpen(false);
+      clearForm();
+      router.refresh();
     } catch {
-      setError("حدث خطأ أثناء الاتصال بالخادم")
+      setError('حدث خطأ أثناء الاتصال بالخادم');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
-  async function updateProjectStatus(
-    project: ProjectItem,
-    nextStatus: ProjectStatus
-  ) {
-    setBusyProjectId(project.id)
+  async function updateProjectStatus(project: ProjectItem, nextStatus: ProjectStatus) {
+    setBusyProjectId(project.id);
 
     try {
       const response = await fetch(`/api/projects/${project.id}`, {
-        method: "PATCH",
+        method: 'PATCH',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           status: nextStatus,
         }),
-      })
-      const payload = (await response
-        .json()
-        .catch(() => null)) as unknown
+      });
+      const payload = (await response.json().catch(() => null)) as unknown;
 
       if (!response.ok) {
-        aquaToast.error(
-          responseMessage(payload, "فشل تعديل حالة المشروع")
-        )
-        return false
+        aquaToast.error(responseMessage(payload, 'فشل تعديل حالة المشروع'));
+        return false;
       }
 
-      aquaToast.success("تم تحديث حالة المشروع")
-      router.refresh()
-      return true
+      aquaToast.success('تم تحديث حالة المشروع');
+      router.refresh();
+      return true;
     } catch {
-      aquaToast.error("حدث خطأ أثناء الاتصال بالخادم")
-      return false
+      aquaToast.error('حدث خطأ أثناء الاتصال بالخادم');
+      return false;
     } finally {
-      setBusyProjectId(null)
+      setBusyProjectId(null);
     }
   }
 
   async function confirmArchive() {
-    if (!pendingArchive) return
-    setArchiveLoading(true)
+    if (!pendingArchive) return;
+    setArchiveLoading(true);
 
     const nextStatus =
-      pendingArchive.status === "ARCHIVED"
+      pendingArchive.status === 'ARCHIVED'
         ? pendingArchive.startDate
-          ? "IN_PROGRESS"
-          : "PLANNING"
-        : "ARCHIVED"
-    const saved = await updateProjectStatus(
-      pendingArchive,
-      nextStatus
-    )
+          ? 'IN_PROGRESS'
+          : 'PLANNING'
+        : 'ARCHIVED';
+    const saved = await updateProjectStatus(pendingArchive, nextStatus);
 
-    if (saved) setPendingArchive(null)
-    setArchiveLoading(false)
+    if (saved) setPendingArchive(null);
+    setArchiveLoading(false);
   }
 
   return (
@@ -433,19 +392,12 @@ export default function ProjectsClient({
           <div>
             <div className={styles.introTitleRow}>
               <h1 className={styles.introTitle}>المشاريع</h1>
-              <AquaBadge
-                variant={
-                  scope.dataScope === "company" ? "blue" : "aqua"
-                }
-                size="sm"
-                dot
-              >
+              <AquaBadge variant={scope.dataScope === 'company' ? 'blue' : 'aqua'} size="sm" dot>
                 {scope.label}
               </AquaBadge>
             </div>
             <p className={styles.introDescription}>
-              {scope.description} راقب التسليم والتقدم والعوائق
-              من مساحة تشغيل واحدة.
+              {scope.description} راقب التسليم والتقدم والعوائق من مساحة تشغيل واحدة.
             </p>
           </div>
         </div>
@@ -460,71 +412,58 @@ export default function ProjectsClient({
             المهام
           </AquaLinkButton>
           {scope.canCreate ? (
-            <AquaButton
-              size="sm"
-              leadingIcon={<Plus />}
-              onClick={openCreate}
-            >
+            <AquaButton size="sm" leadingIcon={<Plus />} onClick={openCreate}>
               مشروع جديد
             </AquaButton>
           ) : null}
         </div>
       </section>
 
-      <section
-        className={styles.metrics}
-        aria-label="ملخص المشاريع"
-      >
+      <section className={styles.metrics} aria-label="ملخص المشاريع">
         {[
           {
-            label: "كل المشاريع",
+            label: 'كل المشاريع',
             value: stats.totalProjects,
             hint: scope.label,
             icon: <BriefcaseBusiness />,
-            tone: "blue",
+            tone: 'blue',
           },
           {
-            label: "قيد العمل",
+            label: 'قيد العمل',
             value: stats.activeProjects,
-            hint: "تخطيط وتنفيذ وتعليق",
+            hint: 'تخطيط وتنفيذ وتعليق',
             icon: <FolderKanban />,
-            tone: "aqua",
+            tone: 'aqua',
           },
           {
-            label: "متأخرة",
+            label: 'متأخرة',
             value: stats.overdueProjects,
-            hint: "تحتاج متابعة موعد التسليم",
+            hint: 'تحتاج متابعة موعد التسليم',
             icon: <CircleAlert />,
-            tone: "danger",
+            tone: 'danger',
           },
           {
-            label: "مكتملة",
+            label: 'مكتملة',
             value: stats.completedProjects,
-            hint: "مشاريع منجزة",
+            hint: 'مشاريع منجزة',
             icon: <CheckCircle2 />,
-            tone: "success",
+            tone: 'success',
           },
         ].map((metric) => (
           <AquaCard
             key={metric.label}
             padding="sm"
-            className={`${styles.metric} ${
-              styles[`metric_${metric.tone}`]
-            }`}
+            className={`${styles.metric} ${styles[`metric_${metric.tone}`]}`}
           >
             <span className={styles.metricIcon} aria-hidden="true">
               {metric.icon}
             </span>
             <div className={styles.metricCopy}>
-              <span className={styles.metricLabel}>
-                {metric.label}
-              </span>
+              <span className={styles.metricLabel}>{metric.label}</span>
               <strong className={styles.metricValue} dir="ltr">
                 {metric.value}
               </strong>
-              <span className={styles.metricHint}>
-                {metric.hint}
-              </span>
+              <span className={styles.metricHint}>{metric.hint}</span>
             </div>
           </AquaCard>
         ))}
@@ -537,11 +476,7 @@ export default function ProjectsClient({
         description="ابحث ضمن المشاريع الظاهرة لك حسب نطاق صلاحياتك."
         actions={
           activeFilterCount > 0 ? (
-            <AquaLinkButton
-              href="/dashboard/projects"
-              variant="ghost"
-              size="sm"
-            >
+            <AquaLinkButton href="/dashboard/projects" variant="ghost" size="sm">
               مسح الفلاتر
             </AquaLinkButton>
           ) : null
@@ -554,12 +489,7 @@ export default function ProjectsClient({
           placeholder="الاسم أو الكود أو الوصف"
           span={4}
         />
-        <AquaSelect
-          name="status"
-          label="الحالة"
-          defaultValue={filters.status}
-          span={2}
-        >
+        <AquaSelect name="status" label="الحالة" defaultValue={filters.status} span={2}>
           <option value="">كل الحالات</option>
           {projectStatuses.map((item) => (
             <option key={item} value={item}>
@@ -567,12 +497,7 @@ export default function ProjectsClient({
             </option>
           ))}
         </AquaSelect>
-        <AquaSelect
-          name="priority"
-          label="الأولوية"
-          defaultValue={filters.priority}
-          span={2}
-        >
+        <AquaSelect name="priority" label="الأولوية" defaultValue={filters.priority} span={2}>
           <option value="">كل الأولويات</option>
           {projectPriorities.map((item) => (
             <option key={item} value={item}>
@@ -580,12 +505,7 @@ export default function ProjectsClient({
             </option>
           ))}
         </AquaSelect>
-        <AquaSelect
-          name="clientId"
-          label="العميل"
-          defaultValue={filters.clientId}
-          span={2}
-        >
+        <AquaSelect name="clientId" label="العميل" defaultValue={filters.clientId} span={2}>
           <option value="">كل العملاء</option>
           {clients.map((client) => (
             <option key={client.id} value={client.id}>
@@ -593,15 +513,8 @@ export default function ProjectsClient({
             </option>
           ))}
         </AquaSelect>
-        <div
-          className={styles.filterSubmit}
-          data-aqua-span="2"
-        >
-          <AquaButton
-            type="submit"
-            fullWidth
-            leadingIcon={<Search />}
-          >
+        <div className={styles.filterSubmit} data-aqua-span="2">
+          <AquaButton type="submit" fullWidth leadingIcon={<Search />}>
             تطبيق
           </AquaButton>
         </div>
@@ -649,10 +562,10 @@ export default function ProjectsClient({
                 title="لا توجد مشاريع ضمن هذا النطاق"
                 description={
                   activeFilterCount > 0
-                    ? "غيّر الفلاتر أو امسحها لعرض نتائج أخرى."
+                    ? 'غيّر الفلاتر أو امسحها لعرض نتائج أخرى.'
                     : scope.canCreate
-                      ? "أنشئ أول مشروع لبدء تنظيم التنفيذ."
-                      : "ستظهر المشاريع عند إضافتك إلى فريقها أو إسناد مهمة منها إليك."
+                      ? 'أنشئ أول مشروع لبدء تنظيم التنفيذ.'
+                      : 'ستظهر المشاريع عند إضافتك إلى فريقها أو إسناد مهمة منها إليك.'
                 }
               />
             ) : (
@@ -661,23 +574,18 @@ export default function ProjectsClient({
                   <td data-label="المشروع">
                     <div className={styles.projectHeading}>
                       <div>
-                        <div className="aqua-table__primary">
-                          {project.name}
-                        </div>
+                        <div className="aqua-table__primary">{project.name}</div>
                         <div className="aqua-table__secondary">
-                          {project.client?.name ?? "مشروع داخلي"}
+                          {project.client?.name ?? 'مشروع داخلي'}
                           {project.code ? (
                             <>
-                              {" · "}
+                              {' · '}
                               <span dir="ltr">{project.code}</span>
                             </>
                           ) : null}
                         </div>
                         {project.budgetDisplay ? (
-                          <div
-                            className="aqua-table__secondary"
-                            dir="ltr"
-                          >
+                          <div className="aqua-table__secondary" dir="ltr">
                             {project.budgetDisplay}
                           </div>
                         ) : null}
@@ -685,32 +593,21 @@ export default function ProjectsClient({
                           <div className={styles.workflowLine}>
                             <GitBranch aria-hidden="true" />
                             <span>{project.workflow.templateName}</span>
-                            <span dir="ltr">
-                              v{project.workflow.templateVersion}
-                            </span>
+                            <span dir="ltr">v{project.workflow.templateVersion}</span>
                           </div>
                         ) : null}
                       </div>
-                      <AquaBadge
-                        variant={priorityVariant(project.priority)}
-                        size="sm"
-                      >
+                      <AquaBadge variant={priorityVariant(project.priority)} size="sm">
                         {projectPriorityLabel(project.priority)}
                       </AquaBadge>
                     </div>
                   </td>
                   <td data-label="الحالة">
-                    <AquaBadge
-                      variant={statusVariant(project.status)}
-                      size="sm"
-                      dot
-                    >
+                    <AquaBadge variant={statusVariant(project.status)} size="sm" dot>
                       {projectStatusLabel(project.status)}
                     </AquaBadge>
                     {project.openBlockers > 0 ? (
-                      <div className={styles.inlineAlert}>
-                        {project.openBlockers} عائق مفتوح
-                      </div>
+                      <div className={styles.inlineAlert}>{project.openBlockers} عائق مفتوح</div>
                     ) : null}
                   </td>
                   <td data-label="التقدم">
@@ -738,11 +635,7 @@ export default function ProjectsClient({
                   </td>
                   <td data-label="التسليم">
                     <div
-                      className={
-                        project.isOverdue
-                          ? styles.overdueDate
-                          : "aqua-table__secondary"
-                      }
+                      className={project.isOverdue ? styles.overdueDate : 'aqua-table__secondary'}
                     >
                       {project.dueDisplay}
                     </div>
@@ -783,21 +676,13 @@ export default function ProjectsClient({
                           >
                             تعديل
                           </AquaButton>
-                          {project.status !== "COMPLETED" &&
-                          project.status !== "ARCHIVED" ? (
+                          {project.status !== 'COMPLETED' && project.status !== 'ARCHIVED' ? (
                             <AquaButton
                               variant="ghost"
                               size="sm"
-                              loading={
-                                busyProjectId === project.id
-                              }
+                              loading={busyProjectId === project.id}
                               leadingIcon={<CheckCircle2 />}
-                              onClick={() =>
-                                updateProjectStatus(
-                                  project,
-                                  "COMPLETED"
-                                )
-                              }
+                              onClick={() => updateProjectStatus(project, 'COMPLETED')}
                             >
                               إكمال
                             </AquaButton>
@@ -806,19 +691,11 @@ export default function ProjectsClient({
                             variant="ghost"
                             size="sm"
                             leadingIcon={
-                              project.status === "ARCHIVED" ? (
-                                <RotateCcw />
-                              ) : (
-                                <Archive />
-                              )
+                              project.status === 'ARCHIVED' ? <RotateCcw /> : <Archive />
                             }
-                            onClick={() =>
-                              setPendingArchive(project)
-                            }
+                            onClick={() => setPendingArchive(project)}
                           >
-                            {project.status === "ARCHIVED"
-                              ? "استرجاع"
-                              : "أرشفة"}
+                            {project.status === 'ARCHIVED' ? 'استرجاع' : 'أرشفة'}
                           </AquaButton>
                         </>
                       ) : null}
@@ -834,22 +711,18 @@ export default function ProjectsClient({
       <AquaModal
         open={modalOpen}
         onClose={closeModal}
-        title={isEditing ? "تعديل المشروع" : "مشروع جديد"}
+        title={isEditing ? 'تعديل المشروع' : 'مشروع جديد'}
         description={
           isEditing
-            ? "حدّث بيانات المشروع. سير العمل المنسوخ يبقى مستقلًا عن القالب."
-            : "اختر قالب سير العمل ثم أضف بيانات المشروع؛ ستُنشأ المراحل والمهام تلقائيًا."
+            ? 'حدّث بيانات المشروع. سير العمل المنسوخ يبقى مستقلًا عن القالب.'
+            : 'اختر قالب سير العمل ثم أضف بيانات المشروع؛ ستُنشأ المراحل والمهام تلقائيًا.'
         }
         size="xl"
         className={styles.projectModal}
         closeOnBackdrop={!loading}
         footer={
           <div className="aqua-modal__action-row">
-            <AquaButton
-              variant="ghost"
-              onClick={closeModal}
-              disabled={loading}
-            >
+            <AquaButton variant="ghost" onClick={closeModal} disabled={loading}>
               إلغاء
             </AquaButton>
             <AquaButton
@@ -859,16 +732,12 @@ export default function ProjectsClient({
               disabled={!isEditing && workflowTemplates.length === 0}
               loadingLabel="جارٍ الحفظ"
             >
-              {isEditing ? "حفظ التعديلات" : "إنشاء المشروع"}
+              {isEditing ? 'حفظ التعديلات' : 'إنشاء المشروع'}
             </AquaButton>
           </div>
         }
       >
-        <form
-          id="project-form"
-          className={styles.projectForm}
-          onSubmit={submitProject}
-        >
+        <form id="project-form" className={styles.projectForm} onSubmit={submitProject}>
           {error ? (
             <AquaAlert variant="danger" title="تعذر الحفظ">
               {error}
@@ -876,32 +745,24 @@ export default function ProjectsClient({
           ) : null}
 
           {!isEditing ? (
-            <AquaAlert
-              variant="info"
-              title="يبدأ المشروع في التخطيط"
-            >
-              يُنشأ المشروع وسير العمل دون بدء التنفيذ. فعّله من بوابة
-              الجاهزية بعد توثيق شروط العقد والدفعة المطلوبة.
+            <AquaAlert variant="info" title="يبدأ المشروع في التخطيط">
+              يُنشأ المشروع وسير العمل دون بدء التنفيذ. فعّله من بوابة الجاهزية بعد توثيق شروط العقد
+              والدفعة المطلوبة.
             </AquaAlert>
           ) : null}
 
           <div className="aqua-form-grid">
             {isEditing ? (
-              <div
-                className={styles.workflowLocked}
-                data-aqua-span="12"
-              >
+              <div className={styles.workflowLocked} data-aqua-span="12">
                 <span className={styles.workflowIcon} aria-hidden="true">
                   <GitBranch />
                 </span>
                 <div>
                   <strong>
-                    {projects.find((project) => project.id === editingId)
-                      ?.workflow?.templateName ?? "سير المشروع الحالي"}
+                    {projects.find((project) => project.id === editingId)?.workflow?.templateName ??
+                      'سير المشروع الحالي'}
                   </strong>
-                  <p>
-                    تعديل القالب الأصلي لا يغيّر مراحل أو مهام هذا المشروع.
-                  </p>
+                  <p>تعديل القالب الأصلي لا يغيّر مراحل أو مهام هذا المشروع.</p>
                 </div>
               </div>
             ) : workflowTemplates.length > 0 ? (
@@ -909,28 +770,20 @@ export default function ProjectsClient({
                 <AquaSelect
                   label="قالب سير العمل"
                   value={workflowTemplateId}
-                  onChange={(event) =>
-                    setWorkflowTemplateId(event.target.value)
-                  }
+                  onChange={(event) => setWorkflowTemplateId(event.target.value)}
                   required
                   span={12}
                 >
                   {workflowTemplates.map((template) => (
                     <option key={template.id} value={template.id}>
                       {template.name}
-                      {template.isDefault ? " — الافتراضي" : ""}
+                      {template.isDefault ? ' — الافتراضي' : ''}
                     </option>
                   ))}
                 </AquaSelect>
                 {selectedWorkflowTemplate ? (
-                  <div
-                    className={styles.workflowPreview}
-                    data-aqua-span="12"
-                  >
-                    <span
-                      className={styles.workflowIcon}
-                      aria-hidden="true"
-                    >
+                  <div className={styles.workflowPreview} data-aqua-span="12">
+                    <span className={styles.workflowIcon} aria-hidden="true">
                       <GitBranch />
                     </span>
                     <div className={styles.workflowPreviewCopy}>
@@ -942,21 +795,13 @@ export default function ProjectsClient({
                       </div>
                       <p>
                         {selectedWorkflowTemplate.description ??
-                          "سيتم إنشاء مراحل ومهام المشروع من هذا القالب."}
+                          'سيتم إنشاء مراحل ومهام المشروع من هذا القالب.'}
                       </p>
                       <div className={styles.workflowCounts}>
-                        <span>
-                          {selectedWorkflowTemplate.stageCount} مراحل
-                        </span>
-                        <span>
-                          {selectedWorkflowTemplate.taskCount} مهام
-                        </span>
-                        <span>
-                          {selectedWorkflowTemplate.approvalCount} موافقات
-                        </span>
-                        <span>
-                          {selectedWorkflowTemplate.ruleCount} قواعد تنبيه
-                        </span>
+                        <span>{selectedWorkflowTemplate.stageCount} مراحل</span>
+                        <span>{selectedWorkflowTemplate.taskCount} مهام</span>
+                        <span>{selectedWorkflowTemplate.approvalCount} موافقات</span>
+                        <span>{selectedWorkflowTemplate.ruleCount} قواعد تنبيه</span>
                       </div>
                     </div>
                   </div>
@@ -964,10 +809,7 @@ export default function ProjectsClient({
               </>
             ) : (
               <div data-aqua-span="12">
-                <AquaAlert
-                  variant="warning"
-                  title="لا يوجد قالب سير عمل مفعّل"
-                >
+                <AquaAlert variant="warning" title="لا يوجد قالب سير عمل مفعّل">
                   يجب تفعيل قالب واحد على الأقل قبل إنشاء المشروع.
                 </AquaAlert>
               </div>
@@ -1005,20 +847,16 @@ export default function ProjectsClient({
             <AquaSelect
               label="الحالة"
               value={status}
-              onChange={(event) =>
-                setStatus(event.target.value as ProjectStatus)
-              }
+              onChange={(event) => setStatus(event.target.value as ProjectStatus)}
               span={3}
             >
               {(isEditing
-                ? status === "PLANNING"
+                ? status === 'PLANNING'
                   ? projectStatuses.filter((item) =>
-                      ["PLANNING", "CANCELLED", "ARCHIVED"].includes(
-                        item,
-                      ),
+                      ['PLANNING', 'CANCELLED', 'ARCHIVED'].includes(item),
                     )
                   : projectStatuses
-                : ["PLANNING"] as ProjectStatus[]
+                : (['PLANNING'] as ProjectStatus[])
               ).map((item) => (
                 <option key={item} value={item}>
                   {projectStatusLabel(item)}
@@ -1028,11 +866,7 @@ export default function ProjectsClient({
             <AquaSelect
               label="الأولوية"
               value={priority}
-              onChange={(event) =>
-                setPriority(
-                  event.target.value as ProjectPriority
-                )
-              }
+              onChange={(event) => setPriority(event.target.value as ProjectPriority)}
               span={3}
             >
               {projectPriorities.map((item) => (
@@ -1053,9 +887,7 @@ export default function ProjectsClient({
             <AquaInput
               label="العملة"
               value={currency}
-              onChange={(event) =>
-                setCurrency(event.target.value.toUpperCase())
-              }
+              onChange={(event) => setCurrency(event.target.value.toUpperCase())}
               placeholder="JOD"
               maxLength={3}
               dir="ltr"
@@ -1080,9 +912,7 @@ export default function ProjectsClient({
             <AquaTextarea
               label="وصف المشروع"
               value={description}
-              onChange={(event) =>
-                setDescription(event.target.value)
-              }
+              onChange={(event) => setDescription(event.target.value)}
               rows={3}
               placeholder="النتيجة المطلوبة ونطاق العمل"
               span={12}
@@ -1094,33 +924,21 @@ export default function ProjectsClient({
       <AquaConfirmDialog
         open={Boolean(pendingArchive)}
         onClose={() => {
-          if (!archiveLoading) setPendingArchive(null)
+          if (!archiveLoading) setPendingArchive(null);
         }}
         onConfirm={confirmArchive}
         loading={archiveLoading}
-        title={
-          pendingArchive?.status === "ARCHIVED"
-            ? "استرجاع المشروع"
-            : "أرشفة المشروع"
-        }
+        title={pendingArchive?.status === 'ARCHIVED' ? 'استرجاع المشروع' : 'أرشفة المشروع'}
         description={
-          pendingArchive?.status === "ARCHIVED"
+          pendingArchive?.status === 'ARCHIVED'
             ? pendingArchive.startDate
-              ? `سيعود مشروع «${pendingArchive?.name ?? ""}» إلى حالة قيد التنفيذ.`
-              : `سيعود مشروع «${pendingArchive?.name ?? ""}» إلى حالة التخطيط دون بدء التنفيذ.`
-            : `سيختفي مشروع «${pendingArchive?.name ?? ""}» من قوائم العمل النشطة مع بقاء بياناته محفوظة.`
+              ? `سيعود مشروع «${pendingArchive?.name ?? ''}» إلى حالة قيد التنفيذ.`
+              : `سيعود مشروع «${pendingArchive?.name ?? ''}» إلى حالة التخطيط دون بدء التنفيذ.`
+            : `سيختفي مشروع «${pendingArchive?.name ?? ''}» من قوائم العمل النشطة مع بقاء بياناته محفوظة.`
         }
-        confirmLabel={
-          pendingArchive?.status === "ARCHIVED"
-            ? "استرجاع"
-            : "أرشفة"
-        }
-        tone={
-          pendingArchive?.status === "ARCHIVED"
-            ? "neutral"
-            : "warning"
-        }
+        confirmLabel={pendingArchive?.status === 'ARCHIVED' ? 'استرجاع' : 'أرشفة'}
+        tone={pendingArchive?.status === 'ARCHIVED' ? 'neutral' : 'warning'}
       />
     </div>
-  )
+  );
 }

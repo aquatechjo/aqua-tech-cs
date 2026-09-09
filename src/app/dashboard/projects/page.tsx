@@ -1,121 +1,105 @@
-import type { Prisma } from "@/generated/prisma/client"
-import {
-  ProjectPriority,
-  ProjectStatus,
-} from "@/generated/prisma/enums"
+import type { Prisma } from '@/generated/prisma/client';
+import { ProjectPriority, ProjectStatus } from '@/generated/prisma/enums';
 
-import AquaPagination from "@/components/aqua/AquaPagination"
-import { requireAuth } from "@/lib/auth"
-import { averageProgress } from "@/lib/project-execution"
-import { summarizeWorkflowDefinition } from "@/lib/project-workflow"
+import AquaPagination from '@/components/aqua/AquaPagination';
+import { requireAuth } from '@/lib/auth';
+import { averageProgress } from '@/lib/project-execution';
+import { summarizeWorkflowDefinition } from '@/lib/project-workflow';
 import {
   buildProjectVisibilityWhere,
   canManageProjectMetadata,
   projectScopeFromTaskScope,
   projectScopeLabel,
-} from "@/lib/project-scope"
-import { prisma } from "@/lib/prisma"
-import { buildTaskVisibilityWhere } from "@/lib/task-scope"
-import { resolveTaskAccessScope } from "@/lib/task-scope-server"
+} from '@/lib/project-scope';
+import { prisma } from '@/lib/prisma';
+import { buildTaskVisibilityWhere } from '@/lib/task-scope';
+import { resolveTaskAccessScope } from '@/lib/task-scope-server';
 
-import ProjectsClient from "./ProjectsClient"
+import ProjectsClient from './ProjectsClient';
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 20;
 const activeProjectStatuses: ProjectStatus[] = [
-  "PLANNING",
-  "IN_PROGRESS",
-  "ON_HOLD",
-]
+  'PLANNING',
+  'IN_PROGRESS',
+  'AT_RISK',
+  'IN_REVIEW',
+  'READY_FOR_DELIVERY',
+  'ON_HOLD',
+];
 const projectStatuses: ProjectStatus[] = [
   ...activeProjectStatuses,
-  "COMPLETED",
-  "CANCELLED",
-  "ARCHIVED",
-]
-const projectPriorities: ProjectPriority[] = [
-  "LOW",
-  "MEDIUM",
-  "HIGH",
-  "URGENT",
-]
+  'COMPLETED',
+  'CANCELLED',
+  'ARCHIVED',
+];
+const projectPriorities: ProjectPriority[] = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
 
 function parsePage(value: string | undefined) {
-  const page = Number(value)
-  return Number.isFinite(page) && page >= 1
-    ? Math.floor(page)
-    : 1
+  const page = Number(value);
+  return Number.isFinite(page) && page >= 1 ? Math.floor(page) : 1;
 }
 
 function parseProjectStatus(value: string | undefined) {
-  if (!value) return undefined
-  return projectStatuses.includes(value as ProjectStatus)
-    ? (value as ProjectStatus)
-    : undefined
+  if (!value) return undefined;
+  return projectStatuses.includes(value as ProjectStatus) ? (value as ProjectStatus) : undefined;
 }
 
 function parseProjectPriority(value: string | undefined) {
-  if (!value) return undefined
+  if (!value) return undefined;
   return projectPriorities.includes(value as ProjectPriority)
     ? (value as ProjectPriority)
-    : undefined
+    : undefined;
 }
 
 function formatDate(value: Date | null, timeZone: string) {
-  if (!value) return "دون موعد"
+  if (!value) return 'دون موعد';
 
-  return new Intl.DateTimeFormat("ar-JO-u-nu-latn", {
+  return new Intl.DateTimeFormat('ar-JO-u-nu-latn', {
     timeZone,
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-  }).format(value)
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+  }).format(value);
 }
 
-function formatBudget(
-  value: Prisma.Decimal | null,
-  currency: string
-) {
-  if (!value) return null
+function formatBudget(value: Prisma.Decimal | null, currency: string) {
+  if (!value) return null;
 
-  return `${new Intl.NumberFormat("en-JO", {
+  return `${new Intl.NumberFormat('en-JO', {
     maximumFractionDigits: 2,
-  }).format(Number(value))} ${currency}`
+  }).format(Number(value))} ${currency}`;
 }
 
 export default async function ProjectsPage({
   searchParams,
 }: {
   searchParams: Promise<{
-    page?: string
-    q?: string
-    status?: string
-    priority?: string
-    clientId?: string
-  }>
+    page?: string;
+    q?: string;
+    status?: string;
+    priority?: string;
+    clientId?: string;
+  }>;
 }) {
-  const user = await requireAuth()
-  const taskScope = await resolveTaskAccessScope(user)
-  const scope = projectScopeFromTaskScope(
-    user.role,
-    taskScope
-  )
-  const resolvedSearchParams = await searchParams
-  const timeZone = user.company.timezone || "Asia/Amman"
-  const now = new Date()
+  const user = await requireAuth();
+  const taskScope = await resolveTaskAccessScope(user);
+  const scope = projectScopeFromTaskScope(user.role, taskScope);
+  const resolvedSearchParams = await searchParams;
+  const timeZone = user.company.timezone || 'Asia/Amman';
+  const now = new Date();
 
-  const requestedPage = parsePage(resolvedSearchParams.page)
-  const q = resolvedSearchParams.q?.trim() ?? ""
-  const status = parseProjectStatus(resolvedSearchParams.status)
-  const priority = parseProjectPriority(resolvedSearchParams.priority)
-  const clientId = resolvedSearchParams.clientId?.trim() ?? ""
-  const visibilityWhere = buildProjectVisibilityWhere(scope)
-  const taskVisibilityWhere =
-    buildTaskVisibilityWhere(taskScope)
+  const requestedPage = parsePage(resolvedSearchParams.page);
+  const q = resolvedSearchParams.q?.trim() ?? '';
+  const status = parseProjectStatus(resolvedSearchParams.status);
+  const priority = parseProjectPriority(resolvedSearchParams.priority);
+  const clientId = resolvedSearchParams.clientId?.trim() ?? '';
+  const visibilityWhere = buildProjectVisibilityWhere(scope);
+  const taskVisibilityWhere = buildTaskVisibilityWhere(taskScope);
 
   const scopeWhere: Prisma.ProjectWhereInput = {
     companyId: user.companyId,
     ...visibilityWhere,
-  }
+  };
   const where: Prisma.ProjectWhereInput = {
     ...scopeWhere,
     ...(status ? { status } : {}),
@@ -124,23 +108,23 @@ export default async function ProjectsPage({
     ...(q
       ? {
           OR: [
-            { name: { contains: q, mode: "insensitive" } },
-            { code: { contains: q, mode: "insensitive" } },
+            { name: { contains: q, mode: 'insensitive' } },
+            { code: { contains: q, mode: 'insensitive' } },
             {
               description: {
                 contains: q,
-                mode: "insensitive",
+                mode: 'insensitive',
               },
             },
           ],
         }
       : {}),
-  }
+  };
 
   const clientWhere: Prisma.ClientWhereInput = {
     companyId: user.companyId,
     status: {
-      not: "ARCHIVED",
+      not: 'ARCHIVED',
     },
     ...(scope.canViewCompanyProjects
       ? {}
@@ -149,7 +133,7 @@ export default async function ProjectsPage({
             some: visibilityWhere,
           },
         }),
-  }
+  };
 
   const [
     clients,
@@ -163,7 +147,7 @@ export default async function ProjectsPage({
     prisma.client.findMany({
       where: clientWhere,
       orderBy: {
-        name: "asc",
+        name: 'asc',
       },
       select: {
         id: true,
@@ -184,7 +168,7 @@ export default async function ProjectsPage({
     prisma.project.count({
       where: {
         ...scopeWhere,
-        status: "COMPLETED",
+        status: 'COMPLETED',
       },
     }),
     prisma.project.count({
@@ -205,7 +189,7 @@ export default async function ProjectsPage({
             companyId: user.companyId,
             isActive: true,
           },
-          orderBy: [{ isDefault: "desc" }, { name: "asc" }],
+          orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
           select: {
             id: true,
             name: true,
@@ -217,26 +201,23 @@ export default async function ProjectsPage({
           },
         })
       : Promise.resolve([]),
-  ])
+  ]);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredProjects / PAGE_SIZE)
-  )
-  const currentPage = Math.min(requestedPage, totalPages)
-  const skip = (currentPage - 1) * PAGE_SIZE
+  const totalPages = Math.max(1, Math.ceil(filteredProjects / PAGE_SIZE));
+  const currentPage = Math.min(requestedPage, totalPages);
+  const skip = (currentPage - 1) * PAGE_SIZE;
 
   const rawProjects = await prisma.project.findMany({
     where,
     orderBy: [
       {
-        status: "asc",
+        status: 'asc',
       },
       {
-        dueDate: "asc",
+        dueDate: 'asc',
       },
       {
-        updatedAt: "desc",
+        updatedAt: 'desc',
       },
     ],
     skip,
@@ -264,7 +245,7 @@ export default async function ProjectsPage({
       tasks: {
         where: {
           status: {
-            not: "ARCHIVED",
+            not: 'ARCHIVED',
           },
           ...taskVisibilityWhere,
         },
@@ -273,7 +254,7 @@ export default async function ProjectsPage({
           progress: true,
           blockers: {
             where: {
-              status: "OPEN",
+              status: 'OPEN',
             },
             select: {
               id: true,
@@ -282,20 +263,15 @@ export default async function ProjectsPage({
         },
       },
     },
-  })
+  });
 
   const projects = rawProjects.map((project) => {
-    const openBlockers = project.tasks.reduce(
-      (count, task) => count + task.blockers.length,
-      0
-    )
-    const completedTasks = project.tasks.filter(
-      (task) => task.status === "DONE"
-    ).length
+    const openBlockers = project.tasks.reduce((count, task) => count + task.blockers.length, 0);
+    const completedTasks = project.tasks.filter((task) => task.status === 'DONE').length;
     const isOverdue =
       project.dueDate !== null &&
       project.dueDate < now &&
-      activeProjectStatuses.includes(project.status)
+      activeProjectStatuses.includes(project.status);
 
     return {
       id: project.id,
@@ -306,9 +282,7 @@ export default async function ProjectsPage({
       description: project.description,
       status: project.status,
       priority: project.priority,
-      budget: scope.canViewProjectBudgets
-        ? project.budget?.toString() ?? null
-        : null,
+      budget: scope.canViewProjectBudgets ? (project.budget?.toString() ?? null) : null,
       budgetDisplay: scope.canViewProjectBudgets
         ? formatBudget(project.budget, project.currency)
         : null,
@@ -320,34 +294,27 @@ export default async function ProjectsPage({
       completedAt: project.completedAt?.toISOString() ?? null,
       createdAt: project.createdAt.toISOString(),
       updatedAt: project.updatedAt.toISOString(),
-      progress: averageProgress(
-        project.tasks.map((task) => task.progress)
-      ),
+      progress: averageProgress(project.tasks.map((task) => task.progress)),
       totalTasks: project.tasks.length,
       completedTasks,
       memberCount: project.members.length,
       openBlockers,
       canEdit: canManageProjectMetadata(scope),
       workflow: project.workflow,
-    }
-  })
-  const workflowTemplates = workflowTemplateRecords.map(
-    (template) => ({
-      id: template.id,
-      name: template.name,
-      code: template.code,
-      description: template.description,
-      version: template.version,
-      isDefault: template.isDefault,
-      ...summarizeWorkflowDefinition(template.definition),
-    })
-  )
+    };
+  });
+  const workflowTemplates = workflowTemplateRecords.map((template) => ({
+    id: template.id,
+    name: template.name,
+    code: template.code,
+    description: template.description,
+    version: template.version,
+    isDefault: template.isDefault,
+    ...summarizeWorkflowDefinition(template.definition),
+  }));
 
-  const from = filteredProjects === 0 ? 0 : skip + 1
-  const to = Math.min(
-    skip + projects.length,
-    filteredProjects
-  )
+  const from = filteredProjects === 0 ? 0 : skip + 1;
+  const to = Math.min(skip + projects.length, filteredProjects);
 
   return (
     <ProjectsClient
@@ -359,16 +326,16 @@ export default async function ProjectsPage({
         dataScope: scope.dataScope,
         canCreate: scope.canCreateProjects,
         description:
-          scope.dataScope === "company"
-            ? "عرض وإدارة جميع مشاريع الشركة."
-            : scope.dataScope === "team"
-              ? "المشاريع المرتبطة بفريقك ومسؤولياتك فقط."
-              : "المشاريع التي تشارك فيها أو تعمل على مهامها فقط.",
+          scope.dataScope === 'company'
+            ? 'عرض وإدارة جميع مشاريع الشركة.'
+            : scope.dataScope === 'team'
+              ? 'المشاريع المرتبطة بفريقك ومسؤولياتك فقط.'
+              : 'المشاريع التي تشارك فيها أو تعمل على مهامها فقط.',
       }}
       filters={{
         q,
-        status: status ?? "",
-        priority: priority ?? "",
+        status: status ?? '',
+        priority: priority ?? '',
         clientId,
       }}
       stats={{
@@ -396,5 +363,5 @@ export default async function ProjectsPage({
         />
       }
     />
-  )
+  );
 }

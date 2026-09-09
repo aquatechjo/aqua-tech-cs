@@ -3524,6 +3524,9 @@ enum LeadSource {
 enum ProjectStatus {
   PLANNING
   IN_PROGRESS
+  AT_RISK
+  IN_REVIEW
+  READY_FOR_DELIVERY
   ON_HOLD
   COMPLETED
   CANCELLED

@@ -1,20 +1,20 @@
-import { z } from "zod";
-import { ActivityAction } from "@/generated/prisma/enums";
-import { ACCESS_ROLES, assertRole } from "@/lib/access-control";
-import { err, handleApiError, ok } from "@/lib/api-response";
-import { requireAuth } from "@/lib/auth";
-import { buildProjectVisibilityWhere } from "@/lib/project-scope";
-import { resolveProjectAccessScope } from "@/lib/project-scope-server";
-import { prisma } from "@/lib/prisma";
-import { assertProjectExecutionActivated } from "@/lib/project-readiness-server";
-import { projectStatusToWorkflowStatus } from "@/lib/project-workflow-server";
-import { assertSameOrigin, readJsonBody } from "@/lib/request-security";
+import { z } from 'zod';
+import { ActivityAction } from '@/generated/prisma/enums';
+import { ACCESS_ROLES, assertRole } from '@/lib/access-control';
+import { err, handleApiError, ok } from '@/lib/api-response';
+import { requireAuth } from '@/lib/auth';
+import { buildProjectVisibilityWhere } from '@/lib/project-scope';
+import { resolveProjectAccessScope } from '@/lib/project-scope-server';
+import { prisma } from '@/lib/prisma';
+import { assertProjectExecutionActivated } from '@/lib/project-readiness-server';
+import { projectStatusToWorkflowStatus } from '@/lib/project-workflow-server';
+import { assertSameOrigin, readJsonBody } from '@/lib/request-security';
 
 const optionalDateSchema = z
   .string()
   .refine(
-    (value) => value.trim() === "" || !Number.isNaN(Date.parse(value)),
-    "صيغة التاريخ غير صحيحة",
+    (value) => value.trim() === '' || !Number.isNaN(Date.parse(value)),
+    'صيغة التاريخ غير صحيحة',
   );
 
 const updateProjectSchema = z.object({
@@ -23,24 +23,32 @@ const updateProjectSchema = z.object({
   code: z.string().trim().max(80).optional().nullable(),
   description: z.string().trim().max(2000).optional().nullable(),
   status: z
-    .enum(["PLANNING", "IN_PROGRESS", "ON_HOLD", "COMPLETED", "CANCELLED", "ARCHIVED"])
+    .enum([
+      'PLANNING',
+      'IN_PROGRESS',
+      'AT_RISK',
+      'IN_REVIEW',
+      'READY_FOR_DELIVERY',
+      'ON_HOLD',
+      'COMPLETED',
+      'CANCELLED',
+      'ARCHIVED',
+    ])
     .optional(),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
   budget: z
     .string()
     .trim()
     .refine(
-      (value) =>
-        value === "" ||
-        (Number.isFinite(Number(value)) && Number(value) >= 0),
-      "الميزانية يجب أن تكون رقمًا موجبًا",
+      (value) => value === '' || (Number.isFinite(Number(value)) && Number(value) >= 0),
+      'الميزانية يجب أن تكون رقمًا موجبًا',
     )
     .optional()
     .nullable(),
   currency: z
     .string()
     .trim()
-    .regex(/^[A-Za-z]{3}$/, "رمز العملة يجب أن يتكون من 3 أحرف")
+    .regex(/^[A-Za-z]{3}$/, 'رمز العملة يجب أن يتكون من 3 أحرف')
     .transform((value) => value.toUpperCase())
     .optional(),
   startDate: optionalDateSchema.optional().nullable(),
@@ -80,10 +88,7 @@ function nullableBudget(value: string | null | undefined) {
   return normalized;
 }
 
-export async function GET(
-  _request: Request,
-  context: { params: Promise<{ id: string }> },
-) {
+export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const user = await requireAuth();
     const { id } = await context.params;
@@ -128,48 +133,38 @@ export async function GET(
     });
 
     if (!project) {
-      return err("المشروع غير موجود", 404, {
-        code: "PROJECT_NOT_FOUND",
+      return err('المشروع غير موجود', 404, {
+        code: 'PROJECT_NOT_FOUND',
       });
     }
 
     return ok({
       project: {
         ...project,
-        budget: scope.canViewProjectBudgets
-          ? project.budget
-          : null,
+        budget: scope.canViewProjectBudgets ? project.budget : null,
       },
     });
   } catch (error) {
-    return handleApiError(error, "PROJECT_GET_ERROR");
+    return handleApiError(error, 'PROJECT_GET_ERROR');
   }
 }
 
-export async function PATCH(
-  request: Request,
-  context: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     assertSameOrigin(request);
 
     const user = await requireAuth();
-    assertRole(
-      user.role,
-      ACCESS_ROLES.projectManagement,
-      "لا تملك صلاحية تعديل بيانات المشروع",
-    );
+    assertRole(user.role, ACCESS_ROLES.projectManagement, 'لا تملك صلاحية تعديل بيانات المشروع');
 
     const { id } = await context.params;
     const body = await readJsonBody(request);
     const parsed = updateProjectSchema.safeParse(body);
 
     if (!parsed.success) {
-      return err(
-        parsed.error.issues[0]?.message ?? "بيانات المشروع غير صحيحة",
-        400,
-        { code: "VALIDATION_ERROR", details: parsed.error.flatten() },
-      );
+      return err(parsed.error.issues[0]?.message ?? 'بيانات المشروع غير صحيحة', 400, {
+        code: 'VALIDATION_ERROR',
+        details: parsed.error.flatten(),
+      });
     }
     const data = parsed.data;
 
@@ -181,24 +176,27 @@ export async function PATCH(
     });
 
     if (!existingProject) {
-      return err("المشروع غير موجود", 404, {
-        code: "PROJECT_NOT_FOUND",
+      return err('المشروع غير موجود', 404, {
+        code: 'PROJECT_NOT_FOUND',
       });
     }
 
     if (
       data.status &&
-      ["IN_PROGRESS", "ON_HOLD", "COMPLETED"].includes(data.status) &&
+      [
+        'IN_PROGRESS',
+        'AT_RISK',
+        'IN_REVIEW',
+        'READY_FOR_DELIVERY',
+        'ON_HOLD',
+        'COMPLETED',
+      ].includes(data.status) &&
       existingProject.status !== data.status
     ) {
-      if (existingProject.status === "PLANNING") {
-        return err(
-          "ابدأ المشروع من بوابة الجاهزية بعد توثيق العقد والدفعة وقائد المشروع",
-          409,
-          {
-            code: "PROJECT_READINESS_ACTIVATION_REQUIRED",
-          },
-        );
+      if (existingProject.status === 'PLANNING') {
+        return err('ابدأ المشروع من بوابة الجاهزية بعد توثيق العقد والدفعة وقائد المشروع', 409, {
+          code: 'PROJECT_READINESS_ACTIVATION_REQUIRED',
+        });
       }
 
       await assertProjectExecutionActivated(prisma, {
@@ -208,17 +206,13 @@ export async function PATCH(
     }
 
     const startDate =
-      data.startDate !== undefined
-        ? nullableDate(data.startDate)
-        : existingProject.startDate;
+      data.startDate !== undefined ? nullableDate(data.startDate) : existingProject.startDate;
     const dueDate =
-      data.dueDate !== undefined
-        ? nullableDate(data.dueDate)
-        : existingProject.dueDate;
+      data.dueDate !== undefined ? nullableDate(data.dueDate) : existingProject.dueDate;
 
     if (startDate && dueDate && dueDate < startDate) {
-      return err("تاريخ التسليم يجب أن يكون بعد تاريخ البداية", 400, {
-        code: "INVALID_PROJECT_DATES",
+      return err('تاريخ التسليم يجب أن يكون بعد تاريخ البداية', 400, {
+        code: 'INVALID_PROJECT_DATES',
       });
     }
 
@@ -234,27 +228,23 @@ export async function PATCH(
       });
 
       if (!client) {
-        return err("العميل المحدد غير موجود", 404, {
-          code: "CLIENT_NOT_FOUND",
+        return err('العميل المحدد غير موجود', 404, {
+          code: 'CLIENT_NOT_FOUND',
         });
       }
     }
 
     let action: ActivityAction = ActivityAction.PROJECT_UPDATED;
 
-    if (data.status === "ARCHIVED" && existingProject.status !== "ARCHIVED") {
+    if (data.status === 'ARCHIVED' && existingProject.status !== 'ARCHIVED') {
       action = ActivityAction.PROJECT_ARCHIVED;
     }
 
-    if (
-      existingProject.status === "ARCHIVED" &&
-      data.status &&
-      data.status !== "ARCHIVED"
-    ) {
+    if (existingProject.status === 'ARCHIVED' && data.status && data.status !== 'ARCHIVED') {
       action = ActivityAction.PROJECT_RESTORED;
     }
 
-    if (data.status === "COMPLETED" && existingProject.status !== "COMPLETED") {
+    if (data.status === 'COMPLETED' && existingProject.status !== 'COMPLETED') {
       action = ActivityAction.PROJECT_COMPLETED;
     }
 
@@ -264,9 +254,7 @@ export async function PATCH(
           id: existingProject.id,
         },
         data: {
-          ...(data.clientId !== undefined
-            ? { clientId: data.clientId || null }
-            : {}),
+          ...(data.clientId !== undefined ? { clientId: data.clientId || null } : {}),
           ...(data.name !== undefined ? { name: data.name } : {}),
           ...(data.code !== undefined ? { code: nullableText(data.code) } : {}),
           ...(data.description !== undefined
@@ -274,40 +262,29 @@ export async function PATCH(
             : {}),
           ...(data.status !== undefined ? { status: data.status } : {}),
           ...(data.priority !== undefined ? { priority: data.priority } : {}),
-          ...(data.budget !== undefined
-            ? { budget: nullableBudget(data.budget) }
-            : {}),
-          ...(data.currency !== undefined
-            ? { currency: data.currency || "JOD" }
-            : {}),
-          ...(data.startDate !== undefined
-            ? { startDate }
-            : {}),
-          ...(data.dueDate !== undefined
-            ? { dueDate }
-            : {}),
-          ...(data.status === "COMPLETED" && !existingProject.completedAt
+          ...(data.budget !== undefined ? { budget: nullableBudget(data.budget) } : {}),
+          ...(data.currency !== undefined ? { currency: data.currency || 'JOD' } : {}),
+          ...(data.startDate !== undefined ? { startDate } : {}),
+          ...(data.dueDate !== undefined ? { dueDate } : {}),
+          ...(data.status === 'COMPLETED' && !existingProject.completedAt
             ? { completedAt: new Date() }
             : {}),
-          ...(data.status && data.status !== "COMPLETED"
-            ? { completedAt: null }
-            : {}),
+          ...(data.status && data.status !== 'COMPLETED' ? { completedAt: null } : {}),
         },
       });
 
       if (data.status !== undefined) {
-        const nextWorkflowStatus =
-          projectStatusToWorkflowStatus(data.status);
+        const nextWorkflowStatus = projectStatusToWorkflowStatus(data.status);
         const workflow = await tx.projectWorkflow.update({
           where: {
             projectId: updatedProject.id,
           },
           data: {
             status: nextWorkflowStatus,
-            ...(nextWorkflowStatus === "ACTIVE"
+            ...(nextWorkflowStatus === 'ACTIVE'
               ? { startedAt: updatedProject.startDate ?? new Date() }
               : {}),
-            ...(nextWorkflowStatus === "COMPLETED"
+            ...(nextWorkflowStatus === 'COMPLETED'
               ? { completedAt: updatedProject.completedAt ?? new Date() }
               : { completedAt: null }),
           },
@@ -317,13 +294,12 @@ export async function PATCH(
         });
 
         const event =
-          data.status === "COMPLETED" &&
-                existingProject.status !== "COMPLETED"
-              ? {
-                  event: "PROJECT_COMPLETED" as const,
-                  eventKey: "workflow.project.completed",
-                }
-              : null;
+          data.status === 'COMPLETED' && existingProject.status !== 'COMPLETED'
+            ? {
+                event: 'PROJECT_COMPLETED' as const,
+                eventKey: 'workflow.project.completed',
+              }
+            : null;
 
         if (event) {
           await tx.workflowEvent.create({
@@ -347,7 +323,7 @@ export async function PATCH(
           companyId: user.companyId,
           userId: user.id,
           action,
-          entityType: "Project",
+          entityType: 'Project',
           entityId: updatedProject.id,
           message: `تم تعديل المشروع: ${updatedProject.name}`,
           metadata: {
@@ -364,10 +340,6 @@ export async function PATCH(
 
     return ok({ project });
   } catch (error) {
-    return handleApiError(
-      error,
-      "PROJECT_PATCH_ERROR",
-      "حدث خطأ أثناء تعديل المشروع",
-    );
+    return handleApiError(error, 'PROJECT_PATCH_ERROR', 'حدث خطأ أثناء تعديل المشروع');
   }
 }
