@@ -205,6 +205,23 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       });
     }
 
+    if (data.status === 'READY_FOR_DELIVERY' && existingProject.status !== 'READY_FOR_DELIVERY') {
+      const pendingDeliverables = await prisma.projectDeliverable.count({
+        where: {
+          companyId: user.companyId,
+          projectId: existingProject.id,
+          status: { notIn: ['ACCEPTED', 'CANCELLED'] },
+        },
+      });
+
+      if (pendingDeliverables > 0) {
+        return err('لا يمكن نقل المشروع إلى جاهز للتسليم قبل قبول جميع التسليمات', 409, {
+          code: 'PROJECT_DELIVERABLES_NOT_ACCEPTED',
+          details: { pendingDeliverables },
+        });
+      }
+    }
+
     const startDate =
       data.startDate !== undefined ? nullableDate(data.startDate) : existingProject.startDate;
     const dueDate =

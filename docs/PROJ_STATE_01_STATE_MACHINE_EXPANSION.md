@@ -45,6 +45,9 @@ first is a real product/process decision that deserves its own scoped
 follow-up, not something to guess at while doing a schema-and-plumbing
 pass.
 
+**Update (PROJ-STATE-01 follow-up):** that product decision has since
+been made — see "Transition rule added after this batch" below.
+
 ## What this batch does do: wire the new states into every place status already mattered
 
 An audit across ~30 files that reference `ProjectStatus` found these
@@ -118,12 +121,37 @@ npx prisma migrate dev --name proj_state_01_expand_project_status
   today's earlier lesson about assertions that looked right but didn't
   actually match after a formatter touched the file.
 
+## Transition rule added after this batch
+
+**`READY_FOR_DELIVERY` now requires every deliverable to be `ACCEPTED`
+or `CANCELLED`.** Decided as a follow-up to this batch: a project
+cannot be marked ready for delivery while any
+`ProjectDeliverable` is still `PLANNED`, `IN_PROGRESS`,
+`READY_FOR_REVIEW`, or `CHANGES_REQUESTED`.
+
+- **`src/app/api/projects/[id]/route.ts`** — when `data.status ===
+'READY_FOR_DELIVERY'` and the project isn't already in that state, the
+  route counts `ProjectDeliverable` rows for the project with `status
+notIn ['ACCEPTED', 'CANCELLED']`. Any pending count blocks the update
+  with `409 PROJECT_DELIVERABLES_NOT_ACCEPTED`. This mirrors the
+  existing `incompleteDeliverables` check in
+  `src/app/api/projects/[id]/closure/route.ts` rather than inventing a
+  new convention.
+- **`AT_RISK` and `IN_REVIEW` intentionally got no additional gate.**
+  Decided as a follow-up to this batch: both are status flags a project
+  lead can set on an already-active project to signal risk or a review
+  checkpoint — they don't correspond to a real milestone the way
+  "ready for delivery" does, so an extra precondition would just add
+  friction without a clear invariant to protect.
+- Covered by
+  `tests/unit/project-status-expansion.test.ts` ("READY_FOR_DELIVERY is
+  blocked while any deliverable is not ACCEPTED or CANCELLED,
+  mirroring the closure gate").
+
 ## Next batch candidates
 
 - Decide and design `REVISION` vs. the existing `ProjectChangeRequest`
   model, and `CLOSED` vs. the existing `ARCHIVED` semantics — both need a
   product decision before an engineering one.
-- Formal transition rules for the three states added here (e.g., should
-  `READY_FOR_DELIVERY` require every deliverable `ACCEPTED`?).
 - A dedicated "flag as at risk" UI action, if the generic status dropdown
   proves too buried for how often this needs to happen in practice.

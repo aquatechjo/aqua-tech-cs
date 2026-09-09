@@ -82,3 +82,12 @@ test('both project status label maps in the dashboard UI cover every new state',
     );
   }
 });
+
+test('READY_FOR_DELIVERY is blocked while any deliverable is not ACCEPTED or CANCELLED, mirroring the closure gate', () => {
+  const route = readFileSync('src/app/api/projects/[id]/route.ts', 'utf8').replace(/\s+/gu, ' ');
+  const match = route.match(
+    /data\.status === \s*["']READY_FOR_DELIVERY["'][^{]*\{[^]*?projectDeliverable\.count\(\{([^]*?)\}\);/u,
+  );
+  assert.ok(match, 'the READY_FOR_DELIVERY deliverable-acceptance gate was not found');
+  assert.match(match![1], /notIn: \[["']ACCEPTED["'], ["']CANCELLED["']\]/u);
+});
