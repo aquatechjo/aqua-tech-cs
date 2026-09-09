@@ -28,7 +28,7 @@ test('schema.prisma declares the three new project states exactly once each, add
 
 test('the readiness-activation gate covers every new in-flight state, not just IN_PROGRESS', () => {
   const route = readFileSync('src/app/api/projects/[id]/route.ts', 'utf8').replace(/\s+/gu, ' ');
-  const match = route.match(/\[["']IN_PROGRESS["'][^\]]*\]\.includes\(data\.status\)/u);
+  const match = route.match(/\[\s*["']IN_PROGRESS["'][^\]]*\]\.includes\(data\.status\)/u);
   assert.ok(match, 'the readiness-activation gate array was not found in the expected shape');
   for (const state of NEW_STATES) {
     assert.match(
