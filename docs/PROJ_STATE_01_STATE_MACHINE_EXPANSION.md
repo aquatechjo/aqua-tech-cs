@@ -180,7 +180,17 @@ Covered by `tests/unit/project-status-expansion.test.ts` ("the project
 execution page surfaces open change requests and closure completion
 without a new project status").
 
-## Next batch candidates
+## Dedicated "flag as at risk" quick action
 
-- A dedicated "flag as at risk" UI action, if the generic status dropdown
-  proves too buried for how often this needs to happen in practice.
+Added as a follow-up to this batch: `ProjectExecutionClient.tsx` now
+shows a "تعليم كمعرّض للخطر" ("flag as at risk") button in the project
+header, visible only when `canManage && executionActivated` and the
+project isn't already `AT_RISK`, still `PLANNING`, or in a terminal
+status (`COMPLETED` / `CANCELLED` / `ARCHIVED`). It reuses the
+page's existing generic `pendingAction` → `AquaConfirmDialog` flow (the
+same mechanism every other state-changing action on this page already
+goes through) rather than a new confirmation surface, and PATCHes
+`/api/projects/[id]` with `{ status: 'AT_RISK' }` — the same endpoint
+and readiness gate the status dropdown already uses, so no new
+transition path was introduced. Covered by
+`tests/unit/project-status-expansion.test.ts`.

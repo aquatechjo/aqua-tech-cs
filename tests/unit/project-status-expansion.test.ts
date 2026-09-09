@@ -92,6 +92,23 @@ test('READY_FOR_DELIVERY is blocked while any deliverable is not ACCEPTED or CAN
   assert.match(match![1], /notIn: \[["']ACCEPTED["'], ["']CANCELLED["']\]/u);
 });
 
+test('the project execution page offers a dedicated "flag as at risk" quick action that reuses the canonical confirmation dialog', () => {
+  const detail = readFileSync(
+    'src/app/dashboard/projects/[id]/ProjectExecutionClient.tsx',
+    'utf8',
+  ).replace(/\s+/gu, ' ');
+  assert.match(
+    detail,
+    /canFlagAtRisk = canManage && executionActivated && !\[["']AT_RISK["'][^\]]*\]\.includes\(project\.status\)/u,
+    'the at-risk quick action must stay gated by management permission and readiness activation, and hidden once already AT_RISK or in a terminal status',
+  );
+  assert.match(
+    detail,
+    /canFlagAtRisk \? \(\s*<AquaButton[^]*?setPendingAction\(\{[^]*?body: \{ status: ["']AT_RISK["'] \}/u,
+    'the quick action must go through setPendingAction (the canonical confirmation dialog), not a direct fetch',
+  );
+});
+
 test('the project execution page surfaces open change requests and closure completion without a new project status', () => {
   const detail = readFileSync(
     'src/app/dashboard/projects/[id]/ProjectExecutionClient.tsx',

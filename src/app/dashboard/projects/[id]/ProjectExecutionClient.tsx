@@ -388,6 +388,10 @@ export default function ProjectExecutionClient({
     ['DRAFT', 'IN_REVIEW', 'CHANGES_REQUESTED', 'APPROVED'].includes(request.status),
   ).length;
   const closureCompleted = closure?.status === 'COMPLETED';
+  const canFlagAtRisk =
+    canManage &&
+    executionActivated &&
+    !['AT_RISK', 'PLANNING', 'COMPLETED', 'CANCELLED', 'ARCHIVED'].includes(project.status);
 
   async function mutate(
     key: string,
@@ -658,6 +662,27 @@ export default function ProjectExecutionClient({
           </div>
         </div>
         <div className={styles.introActions}>
+          {canFlagAtRisk ? (
+            <AquaButton
+              variant="ghost"
+              size="sm"
+              onClick={() =>
+                setPendingAction({
+                  title: 'تعليم المشروع كمعرّض للخطر',
+                  description:
+                    'سيظهر المشروع بحالة "معرّض للخطر" لبقية الفريق حتى يتم تحديث حالته يدويًا.',
+                  endpoint: `/api/projects/${project.id}`,
+                  key: 'project-flag-at-risk',
+                  successMessage: 'تم تعليم المشروع كمعرّض للخطر',
+                  method: 'PATCH',
+                  body: { status: 'AT_RISK' },
+                  tone: 'danger',
+                })
+              }
+            >
+              تعليم كمعرّض للخطر
+            </AquaButton>
+          ) : null}
           <AquaLinkButton href="/dashboard/my-day" variant="ghost" size="sm">
             يومي
           </AquaLinkButton>
