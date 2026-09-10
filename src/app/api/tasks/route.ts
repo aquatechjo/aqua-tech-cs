@@ -1,153 +1,155 @@
-import { z } from "zod"
-import { ActivityAction } from "@/generated/prisma/enums"
-import { ApiError, err, ok, withApiHandler } from "@/lib/api-response"
-import { requireAuth } from "@/lib/auth"
-import { assertProgress } from "@/lib/project-execution"
-import { prisma } from "@/lib/prisma"
-import { projectExecutionNeedsActivation } from "@/lib/project-readiness"
-import { assertProjectExecutionActivated } from "@/lib/project-readiness-server"
-import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
-import {
-  buildTaskVisibilityWhere,
-  canAssignTaskTo,
-  canUseTaskProject,
-} from "@/lib/task-scope"
-import { resolveTaskAccessScope } from "@/lib/task-scope-server"
+import { z } from 'zod';
+import { ActivityAction } from '@/generated/prisma/enums';
+import { ApiError, err, ok, withApiHandler } from '@/lib/api-response';
+import { requireAuth } from '@/lib/auth';
+import { assertProgress } from '@/lib/project-execution';
+import { prisma } from '@/lib/prisma';
+import { projectExecutionNeedsActivation } from '@/lib/project-readiness';
+import { assertProjectExecutionActivated } from '@/lib/project-readiness-server';
+import { assertSameOrigin, readJsonBody } from '@/lib/request-security';
+import { buildTaskVisibilityWhere, canAssignTaskTo, canUseTaskProject } from '@/lib/task-scope';
+import { resolveTaskAccessScope } from '@/lib/task-scope-server';
+import { buildPaginationMeta, parsePagination } from '@/lib/pagination';
 
-const optionalDateStringSchema = z.string().refine(
-  (value) => value.trim() === "" || !Number.isNaN(Date.parse(value)),
-  "صيغة التاريخ غير صحيحة"
-)
+const optionalDateStringSchema = z
+  .string()
+  .refine(
+    (value) => value.trim() === '' || !Number.isNaN(Date.parse(value)),
+    'صيغة التاريخ غير صحيحة',
+  );
 
 const taskSchema = z.object({
   projectId: z.string().optional().nullable(),
   phaseId: z.string().optional().nullable(),
   clientId: z.string().optional().nullable(),
   assignedToId: z.string().optional().nullable(),
-  title: z.string().trim().min(2, "عنوان المهمة مطلوب"),
+  title: z.string().trim().min(2, 'عنوان المهمة مطلوب'),
   description: z.string().trim().optional().nullable(),
   status: z
-    .enum(["TODO", "IN_PROGRESS", "BLOCKED", "REVIEW", "DONE", "CANCELLED", "ARCHIVED"])
-    .default("TODO"),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
-  source: z
-    .enum(["MANUAL", "WEBSITE_REQUEST", "WORKFLOW", "AI_GENERATED"])
-    .default("MANUAL"),
+    .enum(['TODO', 'IN_PROGRESS', 'BLOCKED', 'REVIEW', 'DONE', 'CANCELLED', 'ARCHIVED'])
+    .default('TODO'),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
+  source: z.enum(['MANUAL', 'WEBSITE_REQUEST', 'WORKFLOW', 'AI_GENERATED']).default('MANUAL'),
   sourceRef: z.string().trim().optional().nullable(),
   estimatedHours: z.string().trim().optional().nullable(),
   progress: z.number().int().min(0).max(100).default(0),
   dueDate: optionalDateStringSchema.optional().nullable(),
-})
+});
 
 function nullableText(value: string | null | undefined) {
-  const trimmed = value?.trim()
-  return trimmed ? trimmed : null
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
 }
 
 function nullableDate(value: string | null | undefined) {
-  if (!value) return null
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? null : date
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 function nullableDecimal(value: string | null | undefined) {
-  if (!value) return null
-  const normalized = value.trim()
-  if (!normalized) return null
-  const number = Number(normalized)
-  return Number.isFinite(number) && number >= 0 ? normalized : null
+  if (!value) return null;
+  const normalized = value.trim();
+  if (!normalized) return null;
+  const number = Number(normalized);
+  return Number.isFinite(number) && number >= 0 ? normalized : null;
 }
 
-async function getTasks() {
-  const user = await requireAuth()
-  const scope = await resolveTaskAccessScope(user)
+async function getTasks(request: Request) {
+  const user = await requireAuth();
+  const scope = await resolveTaskAccessScope(user);
+  const { searchParams } = new URL(request.url);
+  const pagination = parsePagination(searchParams);
 
-  const tasks = await prisma.task.findMany({
-    where: {
-      companyId: user.companyId,
-      ...buildTaskVisibilityWhere(scope),
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    include: {
-      project: { select: { id: true, name: true } },
-      phase: { select: { id: true, name: true } },
-      client: { select: { id: true, name: true } },
-      assignedTo: { select: { id: true, name: true, email: true } },
-      participants: {
-        include: {
-          employeeProfile: {
-            select: {
-              id: true,
-              user: { select: { id: true, name: true, email: true } },
+  const where = {
+    companyId: user.companyId,
+    ...buildTaskVisibilityWhere(scope),
+  };
+
+  const [tasks, total] = await Promise.all([
+    prisma.task.findMany({
+      where,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip: pagination.skip,
+      take: pagination.take,
+      include: {
+        project: { select: { id: true, name: true } },
+        phase: { select: { id: true, name: true } },
+        client: { select: { id: true, name: true } },
+        assignedTo: { select: { id: true, name: true, email: true } },
+        participants: {
+          include: {
+            employeeProfile: {
+              select: {
+                id: true,
+                user: { select: { id: true, name: true, email: true } },
+              },
             },
           },
         },
+        blockers: {
+          where: { status: 'OPEN' },
+          select: { id: true, title: true, severity: true },
+        },
       },
-      blockers: {
-        where: { status: "OPEN" },
-        select: { id: true, title: true, severity: true },
-      },
-    },
-  })
+    }),
+    prisma.task.count({ where }),
+  ]);
 
-  return ok({ tasks })
+  return ok({ tasks, pagination: buildPaginationMeta(total, pagination) });
 }
 
 async function createTask(request: Request) {
-  assertSameOrigin(request)
+  assertSameOrigin(request);
 
-  const user = await requireAuth()
-  const body = await readJsonBody(request)
-  const parsed = taskSchema.safeParse(body)
+  const user = await requireAuth();
+  const body = await readJsonBody(request);
+  const parsed = taskSchema.safeParse(body);
 
   if (!parsed.success) {
-    return err(parsed.error.issues[0]?.message ?? "بيانات المهمة غير صحيحة", 400, {
-      code: "VALIDATION_ERROR",
+    return err(parsed.error.issues[0]?.message ?? 'بيانات المهمة غير صحيحة', 400, {
+      code: 'VALIDATION_ERROR',
       details: parsed.error.flatten(),
-    })
+    });
   }
 
-  const data = parsed.data
-  const scope = await resolveTaskAccessScope(user)
-  const safeProjectId = data.projectId || null
-  const safePhaseId = data.phaseId || null
-  let safeClientId = data.clientId || null
-  const safeAssignedToId = data.assignedToId || null
+  const data = parsed.data;
+  const scope = await resolveTaskAccessScope(user);
+  const safeProjectId = data.projectId || null;
+  const safePhaseId = data.phaseId || null;
+  let safeClientId = data.clientId || null;
+  const safeAssignedToId = data.assignedToId || null;
 
   if (!canAssignTaskTo(scope, safeAssignedToId)) {
     throw new ApiError(
-      "يمكنك إسناد المهمة لنفسك أو لأعضاء نطاق عملك فقط",
+      'يمكنك إسناد المهمة لنفسك أو لأعضاء نطاق عملك فقط',
       403,
-      "TASK_ASSIGNMENT_FORBIDDEN"
-    )
+      'TASK_ASSIGNMENT_FORBIDDEN',
+    );
   }
 
-  if (!scope.canViewCompanyTasks && data.source !== "MANUAL") {
+  if (!scope.canViewCompanyTasks && data.source !== 'MANUAL') {
     throw new ApiError(
-      "مصدر المهمة الآلي متاح للإدارة وعمليات النظام فقط",
+      'مصدر المهمة الآلي متاح للإدارة وعمليات النظام فقط',
       403,
-      "TASK_SOURCE_FORBIDDEN"
-    )
+      'TASK_SOURCE_FORBIDDEN',
+    );
   }
 
   if (!canUseTaskProject(scope, safeProjectId)) {
-    throw new ApiError(
-      "لا يمكنك ربط المهمة بمشروع خارج نطاق عملك",
-      403,
-      "TASK_PROJECT_FORBIDDEN"
-    )
+    throw new ApiError('لا يمكنك ربط المهمة بمشروع خارج نطاق عملك', 403, 'TASK_PROJECT_FORBIDDEN');
   }
 
   if (safeProjectId) {
     const project = await prisma.project.findFirst({
       where: { id: safeProjectId, companyId: user.companyId },
       select: { id: true, clientId: true },
-    })
+    });
 
     if (!project) {
-      return err("المشروع المحدد غير موجود", 404, { code: "PROJECT_NOT_FOUND" })
+      return err('المشروع المحدد غير موجود', 404, { code: 'PROJECT_NOT_FOUND' });
     }
 
     if (
@@ -160,35 +162,23 @@ async function createTask(request: Request) {
       await assertProjectExecutionActivated(prisma, {
         companyId: user.companyId,
         projectId: project.id,
-      })
+      });
     }
 
-    if (!safeClientId && project.clientId) safeClientId = project.clientId
+    if (!safeClientId && project.clientId) safeClientId = project.clientId;
 
-    if (
-      !scope.canViewCompanyTasks &&
-      safeClientId &&
-      project.clientId !== safeClientId
-    ) {
-      throw new ApiError(
-        "عميل المهمة يجب أن يطابق عميل المشروع",
-        403,
-        "TASK_CLIENT_FORBIDDEN"
-      )
+    if (!scope.canViewCompanyTasks && safeClientId && project.clientId !== safeClientId) {
+      throw new ApiError('عميل المهمة يجب أن يطابق عميل المشروع', 403, 'TASK_CLIENT_FORBIDDEN');
     }
   } else if (!scope.canViewCompanyTasks && safeClientId) {
-    throw new ApiError(
-      "ربط مهمة مستقلة بعميل متاح للإدارة فقط",
-      403,
-      "TASK_CLIENT_FORBIDDEN"
-    )
+    throw new ApiError('ربط مهمة مستقلة بعميل متاح للإدارة فقط', 403, 'TASK_CLIENT_FORBIDDEN');
   }
 
   if (safePhaseId) {
     if (!safeProjectId) {
-      return err("لا يمكن اختيار مرحلة دون مشروع", 400, {
-        code: "PHASE_PROJECT_REQUIRED",
-      })
+      return err('لا يمكن اختيار مرحلة دون مشروع', 400, {
+        code: 'PHASE_PROJECT_REQUIRED',
+      });
     }
 
     const phase = await prisma.projectPhase.findFirst({
@@ -198,12 +188,12 @@ async function createTask(request: Request) {
         companyId: user.companyId,
       },
       select: { id: true },
-    })
+    });
 
     if (!phase) {
-      return err("المرحلة المحددة غير موجودة داخل المشروع", 404, {
-        code: "PROJECT_PHASE_NOT_FOUND",
-      })
+      return err('المرحلة المحددة غير موجودة داخل المشروع', 404, {
+        code: 'PROJECT_PHASE_NOT_FOUND',
+      });
     }
   }
 
@@ -211,11 +201,11 @@ async function createTask(request: Request) {
     const client = await prisma.client.findFirst({
       where: { id: safeClientId, companyId: user.companyId },
       select: { id: true },
-    })
-    if (!client) return err("العميل المحدد غير موجود", 404, { code: "CLIENT_NOT_FOUND" })
+    });
+    if (!client) return err('العميل المحدد غير موجود', 404, { code: 'CLIENT_NOT_FOUND' });
   }
 
-  let assignedEmployeeProfileId: string | null = null
+  let assignedEmployeeProfileId: string | null = null;
   if (safeAssignedToId) {
     const assignedUser = await prisma.user.findFirst({
       where: { id: safeAssignedToId, companyId: user.companyId, isActive: true },
@@ -223,17 +213,17 @@ async function createTask(request: Request) {
         id: true,
         employeeProfile: { select: { id: true } },
       },
-    })
+    });
 
     if (!assignedUser) {
-      return err("الموظف المحدد غير موجود أو غير فعال", 404, {
-        code: "ASSIGNEE_NOT_FOUND",
-      })
+      return err('الموظف المحدد غير موجود أو غير فعال', 404, {
+        code: 'ASSIGNEE_NOT_FOUND',
+      });
     }
-    assignedEmployeeProfileId = assignedUser.employeeProfile?.id ?? null
+    assignedEmployeeProfileId = assignedUser.employeeProfile?.id ?? null;
   }
 
-  const normalizedProgress = data.status === "DONE" ? 100 : assertProgress(data.progress)
+  const normalizedProgress = data.status === 'DONE' ? 100 : assertProgress(data.progress);
 
   const task = await prisma.$transaction(async (tx) => {
     const createdTask = await tx.task.create({
@@ -254,12 +244,12 @@ async function createTask(request: Request) {
         progress: normalizedProgress,
         dueDate: nullableDate(data.dueDate),
         startedAt:
-          data.status === "TODO" || data.status === "CANCELLED" || data.status === "ARCHIVED"
+          data.status === 'TODO' || data.status === 'CANCELLED' || data.status === 'ARCHIVED'
             ? null
             : new Date(),
-        completedAt: data.status === "DONE" ? new Date() : null,
+        completedAt: data.status === 'DONE' ? new Date() : null,
       },
-    })
+    });
 
     if (assignedEmployeeProfileId) {
       await tx.taskParticipant.create({
@@ -267,9 +257,9 @@ async function createTask(request: Request) {
           companyId: user.companyId,
           taskId: createdTask.id,
           employeeProfileId: assignedEmployeeProfileId,
-          role: "OWNER",
+          role: 'OWNER',
         },
-      })
+      });
 
       if (safeProjectId) {
         await tx.projectMember.upsert({
@@ -283,11 +273,11 @@ async function createTask(request: Request) {
             companyId: user.companyId,
             projectId: safeProjectId,
             employeeProfileId: assignedEmployeeProfileId,
-            role: "CONTRIBUTOR",
-            responsibility: "مشارك من خلال مهمة مسندة",
+            role: 'CONTRIBUTOR',
+            responsibility: 'مشارك من خلال مهمة مسندة',
           },
           update: {},
-        })
+        });
       }
     }
 
@@ -296,7 +286,7 @@ async function createTask(request: Request) {
         companyId: user.companyId,
         userId: user.id,
         action: ActivityAction.TASK_CREATED,
-        entityType: "Task",
+        entityType: 'Task',
         entityId: createdTask.id,
         message: `تم إضافة مهمة جديدة: ${createdTask.title}`,
         metadata: {
@@ -309,17 +299,13 @@ async function createTask(request: Request) {
           progress: createdTask.progress,
         },
       },
-    })
+    });
 
-    return createdTask
-  })
+    return createdTask;
+  });
 
-  return ok({ task }, 201)
+  return ok({ task }, 201);
 }
 
-export const GET = withApiHandler("TASKS_GET_ERROR", getTasks)
-export const POST = withApiHandler(
-  "TASKS_POST_ERROR",
-  createTask,
-  "حدث خطأ أثناء إضافة المهمة"
-)
+export const GET = withApiHandler('TASKS_GET_ERROR', getTasks);
+export const POST = withApiHandler('TASKS_POST_ERROR', createTask, 'حدث خطأ أثناء إضافة المهمة');
