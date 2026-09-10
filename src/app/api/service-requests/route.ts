@@ -1,45 +1,46 @@
-import { z } from "zod";
-import { ActivityAction } from "@/generated/prisma/enums";
-import { ACCESS_ROLES, assertRole } from "@/lib/access-control";
-import { err, ok, withApiHandler } from "@/lib/api-response";
-import { requireAuth } from "@/lib/auth";
-import { createLeadForServiceRequest } from "@/lib/crm-lead-server";
-import { prisma } from "@/lib/prisma";
-import { assertSameOrigin, readJsonBody } from "@/lib/request-security";
+import { z } from 'zod';
+import { ActivityAction } from '@/generated/prisma/enums';
+import { ACCESS_ROLES, assertRole } from '@/lib/access-control';
+import { err, ok, withApiHandler } from '@/lib/api-response';
+import { requireAuth } from '@/lib/auth';
+import { createLeadForServiceRequest } from '@/lib/crm-lead-server';
+import { prisma } from '@/lib/prisma';
+import { buildPaginationMeta, parsePagination } from '@/lib/pagination';
+import { assertSameOrigin, readJsonBody } from '@/lib/request-security';
 
 const serviceRequestSchema = z.object({
   clientId: z.string().optional().nullable(),
   projectId: z.string().optional().nullable(),
   assignedToId: z.string().optional().nullable(),
 
-  customerName: z.string().trim().min(2, "اسم العميل مطلوب"),
-  customerEmail: z.string().trim().email("الإيميل غير صحيح").optional().nullable(),
+  customerName: z.string().trim().min(2, 'اسم العميل مطلوب'),
+  customerEmail: z.string().trim().email('الإيميل غير صحيح').optional().nullable(),
   customerPhone: z.string().trim().optional().nullable(),
   customerCompany: z.string().trim().optional().nullable(),
 
-  serviceType: z.string().trim().min(2, "نوع الخدمة مطلوب"),
+  serviceType: z.string().trim().min(2, 'نوع الخدمة مطلوب'),
   budgetRange: z.string().trim().optional().nullable(),
   timeline: z.string().trim().optional().nullable(),
   message: z.string().trim().optional().nullable(),
 
   status: z
     .enum([
-      "NEW",
-      "CONTACTED",
-      "QUALIFIED",
-      "PROPOSAL_SENT",
-      "APPROVED",
-      "REJECTED",
-      "CONVERTED",
-      "ARCHIVED",
+      'NEW',
+      'CONTACTED',
+      'QUALIFIED',
+      'PROPOSAL_SENT',
+      'APPROVED',
+      'REJECTED',
+      'CONVERTED',
+      'ARCHIVED',
     ])
-    .default("NEW"),
+    .default('NEW'),
 
   source: z
-    .enum(["WEBSITE", "MANUAL", "WHATSAPP", "INSTAGRAM", "FACEBOOK", "REFERRAL", "OTHER"])
-    .default("MANUAL"),
+    .enum(['WEBSITE', 'MANUAL', 'WHATSAPP', 'INSTAGRAM', 'FACEBOOK', 'REFERRAL', 'OTHER'])
+    .default('MANUAL'),
 
-  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
 
   workflowRunId: z.string().trim().optional().nullable(),
   proposalUrl: z.string().trim().optional().nullable(),
@@ -52,46 +53,55 @@ function nullableText(value: string | null | undefined) {
   return trimmed ? trimmed : null;
 }
 
-async function getServiceRequests() {
+async function getServiceRequests(request: Request) {
   const user = await requireAuth();
 
-  assertRole(
-    user.role,
-    ACCESS_ROLES.serviceRequestManagement,
-    "لا تملك صلاحية عرض طلبات الخدمة",
-  );
+  assertRole(user.role, ACCESS_ROLES.serviceRequestManagement, 'لا تملك صلاحية عرض طلبات الخدمة');
 
-  const serviceRequests = await prisma.serviceRequest.findMany({
-    where: {
-      companyId: user.companyId,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    include: {
-      client: {
-        select: {
-          id: true,
-          name: true,
+  const { searchParams } = new URL(request.url);
+  const pagination = parsePagination(searchParams);
+
+  const where = {
+    companyId: user.companyId,
+  };
+
+  const [serviceRequests, total] = await Promise.all([
+    prisma.serviceRequest.findMany({
+      where,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip: pagination.skip,
+      take: pagination.take,
+      include: {
+        client: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        project: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        assignedTo: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
         },
       },
-      project: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      assignedTo: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-    },
+    }),
+    prisma.serviceRequest.count({ where }),
+  ]);
+
+  return ok({
+    serviceRequests,
+    pagination: buildPaginationMeta(total, pagination),
   });
-
-  return ok({ serviceRequests });
 }
 
 async function createServiceRequest(request: Request) {
@@ -99,25 +109,17 @@ async function createServiceRequest(request: Request) {
 
   const user = await requireAuth();
 
-  assertRole(
-    user.role,
-    ACCESS_ROLES.serviceRequestManagement,
-    "لا تملك صلاحية إضافة طلبات الخدمة",
-  );
+  assertRole(user.role, ACCESS_ROLES.serviceRequestManagement, 'لا تملك صلاحية إضافة طلبات الخدمة');
 
   const body = await readJsonBody(request);
 
   const parsed = serviceRequestSchema.safeParse(body);
 
   if (!parsed.success) {
-    return err(
-      parsed.error.issues[0]?.message ?? "بيانات طلب الخدمة غير صحيحة",
-      400,
-      {
-        code: "VALIDATION_ERROR",
-        details: parsed.error.flatten(),
-      },
-    );
+    return err(parsed.error.issues[0]?.message ?? 'بيانات طلب الخدمة غير صحيحة', 400, {
+      code: 'VALIDATION_ERROR',
+      details: parsed.error.flatten(),
+    });
   }
 
   const data = parsed.data;
@@ -139,8 +141,8 @@ async function createServiceRequest(request: Request) {
     });
 
     if (!project) {
-      return err("المشروع المحدد غير موجود", 404, {
-        code: "PROJECT_NOT_FOUND",
+      return err('المشروع المحدد غير موجود', 404, {
+        code: 'PROJECT_NOT_FOUND',
       });
     }
 
@@ -161,8 +163,8 @@ async function createServiceRequest(request: Request) {
     });
 
     if (!client) {
-      return err("العميل المحدد غير موجود", 404, {
-        code: "CLIENT_NOT_FOUND",
+      return err('العميل المحدد غير موجود', 404, {
+        code: 'CLIENT_NOT_FOUND',
       });
     }
   }
@@ -180,8 +182,8 @@ async function createServiceRequest(request: Request) {
     });
 
     if (!assignedUser) {
-      return err("الموظف المحدد غير موجود أو غير فعال", 404, {
-        code: "ASSIGNEE_NOT_FOUND",
+      return err('الموظف المحدد غير موجود أو غير فعال', 404, {
+        code: 'ASSIGNEE_NOT_FOUND',
       });
     }
   }
@@ -213,10 +215,10 @@ async function createServiceRequest(request: Request) {
         workflowRunId: nullableText(data.workflowRunId),
         proposalUrl: nullableText(data.proposalUrl),
 
-        proposalSentAt: data.status === "PROPOSAL_SENT" ? now : null,
-        approvedAt: data.status === "APPROVED" ? now : null,
-        rejectedAt: data.status === "REJECTED" ? now : null,
-        convertedAt: data.status === "CONVERTED" ? now : null,
+        proposalSentAt: data.status === 'PROPOSAL_SENT' ? now : null,
+        approvedAt: data.status === 'APPROVED' ? now : null,
+        rejectedAt: data.status === 'REJECTED' ? now : null,
+        convertedAt: data.status === 'CONVERTED' ? now : null,
       },
     });
 
@@ -225,7 +227,7 @@ async function createServiceRequest(request: Request) {
         companyId: user.companyId,
         userId: user.id,
         action: ActivityAction.SERVICE_REQUEST_CREATED,
-        entityType: "ServiceRequest",
+        entityType: 'ServiceRequest',
         entityId: createdRequest.id,
         message: `تم إضافة طلب خدمة جديد: ${createdRequest.customerName}`,
         metadata: {
@@ -257,12 +259,9 @@ async function createServiceRequest(request: Request) {
   return ok(result, 201);
 }
 
-export const GET = withApiHandler(
-  "SERVICE_REQUESTS_GET_ERROR",
-  getServiceRequests,
-);
+export const GET = withApiHandler('SERVICE_REQUESTS_GET_ERROR', getServiceRequests);
 export const POST = withApiHandler(
-  "SERVICE_REQUESTS_POST_ERROR",
+  'SERVICE_REQUESTS_POST_ERROR',
   createServiceRequest,
-  "حدث خطأ أثناء إضافة طلب الخدمة",
+  'حدث خطأ أثناء إضافة طلب الخدمة',
 );

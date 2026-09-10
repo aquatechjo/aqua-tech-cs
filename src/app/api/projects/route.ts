@@ -1,49 +1,45 @@
-import { z } from "zod";
-import { ActivityAction } from "@/generated/prisma/enums";
-import { ACCESS_ROLES, assertRole } from "@/lib/access-control";
-import { err, handleApiError, ok } from "@/lib/api-response";
-import { requireAuth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { createProjectWithWorkflow } from "@/lib/project-workflow-server";
-import { buildProjectVisibilityWhere } from "@/lib/project-scope";
-import { resolveProjectAccessScope } from "@/lib/project-scope-server";
-import { assertSameOrigin, readJsonBody } from "@/lib/request-security";
+import { z } from 'zod';
+import { ActivityAction } from '@/generated/prisma/enums';
+import { ACCESS_ROLES, assertRole } from '@/lib/access-control';
+import { err, handleApiError, ok } from '@/lib/api-response';
+import { requireAuth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { createProjectWithWorkflow } from '@/lib/project-workflow-server';
+import { buildProjectVisibilityWhere } from '@/lib/project-scope';
+import { resolveProjectAccessScope } from '@/lib/project-scope-server';
+import { assertSameOrigin, readJsonBody } from '@/lib/request-security';
+import { buildPaginationMeta, parsePagination } from '@/lib/pagination';
 
 const optionalDateSchema = z
   .string()
   .refine(
-    (value) => value.trim() === "" || !Number.isNaN(Date.parse(value)),
-    "صيغة التاريخ غير صحيحة",
+    (value) => value.trim() === '' || !Number.isNaN(Date.parse(value)),
+    'صيغة التاريخ غير صحيحة',
   );
 
 const projectSchema = z.object({
-  workflowTemplateId: z
-    .string()
-    .trim()
-    .min(1, "قالب سير العمل مطلوب"),
+  workflowTemplateId: z.string().trim().min(1, 'قالب سير العمل مطلوب'),
   clientId: z.string().optional().nullable(),
-  name: z.string().trim().min(2, "اسم المشروع مطلوب").max(180),
+  name: z.string().trim().min(2, 'اسم المشروع مطلوب').max(180),
   code: z.string().trim().max(80).optional().nullable(),
   description: z.string().trim().max(2000).optional().nullable(),
-  status: z.literal("PLANNING").default("PLANNING"),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
+  status: z.literal('PLANNING').default('PLANNING'),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
   budget: z
     .string()
     .trim()
     .refine(
-      (value) =>
-        value === "" ||
-        (Number.isFinite(Number(value)) && Number(value) >= 0),
-      "الميزانية يجب أن تكون رقمًا موجبًا",
+      (value) => value === '' || (Number.isFinite(Number(value)) && Number(value) >= 0),
+      'الميزانية يجب أن تكون رقمًا موجبًا',
     )
     .optional()
     .nullable(),
   currency: z
     .string()
     .trim()
-    .regex(/^[A-Za-z]{3}$/, "رمز العملة يجب أن يتكون من 3 أحرف")
+    .regex(/^[A-Za-z]{3}$/, 'رمز العملة يجب أن يتكون من 3 أحرف')
     .transform((value) => value.toUpperCase())
-    .default("JOD"),
+    .default('JOD'),
   startDate: optionalDateSchema.optional().nullable(),
   dueDate: optionalDateSchema.optional().nullable(),
 });
@@ -81,61 +77,69 @@ function nullableBudget(value: string | null | undefined) {
   return normalized;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await requireAuth();
     const scope = await resolveProjectAccessScope(user);
+    const { searchParams } = new URL(request.url);
+    const pagination = parsePagination(searchParams);
 
-    const projects = await prisma.project.findMany({
-      where: {
-        companyId: user.companyId,
-        ...buildProjectVisibilityWhere(scope),
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      select: {
-        id: true,
-        clientId: true,
-        name: true,
-        code: true,
-        description: true,
-        status: true,
-        priority: true,
-        budget: true,
-        currency: true,
-        startDate: true,
-        dueDate: true,
-        completedAt: true,
-        createdAt: true,
-        updatedAt: true,
-        client: {
-          select: {
-            id: true,
-            name: true,
+    const where = {
+      companyId: user.companyId,
+      ...buildProjectVisibilityWhere(scope),
+    };
+
+    const [projects, total] = await Promise.all([
+      prisma.project.findMany({
+        where,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip: pagination.skip,
+        take: pagination.take,
+        select: {
+          id: true,
+          clientId: true,
+          name: true,
+          code: true,
+          description: true,
+          status: true,
+          priority: true,
+          budget: true,
+          currency: true,
+          startDate: true,
+          dueDate: true,
+          completedAt: true,
+          createdAt: true,
+          updatedAt: true,
+          client: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          workflow: {
+            select: {
+              templateName: true,
+              templateCode: true,
+              templateVersion: true,
+              status: true,
+            },
           },
         },
-        workflow: {
-          select: {
-            templateName: true,
-            templateCode: true,
-            templateVersion: true,
-            status: true,
-          },
-        },
-      },
-    });
+      }),
+      prisma.project.count({ where }),
+    ]);
 
     return ok({
       projects: projects.map((project) => ({
         ...project,
-        budget: scope.canViewProjectBudgets
-          ? project.budget
-          : null,
+        budget: scope.canViewProjectBudgets ? project.budget : null,
       })),
+      pagination: buildPaginationMeta(total, pagination),
     });
   } catch (error) {
-    return handleApiError(error, "PROJECTS_GET_ERROR");
+    return handleApiError(error, 'PROJECTS_GET_ERROR');
   }
 }
 
@@ -145,22 +149,17 @@ export async function POST(request: Request) {
 
     const user = await requireAuth();
 
-    assertRole(
-      user.role,
-      ACCESS_ROLES.projectManagement,
-      "لا تملك صلاحية إضافة المشاريع",
-    );
+    assertRole(user.role, ACCESS_ROLES.projectManagement, 'لا تملك صلاحية إضافة المشاريع');
 
     const body = await readJsonBody(request);
 
     const parsed = projectSchema.safeParse(body);
 
     if (!parsed.success) {
-      return err(
-        parsed.error.issues[0]?.message ?? "بيانات المشروع غير صحيحة",
-        400,
-        { code: "VALIDATION_ERROR", details: parsed.error.flatten() },
-      );
+      return err(parsed.error.issues[0]?.message ?? 'بيانات المشروع غير صحيحة', 400, {
+        code: 'VALIDATION_ERROR',
+        details: parsed.error.flatten(),
+      });
     }
 
     const data = parsed.data;
@@ -168,8 +167,8 @@ export async function POST(request: Request) {
     const dueDate = nullableDate(data.dueDate);
 
     if (startDate && dueDate && dueDate < startDate) {
-      return err("تاريخ التسليم يجب أن يكون بعد تاريخ البداية", 400, {
-        code: "INVALID_PROJECT_DATES",
+      return err('تاريخ التسليم يجب أن يكون بعد تاريخ البداية', 400, {
+        code: 'INVALID_PROJECT_DATES',
       });
     }
 
@@ -185,8 +184,8 @@ export async function POST(request: Request) {
       });
 
       if (!client) {
-        return err("العميل المحدد غير موجود", 404, {
-          code: "CLIENT_NOT_FOUND",
+        return err('العميل المحدد غير موجود', 404, {
+          code: 'CLIENT_NOT_FOUND',
         });
       }
     }
@@ -204,7 +203,7 @@ export async function POST(request: Request) {
           status: data.status,
           priority: data.priority,
           budget: nullableBudget(data.budget),
-          currency: data.currency || "JOD",
+          currency: data.currency || 'JOD',
           startDate,
           dueDate,
           completedAt: null,
@@ -217,7 +216,7 @@ export async function POST(request: Request) {
           companyId: user.companyId,
           userId: user.id,
           action: ActivityAction.PROJECT_CREATED,
-          entityType: "Project",
+          entityType: 'Project',
           entityId: createdProject.id,
           message: `تم إضافة مشروع جديد: ${createdProject.name}`,
           metadata: {
@@ -245,10 +244,6 @@ export async function POST(request: Request) {
 
     return ok({ project }, 201);
   } catch (error) {
-    return handleApiError(
-      error,
-      "PROJECTS_POST_ERROR",
-      "حدث خطأ أثناء إضافة المشروع",
-    );
+    return handleApiError(error, 'PROJECTS_POST_ERROR', 'حدث خطأ أثناء إضافة المشروع');
   }
 }
