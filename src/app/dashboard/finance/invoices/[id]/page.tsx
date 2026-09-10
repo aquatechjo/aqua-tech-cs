@@ -1,36 +1,43 @@
-import { notFound } from "next/navigation"
-import { ACCESS_ROLES, assertRole, hasRole } from "@/lib/access-control"
-import { requireAuth } from "@/lib/auth"
-import { displayInvoiceStatus, localDateKey } from "@/lib/finance"
-import { decimalMinor } from "@/lib/finance-server"
-import { prisma } from "@/lib/prisma"
-import InvoiceDetailClient from "./InvoiceDetailClient"
+import { notFound } from 'next/navigation';
+import { ACCESS_ROLES, assertRole, hasRole } from '@/lib/access-control';
+import { requireAuth } from '@/lib/auth';
+import { displayInvoiceStatus, localDateKey } from '@/lib/finance';
+import { decimalMinor } from '@/lib/finance-server';
+import { prisma } from '@/lib/prisma';
+import InvoiceDetailClient from './InvoiceDetailClient';
 
 export default async function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const user = await requireAuth()
-  assertRole(user.role, ACCESS_ROLES.financeRead)
-  const { id } = await params
+  const user = await requireAuth();
+  assertRole(user.role, ACCESS_ROLES.financeRead);
+  const { id } = await params;
 
-  const [invoice, collectionOwners] = await Promise.all([prisma.invoice.findFirst({
-    where: { id, companyId: user.companyId },
-    include: {
-      client: { select: { id: true, name: true, email: true, phone: true } },
-      project: { select: { id: true, name: true, code: true } },
-      createdBy: { select: { id: true, name: true, email: true } },
-      collectionOwner: { select: { id: true, name: true, email: true } },
-      contractAmendment: true,
-      items: { orderBy: { sortOrder: "asc" } },
-      payments: {
-        orderBy: { paidAt: "desc" },
-        include: {
-          recordedBy: { select: { id: true, name: true } },
-          reversedBy: { select: { id: true, name: true } },
+  const [invoice, collectionOwners] = await Promise.all([
+    prisma.invoice.findFirst({
+      where: { id, companyId: user.companyId },
+      include: {
+        client: { select: { id: true, name: true, email: true, phone: true } },
+        project: { select: { id: true, name: true, code: true } },
+        createdBy: { select: { id: true, name: true, email: true } },
+        collectionOwner: { select: { id: true, name: true, email: true } },
+        contractAmendment: true,
+        items: { orderBy: { sortOrder: 'asc' } },
+        payments: {
+          orderBy: { paidAt: 'desc' },
+          include: {
+            recordedBy: { select: { id: true, name: true } },
+            reversedBy: { select: { id: true, name: true } },
+          },
         },
       },
-    },
-  }), prisma.user.findMany({ where: { companyId: user.companyId, isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true, email: true } })])
+    }),
+    prisma.user.findMany({
+      where: { companyId: user.companyId, isActive: true },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, email: true },
+    }),
+  ]);
 
-  if (!invoice) notFound()
+  if (!invoice) notFound();
 
   return (
     <InvoiceDetailClient
@@ -72,29 +79,23 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           ? {
               id: invoice.contractAmendment.id,
               amendmentNumber: invoice.contractAmendment.amendmentNumber,
-              financialAmount:
-                invoice.contractAmendment.financialAmountSnapshot.toString(),
-              invoiceIssuedAt:
-                invoice.contractAmendment.invoiceIssuedAt?.toISOString() ?? null,
-              invoiceIssueReference:
-                invoice.contractAmendment.invoiceIssueReference,
+              financialAmount: invoice.contractAmendment.financialAmountSnapshot.toString(),
+              invoiceIssuedAt: invoice.contractAmendment.invoiceIssuedAt?.toISOString() ?? null,
+              invoiceIssueReference: invoice.contractAmendment.invoiceIssueReference,
               invoiceTaxDecision:
-                invoice.contractAmendment.invoiceTaxDecision === "TAX_APPLIED" ||
-                invoice.contractAmendment.invoiceTaxDecision === "TAX_EXEMPT"
+                invoice.contractAmendment.invoiceTaxDecision === 'TAX_APPLIED' ||
+                invoice.contractAmendment.invoiceTaxDecision === 'TAX_EXEMPT'
                   ? invoice.contractAmendment.invoiceTaxDecision
                   : null,
-              invoiceDeliveryRecipientName:
-                invoice.contractAmendment.invoiceDeliveryRecipientName,
+              invoiceDeliveryRecipientName: invoice.contractAmendment.invoiceDeliveryRecipientName,
               invoiceDeliveryRecipientEmail:
                 invoice.contractAmendment.invoiceDeliveryRecipientEmail,
-              invoiceDeliveryReference:
-                invoice.contractAmendment.invoiceDeliveryReference,
+              invoiceDeliveryReference: invoice.contractAmendment.invoiceDeliveryReference,
               invoiceDeliverySentAt:
                 invoice.contractAmendment.invoiceDeliverySentAt?.toISOString() ?? null,
               invoiceDeliveryFailedAt:
                 invoice.contractAmendment.invoiceDeliveryFailedAt?.toISOString() ?? null,
-              invoiceDeliveryAttemptCount:
-                invoice.contractAmendment.invoiceDeliveryAttemptCount,
+              invoiceDeliveryAttemptCount: invoice.contractAmendment.invoiceDeliveryAttemptCount,
               invoicePortalExpiresAt:
                 invoice.contractAmendment.invoicePortalExpiresAt?.toISOString() ?? null,
               invoicePortalIssuedAt:
@@ -105,8 +106,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                 invoice.contractAmendment.invoicePortalFirstViewedAt?.toISOString() ?? null,
               invoicePortalLastViewedAt:
                 invoice.contractAmendment.invoicePortalLastViewedAt?.toISOString() ?? null,
-              invoicePortalViewCount:
-                invoice.contractAmendment.invoicePortalViewCount,
+              invoicePortalViewCount: invoice.contractAmendment.invoicePortalViewCount,
               invoicePortalDeliveryRecipientName:
                 invoice.contractAmendment.invoicePortalDeliveryRecipientName,
               invoicePortalDeliveryRecipientEmail:
@@ -121,16 +121,21 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                 invoice.contractAmendment.invoiceReminderSentAt?.toISOString() ?? null,
               invoiceReminderFailedAt:
                 invoice.contractAmendment.invoiceReminderFailedAt?.toISOString() ?? null,
-              invoiceReminderAttemptCount:
-                invoice.contractAmendment.invoiceReminderAttemptCount,
-              invoiceReminderCount:
-                invoice.contractAmendment.invoiceReminderCount,
+              invoiceReminderAttemptCount: invoice.contractAmendment.invoiceReminderAttemptCount,
+              invoiceReminderCount: invoice.contractAmendment.invoiceReminderCount,
               invoiceReminderScheduleEnabled:
                 invoice.contractAmendment.invoiceReminderScheduleEnabled,
               invoiceReminderNextAt:
                 invoice.contractAmendment.invoiceReminderNextAt?.toISOString() ?? null,
             }
           : null,
+        publicTokenHash: invoice.publicTokenHash,
+        publicExpiresAt: invoice.publicExpiresAt?.toISOString() ?? null,
+        publicIssuedAt: invoice.publicIssuedAt?.toISOString() ?? null,
+        publicRevokedAt: invoice.publicRevokedAt?.toISOString() ?? null,
+        publicFirstViewedAt: invoice.publicFirstViewedAt?.toISOString() ?? null,
+        publicLastViewedAt: invoice.publicLastViewedAt?.toISOString() ?? null,
+        publicViewCount: invoice.publicViewCount,
         items: invoice.items.map((item) => ({
           id: item.id,
           description: item.description,
@@ -159,5 +164,5 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
         })),
       }}
     />
-  )
+  );
 }

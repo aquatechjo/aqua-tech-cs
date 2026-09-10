@@ -1,15 +1,8 @@
-"use client"
+'use client';
 
-import {
-  Archive,
-  Pencil,
-  Plus,
-  RotateCcw,
-  Star,
-  UserRound,
-} from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { Archive, Pencil, Plus, RotateCcw, Star, UserRound } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 import {
   AquaAlert,
@@ -24,95 +17,96 @@ import {
   AquaTable,
   AquaTableStateRow,
   AquaTextarea,
-} from "@/components/aqua"
-import AquaPageHeader from "@/components/layout/AquaPageHeader"
-import type {
-  ClientStatus,
-  ClientType,
-  LeadSource,
-} from "@/generated/prisma/enums"
+} from '@/components/aqua';
+import AquaPageHeader from '@/components/layout/AquaPageHeader';
+import type { ClientStatus, ClientType, LeadSource } from '@/generated/prisma/enums';
 
 type ContactItem = {
-  id: string
-  name: string
-  jobTitle: string | null
-  department: string | null
-  email: string | null
-  phone: string | null
-  whatsapp: string | null
-  isPrimary: boolean
-  isDecisionMaker: boolean
-  notes: string | null
-  archivedAt: string | null
-  createdAt: string
-  updatedAt: string
-}
+  id: string;
+  name: string;
+  jobTitle: string | null;
+  department: string | null;
+  email: string | null;
+  phone: string | null;
+  whatsapp: string | null;
+  isPrimary: boolean;
+  isDecisionMaker: boolean;
+  notes: string | null;
+  archivedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
 
 type ClientItem = {
-  id: string
-  name: string
-  email: string | null
-  phone: string | null
-  website: string | null
-  type: ClientType
-  status: ClientStatus
-  source: LeadSource
-  industry: string | null
-  country: string | null
-  city: string | null
-  notes: string | null
-  createdAt: string
-  updatedAt: string
-  contacts: ContactItem[]
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  website: string | null;
+  type: ClientType;
+  status: ClientStatus;
+  source: LeadSource;
+  industry: string | null;
+  country: string | null;
+  city: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  contacts: ContactItem[];
+  portalAccess: {
+    active: boolean;
+    issuedAt: string | null;
+    revokedAt: string | null;
+    lastAccessedAt: string | null;
+    accessCount: number;
+  } | null;
   _count: {
-    projects: number
-    invoices: number
-    salesOpportunities: number
-    leads: number
-    serviceRequests: number
-  }
-}
+    projects: number;
+    invoices: number;
+    salesOpportunities: number;
+    leads: number;
+    serviceRequests: number;
+  };
+};
 
-type PendingAction =
-  | {
-      type: "archive" | "primary"
-      contact: ContactItem
-    }
-  | null
+type PendingAction = {
+  type: 'archive' | 'primary';
+  contact: ContactItem;
+} | null;
 
 function clientTypeLabel(type: ClientType) {
-  return type === "COMPANY" ? "شركة" : "فرد"
+  return type === 'COMPANY' ? 'شركة' : 'فرد';
 }
 
 function clientStatusLabel(status: ClientStatus) {
   const labels: Record<ClientStatus, string> = {
-    LEAD: "فرصة",
-    ACTIVE: "نشط",
-    INACTIVE: "غير نشط",
-    ARCHIVED: "مؤرشف",
-  }
+    LEAD: 'فرصة',
+    ACTIVE: 'نشط',
+    INACTIVE: 'غير نشط',
+    ARCHIVED: 'مؤرشف',
+  };
 
-  return labels[status]
+  return labels[status];
 }
 
 function sourceLabel(source: LeadSource) {
   const labels: Record<LeadSource, string> = {
-    WEBSITE: "الموقع",
-    CHATBOT: "الشات بوت",
-    FACEBOOK: "فيسبوك",
-    INSTAGRAM: "إنستغرام",
-    WHATSAPP: "واتساب",
-    EMAIL: "البريد الإلكتروني",
-    CALL: "اتصال",
-    MEETING: "اجتماع",
-    REFERRAL: "ترشيح",
-    CAMPAIGN: "حملة",
-    MANUAL: "إدخال يدوي",
-    DIRECT: "مباشر",
-    OTHER: "أخرى",
-  }
+    WEBSITE: 'الموقع',
+    CHATBOT: 'الشات بوت',
+    FACEBOOK: 'فيسبوك',
+    INSTAGRAM: 'إنستغرام',
+    WHATSAPP: 'واتساب',
+    EMAIL: 'البريد الإلكتروني',
+    CALL: 'اتصال',
+    MEETING: 'اجتماع',
+    REFERRAL: 'ترشيح',
+    CAMPAIGN: 'حملة',
+    MANUAL: 'إدخال يدوي',
+    DIRECT: 'مباشر',
+    OTHER: 'أخرى',
+  };
 
-  return labels[source]
+  return labels[source];
 }
 
 export default function ClientContactsClient({
@@ -120,87 +114,87 @@ export default function ClientContactsClient({
   canManage,
   timeZone,
 }: {
-  client: ClientItem
-  canManage: boolean
-  timeZone: string
+  client: ClientItem;
+  canManage: boolean;
+  timeZone: string;
 }) {
-  const router = useRouter()
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editingContact, setEditingContact] = useState<ContactItem | null>(null)
-  const [pendingAction, setPendingAction] = useState<PendingAction>(null)
-  const [name, setName] = useState("")
-  const [jobTitle, setJobTitle] = useState("")
-  const [department, setDepartment] = useState("")
-  const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
-  const [whatsapp, setWhatsapp] = useState("")
-  const [isPrimary, setIsPrimary] = useState(false)
-  const [isDecisionMaker, setIsDecisionMaker] = useState(false)
-  const [notes, setNotes] = useState("")
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [actionLoading, setActionLoading] = useState(false)
+  const router = useRouter();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingContact, setEditingContact] = useState<ContactItem | null>(null);
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+  const [name, setName] = useState('');
+  const [jobTitle, setJobTitle] = useState('');
+  const [department, setDepartment] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
+  const [isPrimary, setIsPrimary] = useState(false);
+  const [isDecisionMaker, setIsDecisionMaker] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [portalBusy, setPortalBusy] = useState(false);
+  const [portalPath, setPortalPath] = useState('');
 
-  const activeContacts = client.contacts.filter(
-    (contact) => !contact.archivedAt,
-  )
-  const archivedContacts = client.contacts.length - activeContacts.length
+  const activeContacts = client.contacts.filter((contact) => !contact.archivedAt);
+  const archivedContacts = client.contacts.length - activeContacts.length;
 
   function resetForm() {
-    setEditingContact(null)
-    setName("")
-    setJobTitle("")
-    setDepartment("")
-    setEmail("")
-    setPhone("")
-    setWhatsapp("")
-    setIsPrimary(false)
-    setIsDecisionMaker(false)
-    setNotes("")
-    setError("")
+    setEditingContact(null);
+    setName('');
+    setJobTitle('');
+    setDepartment('');
+    setEmail('');
+    setPhone('');
+    setWhatsapp('');
+    setIsPrimary(false);
+    setIsDecisionMaker(false);
+    setNotes('');
+    setError('');
   }
 
   function openCreate() {
-    resetForm()
-    setIsPrimary(activeContacts.length === 0)
-    setModalOpen(true)
+    resetForm();
+    setIsPrimary(activeContacts.length === 0);
+    setModalOpen(true);
   }
 
   function openEdit(contact: ContactItem) {
-    setEditingContact(contact)
-    setName(contact.name)
-    setJobTitle(contact.jobTitle ?? "")
-    setDepartment(contact.department ?? "")
-    setEmail(contact.email ?? "")
-    setPhone(contact.phone ?? "")
-    setWhatsapp(contact.whatsapp ?? "")
-    setIsPrimary(contact.isPrimary)
-    setIsDecisionMaker(contact.isDecisionMaker)
-    setNotes(contact.notes ?? "")
-    setError("")
-    setModalOpen(true)
+    setEditingContact(contact);
+    setName(contact.name);
+    setJobTitle(contact.jobTitle ?? '');
+    setDepartment(contact.department ?? '');
+    setEmail(contact.email ?? '');
+    setPhone(contact.phone ?? '');
+    setWhatsapp(contact.whatsapp ?? '');
+    setIsPrimary(contact.isPrimary);
+    setIsDecisionMaker(contact.isDecisionMaker);
+    setNotes(contact.notes ?? '');
+    setError('');
+    setModalOpen(true);
   }
 
   function closeModal() {
-    if (loading) return
-    setModalOpen(false)
-    resetForm()
+    if (loading) return;
+    setModalOpen(false);
+    resetForm();
   }
 
   async function saveContact() {
-    setError("")
-    setSuccess("")
-    setLoading(true)
+    setError('');
+    setSuccess('');
+    setLoading(true);
 
     try {
       const endpoint = editingContact
         ? `/api/clients/${client.id}/contacts/${editingContact.id}`
-        : `/api/clients/${client.id}/contacts`
+        : `/api/clients/${client.id}/contacts`;
       const response = await fetch(endpoint, {
-        method: editingContact ? "PATCH" : "POST",
+        method: editingContact ? 'PATCH' : 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           name,
@@ -213,26 +207,22 @@ export default function ClientContactsClient({
           isDecisionMaker,
           notes,
         }),
-      })
-      const data = await response.json()
+      });
+      const data = await response.json();
 
       if (!response.ok || !data.ok) {
-        setError(data.message || "تعذر حفظ جهة الاتصال")
-        return
+        setError(data.message || 'تعذر حفظ جهة الاتصال');
+        return;
       }
 
-      setSuccess(
-        editingContact
-          ? "تم تحديث جهة الاتصال."
-          : "تمت إضافة جهة الاتصال.",
-      )
-      setModalOpen(false)
-      resetForm()
-      router.refresh()
+      setSuccess(editingContact ? 'تم تحديث جهة الاتصال.' : 'تمت إضافة جهة الاتصال.');
+      setModalOpen(false);
+      resetForm();
+      router.refresh();
     } catch {
-      setError("تعذر الاتصال بالخادم")
+      setError('تعذر الاتصال بالخادم');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -241,42 +231,82 @@ export default function ClientContactsClient({
     body: Record<string, unknown>,
     successMessage: string,
   ) {
-    setError("")
-    setSuccess("")
-    setActionLoading(true)
+    setError('');
+    setSuccess('');
+    setActionLoading(true);
 
     try {
-      const response = await fetch(
-        `/api/clients/${client.id}/contacts/${contact.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
+      const response = await fetch(`/api/clients/${client.id}/contacts/${contact.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      )
-      const data = await response.json()
+        body: JSON.stringify(body),
+      });
+      const data = await response.json();
 
       if (!response.ok || !data.ok) {
-        setError(data.message || "تعذر تحديث جهة الاتصال")
-        return
+        setError(data.message || 'تعذر تحديث جهة الاتصال');
+        return;
       }
 
-      setSuccess(successMessage)
-      setPendingAction(null)
-      router.refresh()
+      setSuccess(successMessage);
+      setPendingAction(null);
+      router.refresh();
     } catch {
-      setError("تعذر الاتصال بالخادم")
+      setError('تعذر الاتصال بالخادم');
     } finally {
-      setActionLoading(false)
+      setActionLoading(false);
     }
   }
 
-  const formatDate = new Intl.DateTimeFormat("ar-JO-u-nu-latn", {
-    dateStyle: "medium",
+  const formatDate = new Intl.DateTimeFormat('ar-JO-u-nu-latn', {
+    dateStyle: 'medium',
     timeZone,
-  })
+  });
+
+  const formatDateTime = new Intl.DateTimeFormat('ar-JO-u-nu-latn', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone,
+  });
+
+  async function managePortalAccess(action: 'ISSUE' | 'REVOKE') {
+    setError('');
+    setSuccess('');
+    setPortalBusy(true);
+
+    try {
+      const response = await fetch(`/api/clients/${client.id}/portal-access`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        setError(data.message || 'تعذر إدارة بوابة العميل');
+        return;
+      }
+
+      setPortalPath(data.data.path ?? '');
+      setSuccess(
+        action === 'ISSUE'
+          ? 'تم إصدار رابط بوابة جديد. انسخه الآن؛ لا يُخزن الرمز بصورته الأصلية.'
+          : 'تم إلغاء رابط بوابة العميل',
+      );
+      router.refresh();
+    } catch {
+      setError('تعذر الاتصال بالخادم');
+    } finally {
+      setPortalBusy(false);
+    }
+  }
+
+  const portalUrl =
+    portalPath && typeof window !== 'undefined'
+      ? `${window.location.origin}${portalPath}`
+      : portalPath;
 
   return (
     <div className="aqua-crm-detail-page">
@@ -321,44 +351,40 @@ export default function ClientContactsClient({
               columns={2}
               items={[
                 {
-                  label: "النوع",
+                  label: 'النوع',
                   value: clientTypeLabel(client.type),
                 },
                 {
-                  label: "الحالة",
+                  label: 'الحالة',
                   value: clientStatusLabel(client.status),
                 },
                 {
-                  label: "المصدر",
+                  label: 'المصدر',
                   value: sourceLabel(client.source),
                 },
                 {
-                  label: "المجال",
+                  label: 'المجال',
                   value: client.industry,
                 },
                 {
-                  label: "الموقع الإلكتروني",
+                  label: 'الموقع الإلكتروني',
                   value: client.website,
-                  dir: "ltr",
+                  dir: 'ltr',
                 },
                 {
-                  label: "الموقع",
-                  value:
-                    [client.city, client.country].filter(Boolean).join("، ") ||
-                    null,
+                  label: 'الموقع',
+                  value: [client.city, client.country].filter(Boolean).join('، ') || null,
                 },
                 {
-                  label: "جهة الاتصال الرئيسية",
-                  value:
-                    activeContacts.find((contact) => contact.isPrimary)?.name ??
-                    null,
+                  label: 'جهة الاتصال الرئيسية',
+                  value: activeContacts.find((contact) => contact.isPrimary)?.name ?? null,
                 },
                 {
-                  label: "تاريخ الإضافة",
+                  label: 'تاريخ الإضافة',
                   value: formatDate.format(new Date(client.createdAt)),
                 },
                 {
-                  label: "ملاحظات",
+                  label: 'ملاحظات',
                   value: client.notes,
                   fullWidth: true,
                 },
@@ -374,31 +400,75 @@ export default function ClientContactsClient({
             description="عدد السجلات التشغيلية المرتبطة بهذا العميل."
           >
             <div className="d-flex flex-wrap gap-2">
-              <AquaBadge variant="blue">
-                جهات الاتصال {activeContacts.length}
-              </AquaBadge>
+              <AquaBadge variant="blue">جهات الاتصال {activeContacts.length}</AquaBadge>
               <AquaBadge>Leads {client._count.leads}</AquaBadge>
-              <AquaBadge>
-                الفرص {client._count.salesOpportunities}
-              </AquaBadge>
-              <AquaBadge variant="success">
-                المشاريع {client._count.projects}
-              </AquaBadge>
-              <AquaBadge>
-                الطلبات {client._count.serviceRequests}
-              </AquaBadge>
-              <AquaBadge>
-                الفواتير {client._count.invoices}
-              </AquaBadge>
+              <AquaBadge>الفرص {client._count.salesOpportunities}</AquaBadge>
+              <AquaBadge variant="success">المشاريع {client._count.projects}</AquaBadge>
+              <AquaBadge>الطلبات {client._count.serviceRequests}</AquaBadge>
+              <AquaBadge>الفواتير {client._count.invoices}</AquaBadge>
               {archivedContacts > 0 ? (
-                <AquaBadge variant="muted">
-                  مؤرشف {archivedContacts}
-                </AquaBadge>
+                <AquaBadge variant="muted">مؤرشف {archivedContacts}</AquaBadge>
               ) : null}
             </div>
           </AquaDataPanel>
         </div>
       </div>
+
+      {canManage ? (
+        <AquaDataPanel
+          eyebrow="بوابة العميل"
+          title="رابط البوابة الموحدة"
+          description="رابط دائم وقابل للإلغاء يعرض للعميل فواتيره وعروضه وحالة تقييماته وجلسات الاكتشاف في مكان واحد."
+        >
+          {client.portalAccess?.active ? (
+            <AquaAlert variant="info" title="البوابة مفعّلة">
+              صدرت في{' '}
+              {client.portalAccess.issuedAt
+                ? formatDate.format(new Date(client.portalAccess.issuedAt))
+                : '—'}
+              {' — '}عدد مرات الدخول {client.portalAccess.accessCount}.
+              {client.portalAccess.lastAccessedAt
+                ? ` آخر دخول: ${formatDateTime.format(new Date(client.portalAccess.lastAccessedAt))}.`
+                : ' لم يُفتح بعد.'}
+            </AquaAlert>
+          ) : null}
+
+          {portalPath ? (
+            <div className="aqua-card-soft p-3 mt-3">
+              <label className="form-label">الرابط الجديد — انسخه الآن</label>
+              <div className="input-group" dir="ltr">
+                <input className="form-control" readOnly value={portalUrl} />
+                <button
+                  className="btn btn-outline-info"
+                  type="button"
+                  onClick={() => navigator.clipboard.writeText(portalUrl)}
+                >
+                  نسخ
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="d-flex flex-wrap gap-2 mt-3">
+            <AquaButton
+              variant="primary"
+              loading={portalBusy}
+              onClick={() => managePortalAccess('ISSUE')}
+            >
+              {client.portalAccess?.active ? 'تدوير الرابط' : 'إصدار رابط البوابة'}
+            </AquaButton>
+            {client.portalAccess?.active ? (
+              <AquaButton
+                variant="danger"
+                loading={portalBusy}
+                onClick={() => managePortalAccess('REVOKE')}
+              >
+                إلغاء البوابة
+              </AquaButton>
+            ) : null}
+          </div>
+        </AquaDataPanel>
+      ) : null}
 
       <AquaDataPanel
         eyebrow="Contacts"
@@ -441,21 +511,17 @@ export default function ClientContactsClient({
                 <tr key={contact.id}>
                   <td data-label="الاسم">
                     <div className="aqua-table__primary">{contact.name}</div>
-                    <div className="aqua-table__secondary">
-                      {contact.department || "—"}
-                    </div>
+                    <div className="aqua-table__secondary">{contact.department || '—'}</div>
                   </td>
                   <td data-label="الدور">
-                    <span className="aqua-table__secondary">
-                      {contact.jobTitle || "غير محدد"}
-                    </span>
+                    <span className="aqua-table__secondary">{contact.jobTitle || 'غير محدد'}</span>
                   </td>
                   <td data-label="التواصل">
                     <div className="aqua-table__primary" dir="ltr">
-                      {contact.email || "لا يوجد بريد"}
+                      {contact.email || 'لا يوجد بريد'}
                     </div>
                     <div className="aqua-table__secondary" dir="ltr">
-                      {contact.phone || contact.whatsapp || "لا يوجد هاتف"}
+                      {contact.phone || contact.whatsapp || 'لا يوجد هاتف'}
                     </div>
                   </td>
                   <td data-label="الصفة">
@@ -473,12 +539,8 @@ export default function ClientContactsClient({
                     </div>
                   </td>
                   <td data-label="الحالة">
-                    <AquaBadge
-                      size="sm"
-                      variant={contact.archivedAt ? "muted" : "success"}
-                      dot
-                    >
-                      {contact.archivedAt ? "مؤرشفة" : "نشطة"}
+                    <AquaBadge size="sm" variant={contact.archivedAt ? 'muted' : 'success'} dot>
+                      {contact.archivedAt ? 'مؤرشفة' : 'نشطة'}
                     </AquaBadge>
                   </td>
                   <td data-label="إجراء">
@@ -501,7 +563,7 @@ export default function ClientContactsClient({
                                 leadingIcon={<Star />}
                                 onClick={() =>
                                   setPendingAction({
-                                    type: "primary",
+                                    type: 'primary',
                                     contact,
                                   })
                                 }
@@ -515,7 +577,7 @@ export default function ClientContactsClient({
                               leadingIcon={<Archive />}
                               onClick={() =>
                                 setPendingAction({
-                                  type: "archive",
+                                  type: 'archive',
                                   contact,
                                 })
                               }
@@ -534,7 +596,7 @@ export default function ClientContactsClient({
                                 {
                                   archived: false,
                                 },
-                                "تمت استعادة جهة الاتصال.",
+                                'تمت استعادة جهة الاتصال.',
                               )
                             }
                           >
@@ -556,7 +618,7 @@ export default function ClientContactsClient({
       <AquaModal
         open={modalOpen}
         onClose={closeModal}
-        title={editingContact ? "تعديل جهة الاتصال" : "إضافة جهة اتصال"}
+        title={editingContact ? 'تعديل جهة الاتصال' : 'إضافة جهة اتصال'}
         description="احفظ الشخص ووسائل التواصل والدور داخل حساب العميل."
         size="lg"
         footer={
@@ -631,9 +693,7 @@ export default function ClientContactsClient({
                 className="form-check-input"
                 type="checkbox"
                 checked={isDecisionMaker}
-                onChange={(event) =>
-                  setIsDecisionMaker(event.target.checked)
-                }
+                onChange={(event) => setIsDecisionMaker(event.target.checked)}
               />
               <span className="form-check-label">صاحب قرار</span>
             </label>
@@ -650,20 +710,20 @@ export default function ClientContactsClient({
       <AquaConfirmDialog
         open={Boolean(pendingAction)}
         onClose={() => {
-          if (!actionLoading) setPendingAction(null)
+          if (!actionLoading) setPendingAction(null);
         }}
         onConfirm={async () => {
-          if (!pendingAction) return
+          if (!pendingAction) return;
 
-          if (pendingAction.type === "primary") {
+          if (pendingAction.type === 'primary') {
             await patchContact(
               pendingAction.contact,
               {
                 isPrimary: true,
               },
-              "تم تغيير جهة الاتصال الرئيسية.",
-            )
-            return
+              'تم تغيير جهة الاتصال الرئيسية.',
+            );
+            return;
           }
 
           await patchContact(
@@ -671,28 +731,22 @@ export default function ClientContactsClient({
             {
               archived: true,
             },
-            "تمت أرشفة جهة الاتصال.",
-          )
+            'تمت أرشفة جهة الاتصال.',
+          );
         }}
         title={
-          pendingAction?.type === "primary"
-            ? "تغيير جهة الاتصال الرئيسية"
-            : "أرشفة جهة الاتصال"
+          pendingAction?.type === 'primary' ? 'تغيير جهة الاتصال الرئيسية' : 'أرشفة جهة الاتصال'
         }
         description={
-          pendingAction?.type === "primary"
+          pendingAction?.type === 'primary'
             ? `سيتم اعتماد ${pendingAction.contact.name} كجهة الاتصال الرئيسية ومزامنة البريد والهاتف مع سجل العميل.`
-            : `سيتم أرشفة ${pendingAction?.contact.name ?? "جهة الاتصال"} مع الاحتفاظ بسجلها. إذا كانت رئيسية سيختار النظام بديلًا نشطًا.`
+            : `سيتم أرشفة ${pendingAction?.contact.name ?? 'جهة الاتصال'} مع الاحتفاظ بسجلها. إذا كانت رئيسية سيختار النظام بديلًا نشطًا.`
         }
-        confirmLabel={
-          pendingAction?.type === "primary" ? "تعيين رئيسية" : "أرشفة"
-        }
-        confirmVariant={
-          pendingAction?.type === "primary" ? "primary" : "danger"
-        }
-        tone={pendingAction?.type === "primary" ? "neutral" : "warning"}
+        confirmLabel={pendingAction?.type === 'primary' ? 'تعيين رئيسية' : 'أرشفة'}
+        confirmVariant={pendingAction?.type === 'primary' ? 'primary' : 'danger'}
+        tone={pendingAction?.type === 'primary' ? 'neutral' : 'warning'}
         loading={actionLoading}
       />
     </div>
-  )
+  );
 }

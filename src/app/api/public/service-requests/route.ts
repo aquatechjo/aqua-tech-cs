@@ -1,38 +1,29 @@
-import { z } from "zod";
-import { Prisma } from "@/generated/prisma/client";
-import {
-  ActivityAction,
-  NotificationType,
-} from "@/generated/prisma/enums";
-import {
-  ApiError,
-  err,
-  ok,
-  withApiHandler,
-} from "@/lib/api-response";
-import { createLeadForServiceRequest } from "@/lib/crm-lead-server";
-import { prisma } from "@/lib/prisma";
-import { enforceRateLimit } from "@/lib/rate-limit";
+import { z } from 'zod';
+import { Prisma } from '@/generated/prisma/client';
+import { ActivityAction, NotificationType } from '@/generated/prisma/enums';
+import { ApiError, err, ok, withApiHandler } from '@/lib/api-response';
+import { createLeadForServiceRequest } from '@/lib/crm-lead-server';
+import { prisma } from '@/lib/prisma';
+import { enforceRateLimit } from '@/lib/rate-limit';
 import {
   buildIdempotencyKey,
   getClientIp,
   readJsonBody,
   safeEqualSecrets,
-} from "@/lib/request-security";
-import { readWebsiteIntakeSecret } from "@/lib/technical-identity";
+} from '@/lib/request-security';
+import { readWebsiteIntakeSecret } from '@/lib/technical-identity';
+import {
+  buildWhatsAppRedirectUrl,
+  generateServiceRequestReferenceCode,
+} from '@/lib/service-request-intake';
 
 const intakeSchema = z.object({
-  customerName: z.string().trim().min(2, "اسم العميل مطلوب"),
-  customerEmail: z
-    .string()
-    .trim()
-    .email("الإيميل غير صحيح")
-    .optional()
-    .nullable(),
+  customerName: z.string().trim().min(2, 'اسم العميل مطلوب'),
+  customerEmail: z.string().trim().email('الإيميل غير صحيح').optional().nullable(),
   customerPhone: z.string().trim().optional().nullable(),
   customerCompany: z.string().trim().optional().nullable(),
 
-  serviceType: z.string().trim().min(2, "نوع الخدمة مطلوب"),
+  serviceType: z.string().trim().min(2, 'نوع الخدمة مطلوب'),
   budgetRange: z.string().trim().optional().nullable(),
   timeline: z.string().trim().optional().nullable(),
   message: z.string().trim().optional().nullable(),
@@ -57,6 +48,7 @@ async function findReplay(companyId: string, idempotencyKey: string) {
     },
     select: {
       id: true,
+      referenceCode: true,
       lead: {
         select: {
           id: true,
@@ -70,15 +62,11 @@ async function createWebsiteServiceRequest(request: Request) {
   const expectedSecret = process.env.WEBSITE_INTAKE_SECRET?.trim();
 
   if (!expectedSecret) {
-    throw new ApiError(
-      "Website intake is not configured",
-      503,
-      "INTAKE_NOT_CONFIGURED",
-    );
+    throw new ApiError('Website intake is not configured', 503, 'INTAKE_NOT_CONFIGURED');
   }
 
   await enforceRateLimit({
-    namespace: "website-intake",
+    namespace: 'website-intake',
     identifier: getClientIp(request),
     limit: 20,
     windowMs: 60 * 60 * 1000,
@@ -87,8 +75,8 @@ async function createWebsiteServiceRequest(request: Request) {
   const receivedSecret = readWebsiteIntakeSecret(request.headers);
 
   if (!receivedSecret || !safeEqualSecrets(receivedSecret, expectedSecret)) {
-    return err("Unauthorized", 401, {
-      code: "UNAUTHORIZED",
+    return err('Unauthorized', 401, {
+      code: 'UNAUTHORIZED',
     });
   }
 
@@ -96,17 +84,13 @@ async function createWebsiteServiceRequest(request: Request) {
   const parsed = intakeSchema.safeParse(body);
 
   if (!parsed.success) {
-    return err(
-      parsed.error.issues[0]?.message ?? "بيانات طلب الخدمة غير صحيحة",
-      400,
-      {
-        code: "VALIDATION_ERROR",
-        details: parsed.error.flatten(),
-      },
-    );
+    return err(parsed.error.issues[0]?.message ?? 'بيانات طلب الخدمة غير صحيحة', 400, {
+      code: 'VALIDATION_ERROR',
+      details: parsed.error.flatten(),
+    });
   }
 
-  const companySlug = process.env.AQUA_COMPANY_SLUG?.trim() || "aqua-tech";
+  const companySlug = process.env.AQUA_COMPANY_SLUG?.trim() || 'aqua-tech';
 
   const company = await prisma.company.findUnique({
     where: {
@@ -114,18 +98,19 @@ async function createWebsiteServiceRequest(request: Request) {
     },
     select: {
       id: true,
+      whatsappBusinessNumber: true,
     },
   });
 
   if (!company) {
-    return err("Company not found", 404, {
-      code: "COMPANY_NOT_FOUND",
+    return err('Company not found', 404, {
+      code: 'COMPANY_NOT_FOUND',
     });
   }
 
   const data = parsed.data;
   const idempotencyKey = buildIdempotencyKey(
-    request.headers.get("idempotency-key"),
+    request.headers.get('idempotency-key'),
     data.workflowRunId,
   );
 
@@ -136,6 +121,12 @@ async function createWebsiteServiceRequest(request: Request) {
       return ok({
         serviceRequestId: existingRequest.id,
         leadId: existingRequest.lead?.id ?? null,
+        referenceCode: existingRequest.referenceCode,
+        whatsappRedirectUrl: buildWhatsAppRedirectUrl({
+          businessNumber: company.whatsappBusinessNumber,
+          referenceCode: existingRequest.referenceCode ?? '',
+          customerName: data.customerName,
+        }),
         replayed: true,
       });
     }
@@ -157,12 +148,13 @@ async function createWebsiteServiceRequest(request: Request) {
           timeline: nullableText(data.timeline),
           message: nullableText(data.message),
 
-          status: "NEW",
-          source: "WEBSITE",
-          priority: "MEDIUM",
+          status: 'NEW',
+          source: 'WEBSITE',
+          priority: 'MEDIUM',
 
           workflowRunId: nullableText(data.workflowRunId),
           idempotencyKey,
+          referenceCode: generateServiceRequestReferenceCode(),
         },
       });
 
@@ -171,11 +163,11 @@ async function createWebsiteServiceRequest(request: Request) {
           companyId: company.id,
           userId: null,
           action: ActivityAction.SERVICE_REQUEST_CREATED,
-          entityType: "ServiceRequest",
+          entityType: 'ServiceRequest',
           entityId: createdRequest.id,
           message: `وصل طلب خدمة جديد من الموقع: ${createdRequest.customerName}`,
           metadata: {
-            source: "WEBSITE",
+            source: 'WEBSITE',
             serviceType: createdRequest.serviceType,
           },
         },
@@ -186,12 +178,7 @@ async function createWebsiteServiceRequest(request: Request) {
           companyId: company.id,
           isActive: true,
           role: {
-            in: [
-              "OWNER",
-              "ADMIN",
-              "SALES_MANAGER",
-              "OPERATIONS_MANAGER",
-            ],
+            in: ['OWNER', 'ADMIN', 'SALES_MANAGER', 'OPERATIONS_MANAGER'],
           },
         },
         select: {
@@ -204,10 +191,10 @@ async function createWebsiteServiceRequest(request: Request) {
           data: notifyUsers.map((user) => ({
             companyId: company.id,
             userId: user.id,
-            title: "طلب خدمة جديد",
+            title: 'طلب خدمة جديد',
             message: `${createdRequest.customerName} أرسل طلب ${createdRequest.serviceType}`,
             type: NotificationType.INFO,
-            entityType: "ServiceRequest",
+            entityType: 'ServiceRequest',
             entityId: createdRequest.id,
           })),
         });
@@ -232,6 +219,12 @@ async function createWebsiteServiceRequest(request: Request) {
       {
         serviceRequestId: serviceRequest.serviceRequest.id,
         leadId: serviceRequest.lead.id,
+        referenceCode: serviceRequest.serviceRequest.referenceCode,
+        whatsappRedirectUrl: buildWhatsAppRedirectUrl({
+          businessNumber: company.whatsappBusinessNumber,
+          referenceCode: serviceRequest.serviceRequest.referenceCode ?? '',
+          customerName: data.customerName,
+        }),
         replayed: false,
       },
       201,
@@ -240,7 +233,7 @@ async function createWebsiteServiceRequest(request: Request) {
     if (
       idempotencyKey &&
       error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
+      error.code === 'P2002'
     ) {
       const existingRequest = await findReplay(company.id, idempotencyKey);
 
@@ -248,6 +241,12 @@ async function createWebsiteServiceRequest(request: Request) {
         return ok({
           serviceRequestId: existingRequest.id,
           leadId: existingRequest.lead?.id ?? null,
+          referenceCode: existingRequest.referenceCode,
+          whatsappRedirectUrl: buildWhatsAppRedirectUrl({
+            businessNumber: company.whatsappBusinessNumber,
+            referenceCode: existingRequest.referenceCode ?? '',
+            customerName: data.customerName,
+          }),
           replayed: true,
         });
       }
@@ -258,7 +257,7 @@ async function createWebsiteServiceRequest(request: Request) {
 }
 
 export const POST = withApiHandler(
-  "PUBLIC_SERVICE_REQUEST_ERROR",
+  'PUBLIC_SERVICE_REQUEST_ERROR',
   createWebsiteServiceRequest,
-  "حدث خطأ أثناء استقبال طلب الخدمة",
+  'حدث خطأ أثناء استقبال طلب الخدمة',
 );

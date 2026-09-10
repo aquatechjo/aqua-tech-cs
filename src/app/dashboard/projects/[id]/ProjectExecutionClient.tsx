@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import {
   AlertTriangle,
@@ -16,9 +16,9 @@ import {
   Trash2,
   UserPlus,
   UsersRound,
-} from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useMemo, useState } from "react"
+} from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
 
 import {
   AquaAlert,
@@ -35,273 +35,245 @@ import {
   AquaTableStateRow,
   AquaTextarea,
   aquaToast,
-} from "@/components/aqua"
-import type { AquaBadgeVariant } from "@/design-system"
+} from '@/components/aqua';
+import type { AquaBadgeVariant } from '@/design-system';
 
-import ProjectDeliverablesPanel, {
-  type ProjectDeliverableView,
-} from "./ProjectDeliverablesPanel"
+import ProjectDeliverablesPanel, { type ProjectDeliverableView } from './ProjectDeliverablesPanel';
 import ProjectChangeRequestsPanel, {
   type ProjectChangeRequestView,
-} from "./ProjectChangeRequestsPanel"
-import ProjectGovernancePanel, {
-  type ProjectGovernanceView,
-} from "./ProjectGovernancePanel"
-import ProjectClosurePanel, { type ProjectClosureView } from "./ProjectClosurePanel"
-import ProjectFeedbackPanel, { type ProjectFeedbackView } from "./ProjectFeedbackPanel"
-import styles from "./ProjectExecution.module.css"
+} from './ProjectChangeRequestsPanel';
+import ProjectGovernancePanel, { type ProjectGovernanceView } from './ProjectGovernancePanel';
+import ProjectClosurePanel, { type ProjectClosureView } from './ProjectClosurePanel';
+import ProjectFeedbackPanel, { type ProjectFeedbackView } from './ProjectFeedbackPanel';
+import styles from './ProjectExecution.module.css';
 
 type Employee = {
-  id: string
-  employeeNumber: string | null
-  user: { id: string; name: string; email: string }
-  department: { id: string; name: string } | null
-  jobRole: { id: string; name: string } | null
-}
+  id: string;
+  employeeNumber: string | null;
+  user: { id: string; name: string; email: string };
+  department: { id: string; name: string } | null;
+  jobRole: { id: string; name: string } | null;
+};
 
 type Member = {
-  id: string
-  role: "PROJECT_LEAD" | "MANAGER" | "CONTRIBUTOR" | "VIEWER"
-  responsibility: string | null
+  id: string;
+  role: 'PROJECT_LEAD' | 'MANAGER' | 'CONTRIBUTOR' | 'VIEWER';
+  responsibility: string | null;
   employeeProfile: Employee & {
-    user: Employee["user"] & { isActive: boolean }
-  }
-}
+    user: Employee['user'] & { isActive: boolean };
+  };
+};
 
 type Phase = {
-  id: string
-  name: string
-  code: string | null
-  workflowStageCode: string | null
-  description: string | null
-  status:
-    | "PLANNED"
-    | "ACTIVE"
-    | "BLOCKED"
-    | "COMPLETED"
-    | "CANCELLED"
-  progress: number
-  sortOrder: number
-  startDate: string | null
-  dueDate: string | null
-  completedAt: string | null
-}
+  id: string;
+  name: string;
+  code: string | null;
+  workflowStageCode: string | null;
+  description: string | null;
+  status: 'PLANNED' | 'ACTIVE' | 'BLOCKED' | 'COMPLETED' | 'CANCELLED';
+  progress: number;
+  sortOrder: number;
+  startDate: string | null;
+  dueDate: string | null;
+  completedAt: string | null;
+};
 
 type Participant = {
-  id: string
-  role: "OWNER" | "CONTRIBUTOR" | "REVIEWER" | "OBSERVER"
+  id: string;
+  role: 'OWNER' | 'CONTRIBUTOR' | 'REVIEWER' | 'OBSERVER';
   employeeProfile: {
-    id: string
-    user: { id: string; name: string; email: string }
-    jobRole: { name: string } | null
-  }
-}
+    id: string;
+    user: { id: string; name: string; email: string };
+    jobRole: { name: string } | null;
+  };
+};
 
 type Task = {
-  id: string
-  title: string
-  description: string | null
-  phaseId: string | null
-  phase: { id: string; name: string } | null
-  assignedToId: string | null
+  id: string;
+  title: string;
+  description: string | null;
+  phaseId: string | null;
+  phase: { id: string; name: string } | null;
+  assignedToId: string | null;
   assignedTo: {
-    id: string
-    name: string
-    email: string
-  } | null
-  status:
-    | "TODO"
-    | "IN_PROGRESS"
-    | "BLOCKED"
-    | "REVIEW"
-    | "DONE"
-    | "CANCELLED"
-    | "ARCHIVED"
-  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT"
-  progress: number
-  estimatedHours: string | null
-  workflowTaskCode: string | null
-  workflowOwnerRole:
-    | "PROJECT_LEAD"
-    | "MANAGER"
-    | "CONTRIBUTOR"
-    | "VIEWER"
-    | null
-  dueDate: string | null
-  startedAt: string | null
-  completedAt: string | null
-  canEdit: boolean
-  canManageParticipants: boolean
-  canAssignOwner: boolean
-  participants: Participant[]
+    id: string;
+    name: string;
+    email: string;
+  } | null;
+  status: 'TODO' | 'IN_PROGRESS' | 'BLOCKED' | 'REVIEW' | 'DONE' | 'CANCELLED' | 'ARCHIVED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  progress: number;
+  estimatedHours: string | null;
+  workflowTaskCode: string | null;
+  workflowOwnerRole: 'PROJECT_LEAD' | 'MANAGER' | 'CONTRIBUTOR' | 'VIEWER' | null;
+  dueDate: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  canEdit: boolean;
+  canManageParticipants: boolean;
+  canAssignOwner: boolean;
+  participants: Participant[];
   dependencies: Array<{
-    id: string
-    type:
-      | "FINISH_TO_START"
-      | "START_TO_START"
-      | "FINISH_TO_FINISH"
-      | "START_TO_FINISH"
-    dependsOnTaskId: string
+    id: string;
+    type: 'FINISH_TO_START' | 'START_TO_START' | 'FINISH_TO_FINISH' | 'START_TO_FINISH';
+    dependsOnTaskId: string;
     dependsOnTask: {
-      id: string
-      title: string
-      status: string
-      progress: number
-    }
-  }>
+      id: string;
+      title: string;
+      status: string;
+      progress: number;
+    };
+  }>;
   blockers: Array<{
-    id: string
-    title: string
-    description: string | null
-    severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
-    status: "OPEN" | "RESOLVED" | "DISMISSED"
-    resolution: string | null
-    reportedBy: { id: string; name: string } | null
-    resolvedBy: { id: string; name: string } | null
-    resolvedAt: string | null
-    createdAt: string
-  }>
-}
+    id: string;
+    title: string;
+    description: string | null;
+    severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    status: 'OPEN' | 'RESOLVED' | 'DISMISSED';
+    resolution: string | null;
+    reportedBy: { id: string; name: string } | null;
+    resolvedBy: { id: string; name: string } | null;
+    resolvedAt: string | null;
+    createdAt: string;
+  }>;
+};
 
-type PhaseDraft = Pick<Phase, "status" | "progress">
-type TaskDraft = Pick<Task, "phaseId" | "status" | "progress">
+type PhaseDraft = Pick<Phase, 'status' | 'progress'>;
+type TaskDraft = Pick<Task, 'phaseId' | 'status' | 'progress'>;
 type PendingAction = {
-  title: string
-  description: string
-  endpoint: string
-  key: string
-  successMessage: string
-  method?: "DELETE" | "PATCH"
-  body?: Record<string, unknown>
-  tone?: "warning" | "danger" | "neutral"
-}
+  title: string;
+  description: string;
+  endpoint: string;
+  key: string;
+  successMessage: string;
+  method?: 'DELETE' | 'PATCH';
+  body?: Record<string, unknown>;
+  tone?: 'warning' | 'danger' | 'neutral';
+};
 
 type Readiness = {
-  contractRequired: boolean
-  contractStatus: "PENDING" | "SIGNED"
-  contractReference: string | null
-  contractSignedAt: string | null
-  contractVerifiedAt: string | null
-  contractVerifiedBy: { id: string; name: string } | null
-  paymentRequired: boolean
-  requiredPaymentAmount: string | null
-  paidAmount: string | null
-  currency: string
-  paymentConfiguredAt: string | null
-  paymentConfiguredBy: { id: string; name: string } | null
-  overrideReason: string | null
-  overrideGrantedAt: string | null
-  overrideGrantedBy: { id: string; name: string } | null
-  activatedAt: string | null
-  activatedBy: { id: string; name: string } | null
-  state: "BLOCKED" | "READY" | "ACTIVATED"
-  issues: string[]
-  contractSatisfied: boolean
-  paymentSatisfied: boolean
-  readyToActivate: boolean
-  businessDate: string
-}
+  contractRequired: boolean;
+  contractStatus: 'PENDING' | 'SIGNED';
+  contractReference: string | null;
+  contractSignedAt: string | null;
+  contractVerifiedAt: string | null;
+  contractVerifiedBy: { id: string; name: string } | null;
+  paymentRequired: boolean;
+  requiredPaymentAmount: string | null;
+  paidAmount: string | null;
+  currency: string;
+  paymentConfiguredAt: string | null;
+  paymentConfiguredBy: { id: string; name: string } | null;
+  overrideReason: string | null;
+  overrideGrantedAt: string | null;
+  overrideGrantedBy: { id: string; name: string } | null;
+  activatedAt: string | null;
+  activatedBy: { id: string; name: string } | null;
+  state: 'BLOCKED' | 'READY' | 'ACTIVATED';
+  issues: string[];
+  contractSatisfied: boolean;
+  paymentSatisfied: boolean;
+  readyToActivate: boolean;
+  businessDate: string;
+};
 
-type ReadinessModal =
-  | "CONTRACT"
-  | "PAYMENT"
-  | "OVERRIDE"
-  | "ACTIVATE"
-  | null
+type ReadinessModal = 'CONTRACT' | 'PAYMENT' | 'OVERRIDE' | 'ACTIVATE' | null;
 
-const memberRoleLabels: Record<Member["role"], string> = {
-  PROJECT_LEAD: "قائد المشروع",
-  MANAGER: "مدير تنفيذ",
-  CONTRIBUTOR: "مساهم",
-  VIEWER: "متابع",
-}
-const phaseStatusLabels: Record<Phase["status"], string> = {
-  PLANNED: "مخططة",
-  ACTIVE: "نشطة",
-  BLOCKED: "متعطلة",
-  COMPLETED: "مكتملة",
-  CANCELLED: "ملغاة",
-}
-const taskStatusLabels: Record<Task["status"], string> = {
-  TODO: "للعمل",
-  IN_PROGRESS: "قيد التنفيذ",
-  BLOCKED: "متعطلة",
-  REVIEW: "للمراجعة",
-  DONE: "مكتملة",
-  CANCELLED: "ملغاة",
-  ARCHIVED: "مؤرشفة",
-}
-const taskPriorityLabels: Record<Task["priority"], string> = {
-  LOW: "منخفضة",
-  MEDIUM: "متوسطة",
-  HIGH: "عالية",
-  URGENT: "عاجلة",
-}
-const participantRoleLabels: Record<
-  Participant["role"],
-  string
-> = {
-  OWNER: "مسؤول رئيسي",
-  CONTRIBUTOR: "مشارك",
-  REVIEWER: "مراجع",
-  OBSERVER: "متابع",
-}
+const memberRoleLabels: Record<Member['role'], string> = {
+  PROJECT_LEAD: 'قائد المشروع',
+  MANAGER: 'مدير تنفيذ',
+  CONTRIBUTOR: 'مساهم',
+  VIEWER: 'متابع',
+};
+const phaseStatusLabels: Record<Phase['status'], string> = {
+  PLANNED: 'مخططة',
+  ACTIVE: 'نشطة',
+  BLOCKED: 'متعطلة',
+  COMPLETED: 'مكتملة',
+  CANCELLED: 'ملغاة',
+};
+const taskStatusLabels: Record<Task['status'], string> = {
+  TODO: 'للعمل',
+  IN_PROGRESS: 'قيد التنفيذ',
+  BLOCKED: 'متعطلة',
+  REVIEW: 'للمراجعة',
+  DONE: 'مكتملة',
+  CANCELLED: 'ملغاة',
+  ARCHIVED: 'مؤرشفة',
+};
+const taskPriorityLabels: Record<Task['priority'], string> = {
+  LOW: 'منخفضة',
+  MEDIUM: 'متوسطة',
+  HIGH: 'عالية',
+  URGENT: 'عاجلة',
+};
+const participantRoleLabels: Record<Participant['role'], string> = {
+  OWNER: 'مسؤول رئيسي',
+  CONTRIBUTOR: 'مشارك',
+  REVIEWER: 'مراجع',
+  OBSERVER: 'متابع',
+};
 const dependencyTypeLabels = {
-  FINISH_TO_START: "إنهاء السابقة قبل البدء",
-  START_TO_START: "بدء متزامن",
-  FINISH_TO_FINISH: "إنهاء متزامن",
-  START_TO_FINISH: "بدء السابقة قبل الإنهاء",
-} as const
+  FINISH_TO_START: 'إنهاء السابقة قبل البدء',
+  START_TO_START: 'بدء متزامن',
+  FINISH_TO_FINISH: 'إنهاء متزامن',
+  START_TO_FINISH: 'بدء السابقة قبل الإنهاء',
+} as const;
 const blockerSeverityLabels = {
-  LOW: "منخفض",
-  MEDIUM: "متوسط",
-  HIGH: "عالٍ",
-  CRITICAL: "حرج",
-} as const
+  LOW: 'منخفض',
+  MEDIUM: 'متوسط',
+  HIGH: 'عالٍ',
+  CRITICAL: 'حرج',
+} as const;
 
 function dateOnly(value: string | null) {
-  return value?.slice(0, 10) ?? "دون موعد"
+  return value?.slice(0, 10) ?? 'دون موعد';
 }
 
 function projectStatusLabel(status: string) {
   return (
     {
-      PLANNING: "تخطيط",
-      IN_PROGRESS: "قيد التنفيذ",
-      ON_HOLD: "معلّق",
-      COMPLETED: "مكتمل",
-      CANCELLED: "ملغي",
-      ARCHIVED: "مؤرشف",
+      PLANNING: 'تخطيط',
+      IN_PROGRESS: 'قيد التنفيذ',
+      AT_RISK: 'معرّض للخطر',
+      IN_REVIEW: 'قيد المراجعة',
+      READY_FOR_DELIVERY: 'جاهز للتسليم',
+      ON_HOLD: 'معلّق',
+      COMPLETED: 'مكتمل',
+      CANCELLED: 'ملغي',
+      ARCHIVED: 'مؤرشف',
     }[status] ?? status
-  )
+  );
 }
 
 function statusVariant(status: string): AquaBadgeVariant {
-  if (status === "DONE" || status === "COMPLETED") return "success"
-  if (status === "IN_PROGRESS" || status === "ACTIVE") return "aqua"
-  if (status === "REVIEW" || status === "ON_HOLD") return "warning"
-  if (status === "BLOCKED" || status === "CANCELLED") return "danger"
-  if (status === "ARCHIVED") return "muted"
-  return "blue"
+  if (status === 'DONE' || status === 'COMPLETED') return 'success';
+  if (status === 'READY_FOR_DELIVERY') return 'success';
+  if (status === 'IN_PROGRESS' || status === 'ACTIVE') return 'aqua';
+  if (status === 'REVIEW' || status === 'IN_REVIEW' || status === 'ON_HOLD') return 'warning';
+  if (status === 'AT_RISK') return 'danger';
+  if (status === 'BLOCKED' || status === 'CANCELLED') return 'danger';
+  if (status === 'ARCHIVED') return 'muted';
+  return 'blue';
 }
 
-function priorityVariant(priority: Task["priority"]): AquaBadgeVariant {
-  if (priority === "URGENT") return "danger"
-  if (priority === "HIGH") return "warning"
-  if (priority === "MEDIUM") return "blue"
-  return "muted"
+function priorityVariant(priority: Task['priority']): AquaBadgeVariant {
+  if (priority === 'URGENT') return 'danger';
+  if (priority === 'HIGH') return 'warning';
+  if (priority === 'MEDIUM') return 'blue';
+  return 'muted';
 }
 
 function errorMessage(payload: unknown, fallback: string) {
   if (
     payload &&
-    typeof payload === "object" &&
-    "message" in payload &&
-    typeof payload.message === "string"
+    typeof payload === 'object' &&
+    'message' in payload &&
+    typeof payload.message === 'string'
   ) {
-    return payload.message
+    return payload.message;
   }
-  return fallback
+  return fallback;
 }
 
 export default function ProjectExecutionClient({
@@ -326,146 +298,133 @@ export default function ProjectExecutionClient({
   summary,
 }: {
   project: {
-    id: string
-    name: string
-    code: string | null
-    description: string | null
-    status: string
-    priority: string
-    client: { id: string; name: string; email: string | null } | null
-    startDate: string | null
-    dueDate: string | null
-    originProposalWorkspaceId: string | null
-    originProposalVersion: number | null
-    clientAcceptedAt: string | null
-    proposalConvertedAt: string | null
-  }
+    id: string;
+    name: string;
+    code: string | null;
+    description: string | null;
+    status: string;
+    priority: string;
+    client: { id: string; name: string; email: string | null } | null;
+    startDate: string | null;
+    dueDate: string | null;
+    originProposalWorkspaceId: string | null;
+    originProposalVersion: number | null;
+    clientAcceptedAt: string | null;
+    proposalConvertedAt: string | null;
+  };
   workflow: {
-    templateName: string
-    templateCode: string
-    templateVersion: number
-    status:
-      | "NOT_STARTED"
-      | "ACTIVE"
-      | "PAUSED"
-      | "COMPLETED"
-      | "CANCELLED"
-    approvalCount: number
-    pendingApprovalCount: number
-    notificationRuleCount: number
-    n8nRuleCount: number
-  } | null
-  readiness: Readiness
+    templateName: string;
+    templateCode: string;
+    templateVersion: number;
+    status: 'NOT_STARTED' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
+    approvalCount: number;
+    pendingApprovalCount: number;
+    notificationRuleCount: number;
+    n8nRuleCount: number;
+  } | null;
+  readiness: Readiness;
   scope: {
-    label: string
-    dataScope: "personal" | "team" | "company"
-    description: string
-  }
-  members: Member[]
-  phases: Phase[]
-  deliverables: ProjectDeliverableView[]
-  changeRequests: ProjectChangeRequestView[]
-  governanceItems: ProjectGovernanceView[]
-  closure: ProjectClosureView
-  closureBlockers: { incompleteDeliverables: number; openChangeRequests: number; openRisks: number; openIssues: number; incompleteTasks: number }
-  feedback: ProjectFeedbackView
-  tasks: Task[]
-  employees: Employee[]
-  canManage: boolean
-  canManageFinance: boolean
-  canManageLeadership: boolean
+    label: string;
+    dataScope: 'personal' | 'team' | 'company';
+    description: string;
+  };
+  members: Member[];
+  phases: Phase[];
+  deliverables: ProjectDeliverableView[];
+  changeRequests: ProjectChangeRequestView[];
+  governanceItems: ProjectGovernanceView[];
+  closure: ProjectClosureView;
+  closureBlockers: {
+    incompleteDeliverables: number;
+    openChangeRequests: number;
+    openRisks: number;
+    openIssues: number;
+    incompleteTasks: number;
+  };
+  feedback: ProjectFeedbackView;
+  tasks: Task[];
+  employees: Employee[];
+  canManage: boolean;
+  canManageFinance: boolean;
+  canManageLeadership: boolean;
   readinessPermissions: {
-    canManageContract: boolean
-    canManagePayment: boolean
-    canOverride: boolean
-    canActivate: boolean
-    canViewFinance: boolean
-  }
+    canManageContract: boolean;
+    canManagePayment: boolean;
+    canOverride: boolean;
+    canActivate: boolean;
+    canViewFinance: boolean;
+  };
   summary: {
-    progress: number
-    totalTasks: number
-    completedTasks: number
-    blockedTasks: number
-    openBlockers: number
-  }
+    progress: number;
+    totalTasks: number;
+    completedTasks: number;
+    blockedTasks: number;
+    openBlockers: number;
+  };
 }) {
-  const router = useRouter()
-  const [busyKey, setBusyKey] = useState("")
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
-  const [memberModalOpen, setMemberModalOpen] = useState(false)
-  const [phaseModalOpen, setPhaseModalOpen] = useState(false)
-  const [pendingAction, setPendingAction] =
-    useState<PendingAction | null>(null)
-  const [readinessModal, setReadinessModal] =
-    useState<ReadinessModal>(null)
-  const [selectedTaskId, setSelectedTaskId] = useState(
-    tasks[0]?.id ?? ""
-  )
-  const [resolutionByBlocker, setResolutionByBlocker] =
-    useState<Record<string, string>>({})
-  const [phaseDrafts, setPhaseDrafts] = useState<
-    Record<string, PhaseDraft>
-  >({})
-  const [taskDrafts, setTaskDrafts] = useState<
-    Record<string, TaskDraft>
-  >({})
+  const router = useRouter();
+  const [busyKey, setBusyKey] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [memberModalOpen, setMemberModalOpen] = useState(false);
+  const [phaseModalOpen, setPhaseModalOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const [readinessModal, setReadinessModal] = useState<ReadinessModal>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState(tasks[0]?.id ?? '');
+  const [resolutionByBlocker, setResolutionByBlocker] = useState<Record<string, string>>({});
+  const [phaseDrafts, setPhaseDrafts] = useState<Record<string, PhaseDraft>>({});
+  const [taskDrafts, setTaskDrafts] = useState<Record<string, TaskDraft>>({});
 
   const effectiveSelectedTaskId =
-    selectedTaskId &&
-    tasks.some((task) => task.id === selectedTaskId)
+    selectedTaskId && tasks.some((task) => task.id === selectedTaskId)
       ? selectedTaskId
-      : (tasks[0]?.id ?? "")
+      : (tasks[0]?.id ?? '');
   const selectedTask = useMemo(
-    () =>
-      tasks.find(
-        (task) => task.id === effectiveSelectedTaskId
-      ) ?? null,
-    [effectiveSelectedTaskId, tasks]
-  )
-  const executionActivated = readiness.state === "ACTIVATED"
+    () => tasks.find((task) => task.id === effectiveSelectedTaskId) ?? null,
+    [effectiveSelectedTaskId, tasks],
+  );
+  const executionActivated = readiness.state === 'ACTIVATED';
+  const openChangeRequestCount = changeRequests.filter((request) =>
+    ['DRAFT', 'IN_REVIEW', 'CHANGES_REQUESTED', 'APPROVED'].includes(request.status),
+  ).length;
+  const closureCompleted = closure?.status === 'COMPLETED';
+  const canFlagAtRisk =
+    canManage &&
+    executionActivated &&
+    !['AT_RISK', 'PLANNING', 'COMPLETED', 'CANCELLED', 'ARCHIVED'].includes(project.status);
 
   async function mutate(
     key: string,
     endpoint: string,
     options: RequestInit,
-    successMessage: string
+    successMessage: string,
   ) {
-    setBusyKey(key)
-    setError("")
-    setSuccess("")
+    setBusyKey(key);
+    setError('');
+    setSuccess('');
 
     try {
       const response = await fetch(endpoint, {
         ...options,
-        headers: options.body
-          ? { "Content-Type": "application/json" }
-          : undefined,
-      })
-      const payload = (await response
-        .json()
-        .catch(() => null)) as unknown
+        headers: options.body ? { 'Content-Type': 'application/json' } : undefined,
+      });
+      const payload = (await response.json().catch(() => null)) as unknown;
 
       if (!response.ok) {
-        throw new Error(
-          errorMessage(payload, "تعذر تنفيذ الإجراء")
-        )
+        throw new Error(errorMessage(payload, 'تعذر تنفيذ الإجراء'));
       }
 
-      setSuccess(successMessage)
-      aquaToast.success(successMessage)
-      router.refresh()
-      return true
+      setSuccess(successMessage);
+      aquaToast.success(successMessage);
+      router.refresh();
+      return true;
     } catch (caught) {
-      const message =
-        caught instanceof Error
-          ? caught.message
-          : "حدث خطأ غير متوقع"
-      setError(message)
-      aquaToast.error(message)
-      return false
+      const message = caught instanceof Error ? caught.message : 'حدث خطأ غير متوقع';
+      setError(message);
+      aquaToast.error(message);
+      return false;
     } finally {
-      setBusyKey("")
+      setBusyKey('');
     }
   }
 
@@ -478,225 +437,196 @@ export default function ProjectExecutionClient({
       key,
       `/api/projects/${project.id}/readiness`,
       {
-        method: "PATCH",
+        method: 'PATCH',
         body: JSON.stringify(payload),
       },
       successMessage,
-    )
-    if (saved) setReadinessModal(null)
+    );
+    if (saved) setReadinessModal(null);
   }
 
-  async function submitContract(
-    event: React.FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault()
-    const form = new FormData(event.currentTarget)
-    const contractRequired =
-      form.get("contractRequired") === "true"
+  async function submitContract(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const contractRequired = form.get('contractRequired') === 'true';
 
     await updateReadiness(
-      "readiness-contract",
+      'readiness-contract',
       {
-        action: "UPDATE_CONTRACT",
+        action: 'UPDATE_CONTRACT',
         contractRequired,
-        contractStatus: contractRequired
-          ? form.get("contractStatus")
-          : "PENDING",
-        contractReference:
-          form.get("contractReference") || null,
-        contractSignedAt: form.get("contractSignedAt") || null,
+        contractStatus: contractRequired ? form.get('contractStatus') : 'PENDING',
+        contractReference: form.get('contractReference') || null,
+        contractSignedAt: form.get('contractSignedAt') || null,
       },
-      "تم تحديث شرط العقد",
-    )
+      'تم تحديث شرط العقد',
+    );
   }
 
-  async function submitPaymentRequirement(
-    event: React.FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault()
-    const form = new FormData(event.currentTarget)
-    const paymentRequired =
-      form.get("paymentRequired") === "true"
+  async function submitPaymentRequirement(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const paymentRequired = form.get('paymentRequired') === 'true';
 
     await updateReadiness(
-      "readiness-payment",
+      'readiness-payment',
       {
-        action: "UPDATE_PAYMENT",
+        action: 'UPDATE_PAYMENT',
         paymentRequired,
-        requiredPaymentAmount: paymentRequired
-          ? form.get("requiredPaymentAmount")
-          : null,
-        currency: form.get("currency"),
+        requiredPaymentAmount: paymentRequired ? form.get('requiredPaymentAmount') : null,
+        currency: form.get('currency'),
       },
-      "تم تحديث شرط الدفعة",
-    )
+      'تم تحديث شرط الدفعة',
+    );
   }
 
-  async function submitOverride(
-    event: React.FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault()
-    const form = new FormData(event.currentTarget)
+  async function submitOverride(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
 
     await updateReadiness(
-      "readiness-override",
+      'readiness-override',
       {
-        action: "GRANT_OVERRIDE",
-        reason: form.get("reason"),
+        action: 'GRANT_OVERRIDE',
+        reason: form.get('reason'),
       },
-      "تم تسجيل التجاوز الإداري",
-    )
+      'تم تسجيل التجاوز الإداري',
+    );
   }
 
-  async function submitActivation(
-    event: React.FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault()
-    const form = new FormData(event.currentTarget)
+  async function submitActivation(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
 
     await updateReadiness(
-      "readiness-activate",
+      'readiness-activate',
       {
-        action: "ACTIVATE",
-        startDate: form.get("startDate"),
-        projectLeadEmployeeProfileId: form.get(
-          "projectLeadEmployeeProfileId",
-        ),
+        action: 'ACTIVATE',
+        startDate: form.get('startDate'),
+        projectLeadEmployeeProfileId: form.get('projectLeadEmployeeProfileId'),
       },
-      "تم تفعيل المشروع وبدء سير العمل",
-    )
+      'تم تفعيل المشروع وبدء سير العمل',
+    );
   }
 
-  async function addMember(
-    event: React.FormEvent<HTMLFormElement>
-  ) {
-    event.preventDefault()
-    const form = new FormData(event.currentTarget)
+  async function addMember(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
     const saved = await mutate(
-      "member-add",
+      'member-add',
       `/api/projects/${project.id}/members`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify({
-          employeeProfileId: form.get("employeeProfileId"),
-          role: form.get("role"),
-          responsibility: form.get("responsibility"),
+          employeeProfileId: form.get('employeeProfileId'),
+          role: form.get('role'),
+          responsibility: form.get('responsibility'),
         }),
       },
-      "تم حفظ عضو المشروع"
-    )
+      'تم حفظ عضو المشروع',
+    );
     if (saved) {
-      event.currentTarget.reset()
-      setMemberModalOpen(false)
+      event.currentTarget.reset();
+      setMemberModalOpen(false);
     }
   }
 
-  async function addPhase(
-    event: React.FormEvent<HTMLFormElement>
-  ) {
-    event.preventDefault()
-    const form = new FormData(event.currentTarget)
+  async function addPhase(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
     const saved = await mutate(
-      "phase-add",
+      'phase-add',
       `/api/projects/${project.id}/phases`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify({
-          name: form.get("name"),
-          code: form.get("code"),
-          status: form.get("status"),
-          startDate: form.get("startDate") || null,
-          dueDate: form.get("dueDate") || null,
-          sortOrder: Number(form.get("sortOrder") || 0),
+          name: form.get('name'),
+          code: form.get('code'),
+          status: form.get('status'),
+          startDate: form.get('startDate') || null,
+          dueDate: form.get('dueDate') || null,
+          sortOrder: Number(form.get('sortOrder') || 0),
           progress: 0,
         }),
       },
-      "تمت إضافة المرحلة"
-    )
+      'تمت إضافة المرحلة',
+    );
     if (saved) {
-      event.currentTarget.reset()
-      setPhaseModalOpen(false)
+      event.currentTarget.reset();
+      setPhaseModalOpen(false);
     }
   }
 
-  async function addParticipant(
-    event: React.FormEvent<HTMLFormElement>
-  ) {
-    event.preventDefault()
-    if (!selectedTask) return
-    const form = new FormData(event.currentTarget)
+  async function addParticipant(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedTask) return;
+    const form = new FormData(event.currentTarget);
     const saved = await mutate(
-      "participant-add",
+      'participant-add',
       `/api/tasks/${selectedTask.id}/participants`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify({
-          employeeProfileId: form.get("employeeProfileId"),
-          role: form.get("role"),
+          employeeProfileId: form.get('employeeProfileId'),
+          role: form.get('role'),
         }),
       },
-      "تم حفظ مشارك المهمة"
-    )
-    if (saved) event.currentTarget.reset()
+      'تم حفظ مشارك المهمة',
+    );
+    if (saved) event.currentTarget.reset();
   }
 
-  async function addDependency(
-    event: React.FormEvent<HTMLFormElement>
-  ) {
-    event.preventDefault()
-    if (!selectedTask) return
-    const form = new FormData(event.currentTarget)
+  async function addDependency(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedTask) return;
+    const form = new FormData(event.currentTarget);
     const saved = await mutate(
-      "dependency-add",
+      'dependency-add',
       `/api/tasks/${selectedTask.id}/dependencies`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify({
-          dependsOnTaskId: form.get("dependsOnTaskId"),
-          type: form.get("type"),
+          dependsOnTaskId: form.get('dependsOnTaskId'),
+          type: form.get('type'),
         }),
       },
-      "تمت إضافة التبعية"
-    )
-    if (saved) event.currentTarget.reset()
+      'تمت إضافة التبعية',
+    );
+    if (saved) event.currentTarget.reset();
   }
 
-  async function addBlocker(
-    event: React.FormEvent<HTMLFormElement>
-  ) {
-    event.preventDefault()
-    if (!selectedTask) return
-    const form = new FormData(event.currentTarget)
+  async function addBlocker(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selectedTask) return;
+    const form = new FormData(event.currentTarget);
     const saved = await mutate(
-      "blocker-add",
+      'blocker-add',
       `/api/tasks/${selectedTask.id}/blockers`,
       {
-        method: "POST",
+        method: 'POST',
         body: JSON.stringify({
-          title: form.get("title"),
-          description: form.get("description"),
-          severity: form.get("severity"),
+          title: form.get('title'),
+          description: form.get('description'),
+          severity: form.get('severity'),
         }),
       },
-      "تم تسجيل العائق"
-    )
-    if (saved) event.currentTarget.reset()
+      'تم تسجيل العائق',
+    );
+    if (saved) event.currentTarget.reset();
   }
 
   async function confirmPendingAction() {
-    if (!pendingAction) return
+    if (!pendingAction) return;
     const saved = await mutate(
       pendingAction.key,
       pendingAction.endpoint,
       {
-        method: pendingAction.method ?? "DELETE",
-        ...(pendingAction.body
-          ? { body: JSON.stringify(pendingAction.body) }
-          : {}),
+        method: pendingAction.method ?? 'DELETE',
+        ...(pendingAction.body ? { body: JSON.stringify(pendingAction.body) } : {}),
       },
-      pendingAction.successMessage
-    )
-    if (saved) setPendingAction(null)
+      pendingAction.successMessage,
+    );
+    if (saved) setPendingAction(null);
   }
 
   return (
@@ -709,33 +639,54 @@ export default function ProjectExecutionClient({
           <div>
             <div className={styles.titleRow}>
               <h1>{project.name}</h1>
-              <AquaBadge
-                variant={statusVariant(project.status)}
-                size="sm"
-                dot
-              >
+              <AquaBadge variant={statusVariant(project.status)} size="sm" dot>
                 {projectStatusLabel(project.status)}
               </AquaBadge>
               <AquaBadge variant="muted" size="sm">
                 {scope.label}
               </AquaBadge>
+              {openChangeRequestCount > 0 ? (
+                <AquaBadge variant="warning" size="sm">
+                  {openChangeRequestCount === 1
+                    ? 'طلب تغيير مفتوح'
+                    : `${openChangeRequestCount} طلبات تغيير مفتوحة`}
+                </AquaBadge>
+              ) : null}
+              {closureCompleted ? (
+                <AquaBadge variant="success" size="sm">
+                  الإغلاق مكتمل
+                </AquaBadge>
+              ) : null}
             </div>
             <p>{scope.description}</p>
           </div>
         </div>
         <div className={styles.introActions}>
-          <AquaLinkButton
-            href="/dashboard/my-day"
-            variant="ghost"
-            size="sm"
-          >
+          {canFlagAtRisk ? (
+            <AquaButton
+              variant="ghost"
+              size="sm"
+              onClick={() =>
+                setPendingAction({
+                  title: 'تعليم المشروع كمعرّض للخطر',
+                  description:
+                    'سيظهر المشروع بحالة "معرّض للخطر" لبقية الفريق حتى يتم تحديث حالته يدويًا.',
+                  endpoint: `/api/projects/${project.id}`,
+                  key: 'project-flag-at-risk',
+                  successMessage: 'تم تعليم المشروع كمعرّض للخطر',
+                  method: 'PATCH',
+                  body: { status: 'AT_RISK' },
+                  tone: 'danger',
+                })
+              }
+            >
+              تعليم كمعرّض للخطر
+            </AquaButton>
+          ) : null}
+          <AquaLinkButton href="/dashboard/my-day" variant="ghost" size="sm">
             يومي
           </AquaLinkButton>
-          <AquaLinkButton
-            href="/dashboard/projects"
-            variant="ghost"
-            size="sm"
-          >
+          <AquaLinkButton href="/dashboard/projects" variant="ghost" size="sm">
             كل المشاريع
           </AquaLinkButton>
         </div>
@@ -746,22 +697,13 @@ export default function ProjectExecutionClient({
           {error}
         </AquaAlert>
       ) : null}
-      {success ? (
-        <AquaAlert variant="success">{success}</AquaAlert>
-      ) : null}
+      {success ? <AquaAlert variant="success">{success}</AquaAlert> : null}
 
       {project.originProposalWorkspaceId ? (
-        <AquaAlert
-          variant="info"
-          title="مشروع منشأ من عرض مقبول"
-          icon={<CheckCircle2 />}
-        >
-          يحفظ المشروع مرجع الإصدار{" "}
-          <bdi dir="ltr">
-            v{project.originProposalVersion ?? "—"}
-          </bdi>{" "}
-          ورد قبول العميل. بقي في التخطيط دون تكليفات تلقائية حتى
-          يحدد فريق العمليات تاريخ البدء وقائد المشروع.
+        <AquaAlert variant="info" title="مشروع منشأ من عرض مقبول" icon={<CheckCircle2 />}>
+          يحفظ المشروع مرجع الإصدار <bdi dir="ltr">v{project.originProposalVersion ?? '—'}</bdi> ورد
+          قبول العميل. بقي في التخطيط دون تكليفات تلقائية حتى يحدد فريق العمليات تاريخ البدء وقائد
+          المشروع.
         </AquaAlert>
       ) : null}
 
@@ -776,44 +718,35 @@ export default function ProjectExecutionClient({
                 <h2>بوابة جاهزية المشروع</h2>
                 <AquaBadge
                   variant={
-                    readiness.state === "ACTIVATED"
-                      ? "success"
-                      : readiness.state === "READY"
-                        ? "aqua"
-                        : "warning"
+                    readiness.state === 'ACTIVATED'
+                      ? 'success'
+                      : readiness.state === 'READY'
+                        ? 'aqua'
+                        : 'warning'
                   }
                   size="sm"
                   dot
                 >
-                  {readiness.state === "ACTIVATED"
-                    ? "مفعّل"
-                    : readiness.state === "READY"
-                      ? "جاهز للبدء"
-                      : "بانتظار المتطلبات"}
+                  {readiness.state === 'ACTIVATED'
+                    ? 'مفعّل'
+                    : readiness.state === 'READY'
+                      ? 'جاهز للبدء'
+                      : 'بانتظار المتطلبات'}
                 </AquaBadge>
               </div>
-              <p>
-                لا يبدأ سير العمل ولا تُوزع التكليفات قبل توثيق
-                المتطلبات واختيار قائد المشروع.
-              </p>
+              <p>لا يبدأ سير العمل ولا تُوزع التكليفات قبل توثيق المتطلبات واختيار قائد المشروع.</p>
             </div>
           </div>
           {readiness.activatedAt ? (
             <span className={styles.readinessMeta}>
-              فُعّل بواسطة{" "}
-              {readiness.activatedBy?.name ?? "الإدارة"} ·{" "}
-              <bdi dir="ltr">
-                {dateOnly(readiness.activatedAt)}
-              </bdi>
+              فُعّل بواسطة {readiness.activatedBy?.name ?? 'الإدارة'} ·{' '}
+              <bdi dir="ltr">{dateOnly(readiness.activatedAt)}</bdi>
             </span>
           ) : null}
         </div>
 
         <div className={styles.readinessChecks}>
-          <article
-            className={styles.readinessCheck}
-            data-complete={readiness.contractSatisfied}
-          >
+          <article className={styles.readinessCheck} data-complete={readiness.contractSatisfied}>
             <span aria-hidden="true">
               <FileSignature />
             </span>
@@ -821,30 +754,20 @@ export default function ProjectExecutionClient({
               <strong>العقد</strong>
               <p>
                 {!readiness.contractRequired
-                  ? "غير مطلوب"
-                  : readiness.contractStatus === "SIGNED"
+                  ? 'غير مطلوب'
+                  : readiness.contractStatus === 'SIGNED'
                     ? `موثّق${
-                        readiness.contractReference
-                          ? ` — ${readiness.contractReference}`
-                          : ""
+                        readiness.contractReference ? ` — ${readiness.contractReference}` : ''
                       }`
-                    : "بانتظار التوقيع والتوثيق"}
+                    : 'بانتظار التوقيع والتوثيق'}
               </p>
             </div>
-            <AquaBadge
-              variant={
-                readiness.contractSatisfied ? "success" : "warning"
-              }
-              size="sm"
-            >
-              {readiness.contractSatisfied ? "مكتمل" : "ناقص"}
+            <AquaBadge variant={readiness.contractSatisfied ? 'success' : 'warning'} size="sm">
+              {readiness.contractSatisfied ? 'مكتمل' : 'ناقص'}
             </AquaBadge>
           </article>
 
-          <article
-            className={styles.readinessCheck}
-            data-complete={readiness.paymentSatisfied}
-          >
+          <article className={styles.readinessCheck} data-complete={readiness.paymentSatisfied}>
             <span aria-hidden="true">
               <Banknote />
             </span>
@@ -852,39 +775,29 @@ export default function ProjectExecutionClient({
               <strong>دفعة البدء</strong>
               <p>
                 {!readiness.paymentRequired
-                  ? "غير مطلوبة"
+                  ? 'غير مطلوبة'
                   : readinessPermissions.canViewFinance
-                    ? `المسجل ${readiness.paidAmount ?? "0"} من ${
-                        readiness.requiredPaymentAmount ?? "غير محدد"
+                    ? `المسجل ${readiness.paidAmount ?? '0'} من ${
+                        readiness.requiredPaymentAmount ?? 'غير محدد'
                       } ${readiness.currency}`
                     : readiness.paymentSatisfied
-                      ? "تم استيفاء الشرط المالي"
-                      : "بانتظار اعتماد الإدارة المالية"}
+                      ? 'تم استيفاء الشرط المالي'
+                      : 'بانتظار اعتماد الإدارة المالية'}
               </p>
             </div>
-            <AquaBadge
-              variant={
-                readiness.paymentSatisfied ? "success" : "warning"
-              }
-              size="sm"
-            >
-              {readiness.paymentSatisfied ? "مكتمل" : "ناقص"}
+            <AquaBadge variant={readiness.paymentSatisfied ? 'success' : 'warning'} size="sm">
+              {readiness.paymentSatisfied ? 'مكتمل' : 'ناقص'}
             </AquaBadge>
           </article>
         </div>
 
         {readiness.overrideGrantedAt ? (
-          <AquaAlert
-            variant="warning"
-            title="يوجد تجاوز إداري موثّق"
-          >
-            {readiness.overrideReason} — بواسطة{" "}
-            {readiness.overrideGrantedBy?.name ?? "الإدارة"}.
+          <AquaAlert variant="warning" title="يوجد تجاوز إداري موثّق">
+            {readiness.overrideReason} — بواسطة {readiness.overrideGrantedBy?.name ?? 'الإدارة'}.
           </AquaAlert>
         ) : null}
 
-        {readiness.issues.length > 0 &&
-        readiness.state !== "ACTIVATED" ? (
+        {readiness.issues.length > 0 && readiness.state !== 'ACTIVATED' ? (
           <div className={styles.readinessIssues}>
             <strong>المتبقي قبل البدء:</strong>
             <ul>
@@ -898,20 +811,12 @@ export default function ProjectExecutionClient({
         {!readiness.activatedAt ? (
           <div className={styles.readinessActions}>
             {readinessPermissions.canManageContract ? (
-              <AquaButton
-                variant="ghost"
-                size="sm"
-                onClick={() => setReadinessModal("CONTRACT")}
-              >
+              <AquaButton variant="ghost" size="sm" onClick={() => setReadinessModal('CONTRACT')}>
                 توثيق العقد
               </AquaButton>
             ) : null}
             {readinessPermissions.canManagePayment ? (
-              <AquaButton
-                variant="ghost"
-                size="sm"
-                onClick={() => setReadinessModal("PAYMENT")}
-              >
+              <AquaButton variant="ghost" size="sm" onClick={() => setReadinessModal('PAYMENT')}>
                 تحديد الدفعة
               </AquaButton>
             ) : null}
@@ -922,29 +827,23 @@ export default function ProjectExecutionClient({
                   size="sm"
                   onClick={() =>
                     setPendingAction({
-                      title: "إلغاء تجاوز الجاهزية",
-                      description:
-                        "سيعود المشروع إلى شروط العقد والدفعة الفعلية قبل التفعيل.",
+                      title: 'إلغاء تجاوز الجاهزية',
+                      description: 'سيعود المشروع إلى شروط العقد والدفعة الفعلية قبل التفعيل.',
                       endpoint: `/api/projects/${project.id}/readiness`,
-                      key: "readiness-override-revoke",
-                      successMessage:
-                        "تم إلغاء التجاوز الإداري",
-                      method: "PATCH",
+                      key: 'readiness-override-revoke',
+                      successMessage: 'تم إلغاء التجاوز الإداري',
+                      method: 'PATCH',
                       body: {
-                        action: "REVOKE_OVERRIDE",
+                        action: 'REVOKE_OVERRIDE',
                       },
-                      tone: "warning",
+                      tone: 'warning',
                     })
                   }
                 >
                   إلغاء التجاوز
                 </AquaButton>
               ) : (
-                <AquaButton
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setReadinessModal("OVERRIDE")}
-                >
+                <AquaButton variant="ghost" size="sm" onClick={() => setReadinessModal('OVERRIDE')}>
                   تجاوز موثّق
                 </AquaButton>
               )
@@ -952,13 +851,9 @@ export default function ProjectExecutionClient({
             {readinessPermissions.canActivate ? (
               <AquaButton
                 size="sm"
-                onClick={() => setReadinessModal("ACTIVATE")}
+                onClick={() => setReadinessModal('ACTIVATE')}
                 disabled={!readiness.readyToActivate}
-                title={
-                  readiness.readyToActivate
-                    ? "تفعيل المشروع"
-                    : "أكمل متطلبات الجاهزية أولًا"
-                }
+                title={readiness.readyToActivate ? 'تفعيل المشروع' : 'أكمل متطلبات الجاهزية أولًا'}
               >
                 <Play aria-hidden="true" />
                 تفعيل وبدء المشروع
@@ -983,15 +878,9 @@ export default function ProjectExecutionClient({
                 <span dir="ltr">v{workflow.templateVersion}</span>
               </AquaBadge>
             </div>
-            <p>
-              نسخة مستقلة من القالب؛ المراحل والمهام أدناه هي مسار
-              التنفيذ الفعلي لهذا المشروع.
-            </p>
+            <p>نسخة مستقلة من القالب؛ المراحل والمهام أدناه هي مسار التنفيذ الفعلي لهذا المشروع.</p>
           </div>
-          <div
-            className={styles.workflowStats}
-            aria-label="ملخص سير العمل"
-          >
+          <div className={styles.workflowStats} aria-label="ملخص سير العمل">
             <span>
               <strong>{phases.length}</strong>
               مراحل
@@ -1005,9 +894,7 @@ export default function ProjectExecutionClient({
               موافقات متبقية
             </span>
             <span>
-              <strong>
-                {workflow.notificationRuleCount + workflow.n8nRuleCount}
-              </strong>
+              <strong>{workflow.notificationRuleCount + workflow.n8nRuleCount}</strong>
               قواعد تشغيل
             </span>
           </div>
@@ -1017,42 +904,40 @@ export default function ProjectExecutionClient({
       <section className={styles.metrics} aria-label="ملخص التنفيذ">
         {[
           {
-            label: "التقدم",
+            label: 'التقدم',
             value: `${summary.progress}%`,
             icon: <FolderKanban />,
-            tone: "aqua",
+            tone: 'aqua',
           },
           {
-            label: "المهام الظاهرة",
+            label: 'المهام الظاهرة',
             value: summary.totalTasks,
             icon: <ListChecks />,
-            tone: "blue",
+            tone: 'blue',
           },
           {
-            label: "المكتملة",
+            label: 'المكتملة',
             value: summary.completedTasks,
             icon: <CheckCircle2 />,
-            tone: "success",
+            tone: 'success',
           },
           {
-            label: "المتعطلة",
+            label: 'المتعطلة',
             value: summary.blockedTasks,
             icon: <AlertTriangle />,
-            tone: "danger",
+            tone: 'danger',
           },
           {
-            label: "العوائق",
+            label: 'العوائق',
             value: summary.openBlockers,
             icon: <ShieldCheck />,
-            tone: "warning",
+            tone: 'warning',
           },
         ].map((metric) => (
           <AquaCard
             key={metric.label}
             padding="sm"
-            className={`${styles.metric} ${
-              styles[`metric_${metric.tone}`]
-            }`}
+            className={`${styles.metric} ${styles[`metric_${metric.tone}`]}`}
           >
             <span className={styles.metricIcon}>{metric.icon}</span>
             <div>
@@ -1075,10 +960,8 @@ export default function ProjectExecutionClient({
               {project.priority}
             </AquaBadge>
           </div>
-          <h2>{project.client?.name ?? "مشروع داخلي"}</h2>
-          <p>
-            {project.description || "لا يوجد وصف مضاف للمشروع."}
-          </p>
+          <h2>{project.client?.name ?? 'مشروع داخلي'}</h2>
+          <p>{project.description || 'لا يوجد وصف مضاف للمشروع.'}</p>
         </div>
         <div className={styles.summaryProgress}>
           <span>
@@ -1095,10 +978,7 @@ export default function ProjectExecutionClient({
             aria-valuemax={100}
             aria-valuenow={summary.progress}
           >
-            <span
-              className={styles.progressValue}
-              style={{ inlineSize: `${summary.progress}%` }}
-            />
+            <span className={styles.progressValue} style={{ inlineSize: `${summary.progress}%` }} />
           </div>
         </div>
       </AquaCard>
@@ -1133,11 +1013,7 @@ export default function ProjectExecutionClient({
         }))}
         canManage={canManage}
         canManageFinance={canManageFinance}
-        projectClosed={[
-          "COMPLETED",
-          "CANCELLED",
-          "ARCHIVED",
-        ].includes(project.status)}
+        projectClosed={['COMPLETED', 'CANCELLED', 'ARCHIVED'].includes(project.status)}
       />
 
       <ProjectGovernancePanel
@@ -1148,21 +1024,25 @@ export default function ProjectExecutionClient({
           name: member.employeeProfile.user.name,
         }))}
         canManage={canManage}
-        projectClosed={[
-          "COMPLETED",
-          "CANCELLED",
-          "ARCHIVED",
-        ].includes(project.status)}
+        projectClosed={['COMPLETED', 'CANCELLED', 'ARCHIVED'].includes(project.status)}
       />
 
-      <ProjectClosurePanel projectId={project.id} closure={closure} blockers={closureBlockers} canManage={canManage} />
+      <ProjectClosurePanel
+        projectId={project.id}
+        closure={closure}
+        blockers={closureBlockers}
+        canManage={canManage}
+      />
 
       <ProjectFeedbackPanel
         projectId={project.id}
         closureStatus={closure?.status ?? null}
         feedback={feedback}
         client={project.client}
-        members={members.map((member) => ({ id: member.employeeProfile.user.id, name: member.employeeProfile.user.name }))}
+        members={members.map((member) => ({
+          id: member.employeeProfile.user.id,
+          name: member.employeeProfile.user.name,
+        }))}
         canManage={canManage}
       />
 
@@ -1189,49 +1069,35 @@ export default function ProjectExecutionClient({
         >
           <div className={styles.stack}>
             {members.length === 0 ? (
-              <div className={styles.empty}>
-                لم تتم إضافة أعضاء للمشروع.
-              </div>
+              <div className={styles.empty}>لم تتم إضافة أعضاء للمشروع.</div>
             ) : (
               members.map((member) => (
-                <AquaCard
-                  key={member.id}
-                  variant="soft"
-                  padding="sm"
-                  className={styles.memberRow}
-                >
+                <AquaCard key={member.id} variant="soft" padding="sm" className={styles.memberRow}>
                   <div>
-                    <strong>
-                      {member.employeeProfile.user.name}
-                    </strong>
+                    <strong>{member.employeeProfile.user.name}</strong>
                     <span>
-                      {member.employeeProfile.jobRole?.name ??
-                        "دون مسمى"}
-                      {" · "}
+                      {member.employeeProfile.jobRole?.name ?? 'دون مسمى'}
+                      {' · '}
                       {memberRoleLabels[member.role]}
                     </span>
-                    {member.responsibility ? (
-                      <p>{member.responsibility}</p>
-                    ) : null}
+                    {member.responsibility ? <p>{member.responsibility}</p> : null}
                   </div>
                   {canManage &&
                   executionActivated &&
-                  member.role !== "PROJECT_LEAD" &&
-                  (member.role !== "MANAGER" ||
-                    canManageLeadership) ? (
+                  member.role !== 'PROJECT_LEAD' &&
+                  (member.role !== 'MANAGER' || canManageLeadership) ? (
                     <AquaButton
                       variant="ghost"
                       size="sm"
                       leadingIcon={<Trash2 />}
                       onClick={() =>
                         setPendingAction({
-                          title: "إزالة عضو المشروع",
+                          title: 'إزالة عضو المشروع',
                           description: `ستتم إزالة ${member.employeeProfile.user.name} من فريق المشروع دون حذف حسابه أو مهامه.`,
                           endpoint: `/api/projects/${project.id}/members/${member.id}`,
                           key: `member-${member.id}`,
-                          successMessage:
-                            "تمت إزالة عضو المشروع",
-                          tone: "warning",
+                          successMessage: 'تمت إزالة عضو المشروع',
+                          tone: 'warning',
                         })
                       }
                     >
@@ -1254,11 +1120,7 @@ export default function ProjectExecutionClient({
           }
           actions={
             canManage ? (
-              <AquaButton
-                size="sm"
-                leadingIcon={<Plus />}
-                onClick={() => setPhaseModalOpen(true)}
-              >
+              <AquaButton size="sm" leadingIcon={<Plus />} onClick={() => setPhaseModalOpen(true)}>
                 مرحلة جديدة
               </AquaButton>
             ) : null
@@ -1266,41 +1128,27 @@ export default function ProjectExecutionClient({
         >
           <div className={styles.stack}>
             {phases.length === 0 ? (
-              <div className={styles.empty}>
-                لم تتم إضافة مراحل تنفيذ.
-              </div>
+              <div className={styles.empty}>لم تتم إضافة مراحل تنفيذ.</div>
             ) : (
               phases.map((phase) => {
                 const draft = phaseDrafts[phase.id] ?? {
                   status: phase.status,
                   progress: phase.progress,
-                }
-                const taskCount = tasks.filter(
-                  (task) => task.phaseId === phase.id
-                ).length
+                };
+                const taskCount = tasks.filter((task) => task.phaseId === phase.id).length;
 
                 return (
-                  <AquaCard
-                    key={phase.id}
-                    variant="soft"
-                    padding="sm"
-                    className={styles.phaseCard}
-                  >
+                  <AquaCard key={phase.id} variant="soft" padding="sm" className={styles.phaseCard}>
                     <div className={styles.phaseHeading}>
                       <div>
                         <strong>{phase.name}</strong>
                         <span>
-                          <bdi dir="ltr">
-                            {phase.code || "—"}
-                          </bdi>
-                          {" · "}
+                          <bdi dir="ltr">{phase.code || '—'}</bdi>
+                          {' · '}
                           {taskCount} مهمة
                         </span>
                       </div>
-                      <AquaBadge
-                        variant={statusVariant(draft.status)}
-                        size="sm"
-                      >
+                      <AquaBadge variant={statusVariant(draft.status)} size="sm">
                         {phaseStatusLabels[draft.status]}
                       </AquaBadge>
                     </div>
@@ -1316,8 +1164,7 @@ export default function ProjectExecutionClient({
                               ...current,
                               [phase.id]: {
                                 ...draft,
-                                status: event.target
-                                  .value as Phase["status"],
+                                status: event.target.value as Phase['status'],
                               },
                             }))
                           }
@@ -1325,17 +1172,13 @@ export default function ProjectExecutionClient({
                           {Object.entries(phaseStatusLabels)
                             .filter(
                               ([value]) =>
-                                executionActivated ||
-                                value === "PLANNED" ||
-                                value === "CANCELLED",
+                                executionActivated || value === 'PLANNED' || value === 'CANCELLED',
                             )
-                            .map(
-                            ([value, label]) => (
+                            .map(([value, label]) => (
                               <option value={value} key={value}>
                                 {label}
                               </option>
-                            )
-                          )}
+                            ))}
                         </select>
                       </label>
                       <label>
@@ -1352,9 +1195,7 @@ export default function ProjectExecutionClient({
                               ...current,
                               [phase.id]: {
                                 ...draft,
-                                progress: Number(
-                                  event.target.value
-                                ),
+                                progress: Number(event.target.value),
                               },
                             }))
                           }
@@ -1364,19 +1205,16 @@ export default function ProjectExecutionClient({
                         <div className={styles.phaseActions}>
                           <AquaButton
                             size="sm"
-                            loading={
-                              busyKey ===
-                              `phase-save-${phase.id}`
-                            }
+                            loading={busyKey === `phase-save-${phase.id}`}
                             onClick={() =>
                               mutate(
                                 `phase-save-${phase.id}`,
                                 `/api/projects/${project.id}/phases/${phase.id}`,
                                 {
-                                  method: "PATCH",
+                                  method: 'PATCH',
                                   body: JSON.stringify(draft),
                                 },
-                                "تم تحديث المرحلة"
+                                'تم تحديث المرحلة',
                               )
                             }
                           >
@@ -1387,20 +1225,15 @@ export default function ProjectExecutionClient({
                             size="sm"
                             disabled={taskCount > 0}
                             leadingIcon={<Trash2 />}
-                            title={
-                              taskCount > 0
-                                ? "انقل مهام المرحلة قبل حذفها"
-                                : "حذف المرحلة"
-                            }
+                            title={taskCount > 0 ? 'انقل مهام المرحلة قبل حذفها' : 'حذف المرحلة'}
                             onClick={() =>
                               setPendingAction({
-                                title: "حذف المرحلة",
+                                title: 'حذف المرحلة',
                                 description: `سيتم حذف مرحلة «${phase.name}» نهائيًا. لا يمكن حذفها إذا كانت تحتوي مهامًا.`,
                                 endpoint: `/api/projects/${project.id}/phases/${phase.id}`,
                                 key: `phase-delete-${phase.id}`,
-                                successMessage:
-                                  "تم حذف المرحلة",
-                                tone: "danger",
+                                successMessage: 'تم حذف المرحلة',
+                                tone: 'danger',
                               })
                             }
                           >
@@ -1410,7 +1243,7 @@ export default function ProjectExecutionClient({
                       ) : null}
                     </div>
                   </AquaCard>
-                )
+                );
               })
             )}
           </div>
@@ -1463,30 +1296,25 @@ export default function ProjectExecutionClient({
                   phaseId: task.phaseId,
                   status: task.status,
                   progress: task.progress,
-                }
+                };
                 const openBlockers = task.blockers.filter(
-                  (blocker) => blocker.status === "OPEN"
-                ).length
+                  (blocker) => blocker.status === 'OPEN',
+                ).length;
 
                 return (
                   <tr key={task.id}>
                     <td data-label="المهمة">
                       <div className={styles.taskHeading}>
                         <div>
-                          <div className="aqua-table__primary">
-                            {task.title}
-                          </div>
+                          <div className="aqua-table__primary">{task.title}</div>
                           <div className="aqua-table__secondary">
                             {task.assignedTo?.name ??
                               (task.workflowOwnerRole
                                 ? `بانتظار ${memberRoleLabels[task.workflowOwnerRole]}`
-                                : "غير مسندة")}
+                                : 'غير مسندة')}
                           </div>
                         </div>
-                        <AquaBadge
-                          variant={priorityVariant(task.priority)}
-                          size="sm"
-                        >
+                        <AquaBadge variant={priorityVariant(task.priority)} size="sm">
                           {taskPriorityLabels[task.priority]}
                         </AquaBadge>
                       </div>
@@ -1495,15 +1323,14 @@ export default function ProjectExecutionClient({
                       <select
                         className="form-select aqua-control aqua-control--sm"
                         aria-label={`مرحلة ${task.title}`}
-                        value={draft.phaseId ?? ""}
+                        value={draft.phaseId ?? ''}
                         disabled={!task.canEdit}
                         onChange={(event) =>
                           setTaskDrafts((current) => ({
                             ...current,
                             [task.id]: {
                               ...draft,
-                              phaseId:
-                                event.target.value || null,
+                              phaseId: event.target.value || null,
                             },
                           }))
                         }
@@ -1527,8 +1354,7 @@ export default function ProjectExecutionClient({
                             ...current,
                             [task.id]: {
                               ...draft,
-                              status: event.target
-                                .value as Task["status"],
+                              status: event.target.value as Task['status'],
                             },
                           }))
                         }
@@ -1537,17 +1363,15 @@ export default function ProjectExecutionClient({
                           .filter(
                             ([value]) =>
                               executionActivated ||
-                              value === "TODO" ||
-                              value === "CANCELLED" ||
-                              value === "ARCHIVED",
+                              value === 'TODO' ||
+                              value === 'CANCELLED' ||
+                              value === 'ARCHIVED',
                           )
-                          .map(
-                          ([value, label]) => (
+                          .map(([value, label]) => (
                             <option value={value} key={value}>
                               {label}
                             </option>
-                          )
-                        )}
+                          ))}
                       </select>
                     </td>
                     <td data-label="الإنجاز">
@@ -1571,17 +1395,10 @@ export default function ProjectExecutionClient({
                       />
                     </td>
                     <td data-label="التسليم">
-                      <span dir="ltr">
-                        {dateOnly(task.dueDate)}
-                      </span>
+                      <span dir="ltr">{dateOnly(task.dueDate)}</span>
                     </td>
                     <td data-label="العوائق">
-                      <AquaBadge
-                        variant={
-                          openBlockers > 0 ? "danger" : "success"
-                        }
-                        size="sm"
-                      >
+                      <AquaBadge variant={openBlockers > 0 ? 'danger' : 'success'} size="sm">
                         {openBlockers}
                       </AquaBadge>
                     </td>
@@ -1590,18 +1407,16 @@ export default function ProjectExecutionClient({
                         {task.canEdit ? (
                           <AquaButton
                             size="sm"
-                            loading={
-                              busyKey === `task-save-${task.id}`
-                            }
+                            loading={busyKey === `task-save-${task.id}`}
                             onClick={() =>
                               mutate(
                                 `task-save-${task.id}`,
                                 `/api/tasks/${task.id}`,
                                 {
-                                  method: "PATCH",
+                                  method: 'PATCH',
                                   body: JSON.stringify(draft),
                                 },
-                                "تم تحديث المهمة"
+                                'تم تحديث المهمة',
                               )
                             }
                           >
@@ -1611,16 +1426,14 @@ export default function ProjectExecutionClient({
                         <AquaButton
                           variant="ghost"
                           size="sm"
-                          onClick={() =>
-                            setSelectedTaskId(task.id)
-                          }
+                          onClick={() => setSelectedTaskId(task.id)}
                         >
                           التفاصيل
                         </AquaButton>
                       </div>
                     </td>
                   </tr>
-                )
+                );
               })
             )}
           </tbody>
@@ -1630,16 +1443,14 @@ export default function ProjectExecutionClient({
       {selectedTask ? (
         <AquaDataPanel
           title={selectedTask.title}
-          description={`${selectedTask.phase?.name ?? "دون مرحلة"} · ${
+          description={`${selectedTask.phase?.name ?? 'دون مرحلة'} · ${
             taskStatusLabels[selectedTask.status]
           } · ${selectedTask.progress}%`}
           actions={
             <AquaSelect
               aria-label="اختيار المهمة"
               value={effectiveSelectedTaskId}
-              onChange={(event) =>
-                setSelectedTaskId(event.target.value)
-              }
+              onChange={(event) => setSelectedTaskId(event.target.value)}
               size="sm"
               wrapperClassName={styles.taskPicker}
             >
@@ -1659,42 +1470,28 @@ export default function ProjectExecutionClient({
               </div>
               <div className={styles.controlList}>
                 {selectedTask.participants.length === 0 ? (
-                  <span className={styles.empty}>
-                    لا يوجد مشاركون.
-                  </span>
+                  <span className={styles.empty}>لا يوجد مشاركون.</span>
                 ) : (
                   selectedTask.participants.map((participant) => (
-                    <div
-                      className={styles.controlRow}
-                      key={participant.id}
-                    >
+                    <div className={styles.controlRow} key={participant.id}>
                       <div>
-                        <strong>
-                          {
-                            participant.employeeProfile.user
-                              .name
-                          }
-                        </strong>
-                        <span>
-                          {participantRoleLabels[participant.role]}
-                        </span>
+                        <strong>{participant.employeeProfile.user.name}</strong>
+                        <span>{participantRoleLabels[participant.role]}</span>
                       </div>
                       {selectedTask.canManageParticipants &&
                       executionActivated &&
-                      (participant.role !== "OWNER" ||
-                        selectedTask.canAssignOwner) ? (
+                      (participant.role !== 'OWNER' || selectedTask.canAssignOwner) ? (
                         <AquaButton
                           variant="ghost"
                           size="sm"
                           onClick={() =>
                             setPendingAction({
-                              title: "إزالة المشارك",
+                              title: 'إزالة المشارك',
                               description: `ستتم إزالة ${participant.employeeProfile.user.name} من هذه المهمة.`,
                               endpoint: `/api/tasks/${selectedTask.id}/participants/${participant.id}`,
                               key: `participant-${participant.id}`,
-                              successMessage:
-                                "تمت إزالة المشارك",
-                              tone: "warning",
+                              successMessage: 'تمت إزالة المشارك',
+                              tone: 'warning',
                             })
                           }
                         >
@@ -1705,12 +1502,8 @@ export default function ProjectExecutionClient({
                   ))
                 )}
               </div>
-              {selectedTask.canManageParticipants &&
-              executionActivated ? (
-                <form
-                  className={styles.controlForm}
-                  onSubmit={addParticipant}
-                >
+              {selectedTask.canManageParticipants && executionActivated ? (
+                <form className={styles.controlForm} onSubmit={addParticipant}>
                   <AquaSelect
                     name="employeeProfileId"
                     label="الموظف"
@@ -1727,29 +1520,16 @@ export default function ProjectExecutionClient({
                       </option>
                     ))}
                   </AquaSelect>
-                  <AquaSelect
-                    name="role"
-                    label="الدور"
-                    defaultValue="CONTRIBUTOR"
-                    size="sm"
-                  >
+                  <AquaSelect name="role" label="الدور" defaultValue="CONTRIBUTOR" size="sm">
                     {Object.entries(participantRoleLabels)
-                      .filter(
-                        ([value]) =>
-                          selectedTask.canAssignOwner ||
-                          value !== "OWNER"
-                      )
+                      .filter(([value]) => selectedTask.canAssignOwner || value !== 'OWNER')
                       .map(([value, label]) => (
                         <option value={value} key={value}>
                           {label}
                         </option>
                       ))}
                   </AquaSelect>
-                  <AquaButton
-                    type="submit"
-                    size="sm"
-                    loading={busyKey === "participant-add"}
-                  >
+                  <AquaButton type="submit" size="sm" loading={busyKey === 'participant-add'}>
                     إضافة مشارك
                   </AquaButton>
                 </form>
@@ -1763,22 +1543,13 @@ export default function ProjectExecutionClient({
               </div>
               <div className={styles.controlList}>
                 {selectedTask.dependencies.length === 0 ? (
-                  <span className={styles.empty}>
-                    لا توجد تبعيات.
-                  </span>
+                  <span className={styles.empty}>لا توجد تبعيات.</span>
                 ) : (
                   selectedTask.dependencies.map((dependency) => (
-                    <div
-                      className={styles.controlRow}
-                      key={dependency.id}
-                    >
+                    <div className={styles.controlRow} key={dependency.id}>
                       <div>
-                        <strong>
-                          {dependency.dependsOnTask.title}
-                        </strong>
-                        <span>
-                          {dependencyTypeLabels[dependency.type]}
-                        </span>
+                        <strong>{dependency.dependsOnTask.title}</strong>
+                        <span>{dependencyTypeLabels[dependency.type]}</span>
                       </div>
                       {selectedTask.canEdit ? (
                         <AquaButton
@@ -1786,13 +1557,12 @@ export default function ProjectExecutionClient({
                           size="sm"
                           onClick={() =>
                             setPendingAction({
-                              title: "إزالة التبعية",
+                              title: 'إزالة التبعية',
                               description: `سيتم فك ارتباط المهمة بـ «${dependency.dependsOnTask.title}».`,
                               endpoint: `/api/tasks/${selectedTask.id}/dependencies/${dependency.id}`,
                               key: `dependency-${dependency.id}`,
-                              successMessage:
-                                "تمت إزالة التبعية",
-                              tone: "neutral",
+                              successMessage: 'تمت إزالة التبعية',
+                              tone: 'neutral',
                             })
                           }
                         >
@@ -1804,10 +1574,7 @@ export default function ProjectExecutionClient({
                 )}
               </div>
               {selectedTask.canEdit ? (
-                <form
-                  className={styles.controlForm}
-                  onSubmit={addDependency}
-                >
+                <form className={styles.controlForm} onSubmit={addDependency}>
                   <AquaSelect
                     name="dependsOnTaskId"
                     label="المهمة السابقة"
@@ -1819,9 +1586,7 @@ export default function ProjectExecutionClient({
                       اختر المهمة
                     </option>
                     {tasks
-                      .filter(
-                        (task) => task.id !== selectedTask.id
-                      )
+                      .filter((task) => task.id !== selectedTask.id)
                       .map((task) => (
                         <option value={task.id} key={task.id}>
                           {task.title}
@@ -1834,19 +1599,13 @@ export default function ProjectExecutionClient({
                     defaultValue="FINISH_TO_START"
                     size="sm"
                   >
-                    {Object.entries(dependencyTypeLabels).map(
-                      ([value, label]) => (
-                        <option value={value} key={value}>
-                          {label}
-                        </option>
-                      )
-                    )}
+                    {Object.entries(dependencyTypeLabels).map(([value, label]) => (
+                      <option value={value} key={value}>
+                        {label}
+                      </option>
+                    ))}
                   </AquaSelect>
-                  <AquaButton
-                    type="submit"
-                    size="sm"
-                    loading={busyKey === "dependency-add"}
-                  >
+                  <AquaButton type="submit" size="sm" loading={busyKey === 'dependency-add'}>
                     إضافة تبعية
                   </AquaButton>
                 </form>
@@ -1860,76 +1619,48 @@ export default function ProjectExecutionClient({
               </div>
               <div className={styles.controlList}>
                 {selectedTask.blockers.length === 0 ? (
-                  <span className={styles.empty}>
-                    لا توجد عوائق.
-                  </span>
+                  <span className={styles.empty}>لا توجد عوائق.</span>
                 ) : (
                   selectedTask.blockers.map((blocker) => (
-                    <div
-                      className={styles.blocker}
-                      key={blocker.id}
-                    >
+                    <div className={styles.blocker} key={blocker.id}>
                       <div className={styles.blockerHeading}>
                         <strong>{blocker.title}</strong>
                         <AquaBadge
-                          variant={
-                            blocker.status === "OPEN"
-                              ? "danger"
-                              : "success"
-                          }
+                          variant={blocker.status === 'OPEN' ? 'danger' : 'success'}
                           size="sm"
                         >
-                          {
-                            blockerSeverityLabels[
-                              blocker.severity
-                            ]
-                          }
+                          {blockerSeverityLabels[blocker.severity]}
                         </AquaBadge>
                       </div>
-                      {blocker.description ? (
-                        <p>{blocker.description}</p>
-                      ) : null}
-                      {blocker.status === "OPEN" &&
-                      executionActivated &&
-                      selectedTask.canEdit ? (
+                      {blocker.description ? <p>{blocker.description}</p> : null}
+                      {blocker.status === 'OPEN' && executionActivated && selectedTask.canEdit ? (
                         <div className={styles.resolveRow}>
                           <input
                             className="form-control aqua-control aqua-control--sm"
                             placeholder="طريقة المعالجة"
-                            value={
-                              resolutionByBlocker[blocker.id] ??
-                              ""
-                            }
+                            value={resolutionByBlocker[blocker.id] ?? ''}
                             onChange={(event) =>
-                              setResolutionByBlocker(
-                                (current) => ({
-                                  ...current,
-                                  [blocker.id]:
-                                    event.target.value,
-                                })
-                              )
+                              setResolutionByBlocker((current) => ({
+                                ...current,
+                                [blocker.id]: event.target.value,
+                              }))
                             }
                           />
                           <AquaButton
                             size="sm"
-                            loading={
-                              busyKey === `blocker-${blocker.id}`
-                            }
+                            loading={busyKey === `blocker-${blocker.id}`}
                             onClick={() =>
                               mutate(
                                 `blocker-${blocker.id}`,
                                 `/api/tasks/${selectedTask.id}/blockers/${blocker.id}`,
                                 {
-                                  method: "PATCH",
+                                  method: 'PATCH',
                                   body: JSON.stringify({
-                                    status: "RESOLVED",
-                                    resolution:
-                                      resolutionByBlocker[
-                                        blocker.id
-                                      ],
+                                    status: 'RESOLVED',
+                                    resolution: resolutionByBlocker[blocker.id],
                                   }),
                                 },
-                                "تمت معالجة العائق"
+                                'تمت معالجة العائق',
                               )
                             }
                           >
@@ -1937,50 +1668,24 @@ export default function ProjectExecutionClient({
                           </AquaButton>
                         </div>
                       ) : blocker.resolution ? (
-                        <span>
-                          المعالجة: {blocker.resolution}
-                        </span>
+                        <span>المعالجة: {blocker.resolution}</span>
                       ) : null}
                     </div>
                   ))
                 )}
               </div>
               {selectedTask.canEdit && executionActivated ? (
-                <form
-                  className={styles.controlForm}
-                  onSubmit={addBlocker}
-                >
-                  <AquaInput
-                    name="title"
-                    label="عنوان العائق"
-                    required
-                    size="sm"
-                  />
-                  <AquaTextarea
-                    name="description"
-                    label="التفاصيل"
-                    rows={2}
-                    size="sm"
-                  />
-                  <AquaSelect
-                    name="severity"
-                    label="الحدة"
-                    defaultValue="MEDIUM"
-                    size="sm"
-                  >
-                    {Object.entries(blockerSeverityLabels).map(
-                      ([value, label]) => (
-                        <option value={value} key={value}>
-                          {label}
-                        </option>
-                      )
-                    )}
+                <form className={styles.controlForm} onSubmit={addBlocker}>
+                  <AquaInput name="title" label="عنوان العائق" required size="sm" />
+                  <AquaTextarea name="description" label="التفاصيل" rows={2} size="sm" />
+                  <AquaSelect name="severity" label="الحدة" defaultValue="MEDIUM" size="sm">
+                    {Object.entries(blockerSeverityLabels).map(([value, label]) => (
+                      <option value={value} key={value}>
+                        {label}
+                      </option>
+                    ))}
                   </AquaSelect>
-                  <AquaButton
-                    type="submit"
-                    size="sm"
-                    loading={busyKey === "blocker-add"}
-                  >
+                  <AquaButton type="submit" size="sm" loading={busyKey === 'blocker-add'}>
                     تسجيل عائق
                   </AquaButton>
                 </form>
@@ -1991,25 +1696,25 @@ export default function ProjectExecutionClient({
       ) : null}
 
       <AquaModal
-        open={readinessModal === "CONTRACT"}
+        open={readinessModal === 'CONTRACT'}
         onClose={() => setReadinessModal(null)}
         title="توثيق شرط العقد"
         description="سجّل حالة العقد ومرجعه الفعلي. لا يُعد العرض المقبول وحده عقدًا موقّعًا."
         size="md"
-        closeOnBackdrop={busyKey !== "readiness-contract"}
+        closeOnBackdrop={busyKey !== 'readiness-contract'}
         footer={
           <div className="aqua-modal__action-row">
             <AquaButton
               variant="ghost"
               onClick={() => setReadinessModal(null)}
-              disabled={busyKey === "readiness-contract"}
+              disabled={busyKey === 'readiness-contract'}
             >
               إلغاء
             </AquaButton>
             <AquaButton
               type="submit"
               form="project-readiness-contract-form"
-              loading={busyKey === "readiness-contract"}
+              loading={busyKey === 'readiness-contract'}
             >
               حفظ العقد
             </AquaButton>
@@ -2040,7 +1745,7 @@ export default function ProjectExecutionClient({
           <AquaInput
             name="contractReference"
             label="مرجع العقد"
-            defaultValue={readiness.contractReference ?? ""}
+            defaultValue={readiness.contractReference ?? ''}
             placeholder="رقم العقد أو رابط المستند"
           />
           <AquaInput
@@ -2048,33 +1753,31 @@ export default function ProjectExecutionClient({
             label="تاريخ التوقيع"
             type="date"
             dir="ltr"
-            defaultValue={
-              readiness.contractSignedAt?.slice(0, 10) ?? ""
-            }
+            defaultValue={readiness.contractSignedAt?.slice(0, 10) ?? ''}
           />
         </form>
       </AquaModal>
 
       <AquaModal
-        open={readinessModal === "PAYMENT"}
+        open={readinessModal === 'PAYMENT'}
         onClose={() => setReadinessModal(null)}
         title="تحديد دفعة البدء"
         description="يُحتسب المدفوع تلقائيًا من المدفوعات المسجلة على فواتير هذا المشروع وبالعملة نفسها."
         size="md"
-        closeOnBackdrop={busyKey !== "readiness-payment"}
+        closeOnBackdrop={busyKey !== 'readiness-payment'}
         footer={
           <div className="aqua-modal__action-row">
             <AquaButton
               variant="ghost"
               onClick={() => setReadinessModal(null)}
-              disabled={busyKey === "readiness-payment"}
+              disabled={busyKey === 'readiness-payment'}
             >
               إلغاء
             </AquaButton>
             <AquaButton
               type="submit"
               form="project-readiness-payment-form"
-              loading={busyKey === "readiness-payment"}
+              loading={busyKey === 'readiness-payment'}
             >
               حفظ الدفعة
             </AquaButton>
@@ -2099,7 +1802,7 @@ export default function ProjectExecutionClient({
             label="المبلغ المطلوب"
             inputMode="decimal"
             dir="ltr"
-            defaultValue={readiness.requiredPaymentAmount ?? ""}
+            defaultValue={readiness.requiredPaymentAmount ?? ''}
             placeholder="500.00"
           />
           <AquaInput
@@ -2111,34 +1814,34 @@ export default function ProjectExecutionClient({
             defaultValue={readiness.currency}
           />
           <AquaAlert variant="info">
-            المدفوع المسجل حاليًا:{" "}
+            المدفوع المسجل حاليًا:{' '}
             <bdi dir="ltr">
-              {readiness.paidAmount ?? "0"} {readiness.currency}
+              {readiness.paidAmount ?? '0'} {readiness.currency}
             </bdi>
           </AquaAlert>
         </form>
       </AquaModal>
 
       <AquaModal
-        open={readinessModal === "OVERRIDE"}
+        open={readinessModal === 'OVERRIDE'}
         onClose={() => setReadinessModal(null)}
         title="تجاوز إداري موثّق"
         description="استخدم التجاوز لحالة استثنائية فقط. سيظهر السبب وهوية المنفذ في سجل المشروع."
         size="md"
-        closeOnBackdrop={busyKey !== "readiness-override"}
+        closeOnBackdrop={busyKey !== 'readiness-override'}
         footer={
           <div className="aqua-modal__action-row">
             <AquaButton
               variant="ghost"
               onClick={() => setReadinessModal(null)}
-              disabled={busyKey === "readiness-override"}
+              disabled={busyKey === 'readiness-override'}
             >
               إلغاء
             </AquaButton>
             <AquaButton
               type="submit"
               form="project-readiness-override-form"
-              loading={busyKey === "readiness-override"}
+              loading={busyKey === 'readiness-override'}
             >
               تسجيل التجاوز
             </AquaButton>
@@ -2164,25 +1867,25 @@ export default function ProjectExecutionClient({
       </AquaModal>
 
       <AquaModal
-        open={readinessModal === "ACTIVATE"}
+        open={readinessModal === 'ACTIVATE'}
         onClose={() => setReadinessModal(null)}
         title="تفعيل وبدء المشروع"
         description="يعيد النظام فحص العقد والمدفوعات، ثم يبدأ سير العمل ويعيّن قائد المشروع داخل العملية نفسها."
         size="md"
-        closeOnBackdrop={busyKey !== "readiness-activate"}
+        closeOnBackdrop={busyKey !== 'readiness-activate'}
         footer={
           <div className="aqua-modal__action-row">
             <AquaButton
               variant="ghost"
               onClick={() => setReadinessModal(null)}
-              disabled={busyKey === "readiness-activate"}
+              disabled={busyKey === 'readiness-activate'}
             >
               إلغاء
             </AquaButton>
             <AquaButton
               type="submit"
               form="project-readiness-activate-form"
-              loading={busyKey === "readiness-activate"}
+              loading={busyKey === 'readiness-activate'}
             >
               تفعيل المشروع
             </AquaButton>
@@ -2213,16 +1916,12 @@ export default function ProjectExecutionClient({
             </option>
             {employees.map((employee) => (
               <option value={employee.id} key={employee.id}>
-                {employee.user.name} —{" "}
-                {employee.jobRole?.name ?? "دون مسمى"}
+                {employee.user.name} — {employee.jobRole?.name ?? 'دون مسمى'}
               </option>
             ))}
           </AquaSelect>
           {readiness.overrideGrantedAt ? (
-            <AquaAlert
-              variant="warning"
-              title="سيُستخدم التجاوز الإداري"
-            >
+            <AquaAlert variant="warning" title="سيُستخدم التجاوز الإداري">
               سيبدأ المشروع مع حفظ سبب التجاوز في سجل التفعيل.
             </AquaAlert>
           ) : null}
@@ -2235,31 +1934,23 @@ export default function ProjectExecutionClient({
         title="إضافة عضو للمشروع"
         description="القائمة مقيدة بالموظفين المسموح لك بإدارتهم."
         size="sm"
-        closeOnBackdrop={busyKey !== "member-add"}
+        closeOnBackdrop={busyKey !== 'member-add'}
         footer={
           <div className="aqua-modal__action-row">
             <AquaButton
               variant="ghost"
               onClick={() => setMemberModalOpen(false)}
-              disabled={busyKey === "member-add"}
+              disabled={busyKey === 'member-add'}
             >
               إلغاء
             </AquaButton>
-            <AquaButton
-              type="submit"
-              form="project-member-form"
-              loading={busyKey === "member-add"}
-            >
+            <AquaButton type="submit" form="project-member-form" loading={busyKey === 'member-add'}>
               حفظ العضو
             </AquaButton>
           </div>
         }
       >
-        <form
-          id="project-member-form"
-          className={styles.modalForm}
-          onSubmit={addMember}
-        >
+        <form id="project-member-form" className={styles.modalForm} onSubmit={addMember}>
           <AquaSelect
             name="employeeProfileId"
             label="الموظف"
@@ -2272,22 +1963,15 @@ export default function ProjectExecutionClient({
             </option>
             {employees.map((employee) => (
               <option value={employee.id} key={employee.id}>
-                {employee.user.name} —{" "}
-                {employee.jobRole?.name ?? "دون مسمى"}
+                {employee.user.name} — {employee.jobRole?.name ?? 'دون مسمى'}
               </option>
             ))}
           </AquaSelect>
-          <AquaSelect
-            name="role"
-            label="الدور داخل المشروع"
-            defaultValue="CONTRIBUTOR"
-          >
+          <AquaSelect name="role" label="الدور داخل المشروع" defaultValue="CONTRIBUTOR">
             {Object.entries(memberRoleLabels)
               .filter(
                 ([value]) =>
-                  canManageLeadership ||
-                  (value !== "PROJECT_LEAD" &&
-                    value !== "MANAGER")
+                  canManageLeadership || (value !== 'PROJECT_LEAD' && value !== 'MANAGER'),
               )
               .map(([value, label]) => (
                 <option value={value} key={value}>
@@ -2295,11 +1979,7 @@ export default function ProjectExecutionClient({
                 </option>
               ))}
           </AquaSelect>
-          <AquaInput
-            name="responsibility"
-            label="المسؤولية"
-            placeholder="مثال: واجهة المستخدم"
-          />
+          <AquaInput name="responsibility" label="المسؤولية" placeholder="مثال: واجهة المستخدم" />
         </form>
       </AquaModal>
 
@@ -2309,54 +1989,29 @@ export default function ProjectExecutionClient({
         title="مرحلة تنفيذ جديدة"
         description="أضف المرحلة ومواعيدها وترتيبها داخل المشروع."
         size="md"
-        closeOnBackdrop={busyKey !== "phase-add"}
+        closeOnBackdrop={busyKey !== 'phase-add'}
         footer={
           <div className="aqua-modal__action-row">
             <AquaButton
               variant="ghost"
               onClick={() => setPhaseModalOpen(false)}
-              disabled={busyKey === "phase-add"}
+              disabled={busyKey === 'phase-add'}
             >
               إلغاء
             </AquaButton>
-            <AquaButton
-              type="submit"
-              form="project-phase-form"
-              loading={busyKey === "phase-add"}
-            >
+            <AquaButton type="submit" form="project-phase-form" loading={busyKey === 'phase-add'}>
               إضافة المرحلة
             </AquaButton>
           </div>
         }
       >
-        <form
-          id="project-phase-form"
-          className={styles.modalForm}
-          onSubmit={addPhase}
-        >
-          <AquaInput
-            name="name"
-            label="اسم المرحلة"
-            required
-            data-aqua-autofocus
-          />
-          <AquaInput
-            name="code"
-            label="الرمز"
-            placeholder="DISCOVERY"
-            dir="ltr"
-          />
-          <AquaSelect
-            name="status"
-            label="الحالة"
-            defaultValue="PLANNED"
-          >
+        <form id="project-phase-form" className={styles.modalForm} onSubmit={addPhase}>
+          <AquaInput name="name" label="اسم المرحلة" required data-aqua-autofocus />
+          <AquaInput name="code" label="الرمز" placeholder="DISCOVERY" dir="ltr" />
+          <AquaSelect name="status" label="الحالة" defaultValue="PLANNED">
             {Object.entries(phaseStatusLabels)
               .filter(
-                ([value]) =>
-                  executionActivated ||
-                  value === "PLANNED" ||
-                  value === "CANCELLED",
+                ([value]) => executionActivated || value === 'PLANNED' || value === 'CANCELLED',
               )
               .map(([value, label]) => (
                 <option value={value} key={value}>
@@ -2372,36 +2027,24 @@ export default function ProjectExecutionClient({
             defaultValue={phases.length * 10}
             dir="ltr"
           />
-          <AquaInput
-            name="startDate"
-            label="تاريخ البداية"
-            type="date"
-            dir="ltr"
-          />
-          <AquaInput
-            name="dueDate"
-            label="تاريخ النهاية"
-            type="date"
-            dir="ltr"
-          />
+          <AquaInput name="startDate" label="تاريخ البداية" type="date" dir="ltr" />
+          <AquaInput name="dueDate" label="تاريخ النهاية" type="date" dir="ltr" />
         </form>
       </AquaModal>
 
       <AquaConfirmDialog
         open={Boolean(pendingAction)}
         onClose={() => {
-          if (!busyKey) setPendingAction(null)
+          if (!busyKey) setPendingAction(null);
         }}
         onConfirm={confirmPendingAction}
         loading={Boolean(pendingAction && busyKey)}
-        title={pendingAction?.title ?? "تأكيد الإجراء"}
-        description={pendingAction?.description ?? ""}
+        title={pendingAction?.title ?? 'تأكيد الإجراء'}
+        description={pendingAction?.description ?? ''}
         confirmLabel="تأكيد"
-        confirmVariant={
-          pendingAction?.tone === "danger" ? "danger" : "primary"
-        }
-        tone={pendingAction?.tone ?? "warning"}
+        confirmVariant={pendingAction?.tone === 'danger' ? 'danger' : 'primary'}
+        tone={pendingAction?.tone ?? 'warning'}
       />
     </div>
-  )
+  );
 }

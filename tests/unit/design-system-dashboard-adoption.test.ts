@@ -72,15 +72,15 @@ test('AD-02.6 dashboard is employee-first, role-aware, and timezone-aware', () =
   assert.match(dashboardPage, /businessDate\(now, timeZone\)/u);
   assert.match(dashboardPage, /classifyMyDayDueDate/u);
   assert.match(dashboardPage, /followUpBucket/u);
-  assert.match(dashboardPage, /user\.role === "OWNER"/u);
+  assert.match(dashboardPage, /user\.role === ["']OWNER["']/u);
   assert.match(dashboardPage, /ar-JO-u-nu-latn/u);
   assert.match(dashboardPage, /recentActivities\.length === 0/u);
   assert.match(dashboardPage, /take: 3/u);
-  assert.match(dashboardPage, /user\?\.name \?\? "النظام"/u);
+  assert.match(dashboardPage, /user\?\.name \?\? ["']النظام["']/u);
   assert.match(dashboardPage, /مهامي قيد التنفيذ/u);
   assert.match(dashboardPage, /مشاريعي الجارية/u);
-  assert.match(dashboardPage, /status: "IN_PROGRESS"/u);
-  assert.match(dashboardPage, /status: \{ in: \["ISSUED", "PARTIALLY_PAID"\] \}/u);
+  assert.match(dashboardPage, /status: ["']IN_PROGRESS["']/u);
+  assert.match(dashboardPage, /status: \{ in: \[["']ISSUED["'], ["']PARTIALLY_PAID["']\] \}/u);
 });
 
 test('dashboard adoption CSS covers responsive, logical, and reduced-motion states', () => {
