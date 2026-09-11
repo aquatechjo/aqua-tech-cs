@@ -616,6 +616,66 @@ html[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
   gap: var(--at-space-2);
 }
 
+.aqua-bar-chart__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--at-space-3);
+  padding-block-end: var(--at-space-2);
+}
+
+.aqua-bar-chart__col {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--at-space-1);
+  min-inline-size: 0;
+  block-size: 100%;
+}
+
+.aqua-bar-chart__track {
+  display: flex;
+  align-items: flex-end;
+  inline-size: 100%;
+  block-size: 100%;
+  border-radius: var(--at-radius-xs);
+  background: color-mix(in srgb, var(--at-product-surface) 60%, transparent);
+}
+
+.aqua-bar-chart__bar {
+  inline-size: 100%;
+  min-block-size: 4px;
+  border-radius: var(--at-radius-xs) var(--at-radius-xs) 0 0;
+  background: var(--at-product-accent);
+  transition: block-size var(--at-motion-normal) var(--at-ease-standard);
+}
+
+.aqua-bar-chart__bar--success {
+  background: var(--bs-success);
+}
+
+.aqua-bar-chart__bar--warning {
+  background: var(--bs-warning);
+}
+
+.aqua-bar-chart__bar--danger {
+  background: var(--bs-danger);
+}
+
+.aqua-bar-chart__value {
+  color: var(--at-product-text);
+  font-family: var(--at-font-mono);
+  font-size: var(--at-text-xs);
+  font-weight: var(--at-weight-semibold);
+  white-space: nowrap;
+}
+
+.aqua-bar-chart__label {
+  color: var(--at-product-muted);
+  font-size: var(--at-text-xs);
+  text-align: center;
+}
+
 .aqua-pagination-shell {
   display: flex;
   flex-wrap: wrap;
@@ -894,7 +954,8 @@ html[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
   .aqua-table tbody tr,
   .aqua-tabs__item,
   .aqua-modal,
-  .aqua-modal-backdrop {
+  .aqua-modal-backdrop,
+  .aqua-bar-chart__bar {
     animation: none !important;
     transition: none !important;
   }
