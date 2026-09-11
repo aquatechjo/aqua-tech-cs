@@ -17,9 +17,9 @@ test('the cron route calls both stage helpers with source SCHEDULED', () => {
   );
   assert.match(
     route,
-    /sendTaskStaleReminder\(\{ taskId: candidate\.id, companyId: company\.id, source: "SCHEDULED" \}\)/,
+    /sendTaskStaleReminder\(\{ taskId: candidate\.id, companyId: company\.id, source: 'SCHEDULED',? \}\)/,
   );
-  assert.match(route, /source: "SCHEDULED",? *\}\)/);
+  assert.match(route, /source: 'SCHEDULED',? *\}\)/);
 });
 
 test("the reminder and escalation candidate queries scope the staleness cutoff per company's own configured days", () => {

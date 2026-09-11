@@ -85,7 +85,6 @@
   background: rgba(255, 255, 255, 0.018);
 }
 
-
 .aqua-workflow-form-sticky {
   position: sticky;
   inset-block-start: 112px;
@@ -254,8 +253,8 @@
   box-shadow: inset 3px 0 0 var(--at-product-accent);
 }
 
-html[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
-[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row) {
+html[dir='rtl'] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
+[dir='rtl'] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row) {
   box-shadow: inset -3px 0 0 var(--at-product-accent);
 }
 
@@ -263,7 +262,7 @@ html[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
   border-block-end: 0;
 }
 
-.aqua-table-shell[data-aqua-density="compact"] .aqua-table > :not(caption) > * > * {
+.aqua-table-shell[data-aqua-density='compact'] .aqua-table > :not(caption) > * > * {
   padding: var(--at-space-2) var(--at-space-3);
   font-size: var(--at-text-sm);
 }
@@ -479,7 +478,7 @@ html[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
 }
 
 .aqua-tabs__item:disabled,
-.aqua-tabs__item[aria-disabled="true"] {
+.aqua-tabs__item[aria-disabled='true'] {
   cursor: not-allowed;
   opacity: 0.46;
 }
@@ -724,7 +723,7 @@ html[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
 }
 
 .aqua-pagination .page-item.active .page-link,
-.aqua-pagination .page-link[aria-current="page"] {
+.aqua-pagination .page-link[aria-current='page'] {
   border-color: rgba(var(--at-product-accent-rgb), 0.45);
   background: rgba(var(--at-product-accent-rgb), 0.16);
   color: var(--at-product-text);
@@ -758,20 +757,20 @@ html[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
 }
 
 @media (min-width: 576px) {
-  .aqua-form-grid > [data-aqua-span="6"] {
+  .aqua-form-grid > [data-aqua-span='6'] {
     grid-column: span 6;
   }
 
-  .aqua-form-grid > [data-aqua-span="4"] {
+  .aqua-form-grid > [data-aqua-span='4'] {
     grid-column: span 4;
   }
 
-  .aqua-filter-bar__fields > [data-aqua-span="6"] {
+  .aqua-filter-bar__fields > [data-aqua-span='6'] {
     grid-column: span 6;
   }
 
-  .aqua-detail-list[data-aqua-columns="2"],
-  .aqua-detail-list[data-aqua-columns="3"] {
+  .aqua-detail-list[data-aqua-columns='2'],
+  .aqua-detail-list[data-aqua-columns='3'] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -781,23 +780,23 @@ html[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
 }
 
 @media (min-width: 992px) {
-  .aqua-form-grid > [data-aqua-span="3"] {
+  .aqua-form-grid > [data-aqua-span='3'] {
     grid-column: span 3;
   }
 
-  .aqua-filter-bar__fields > [data-aqua-span="3"] {
+  .aqua-filter-bar__fields > [data-aqua-span='3'] {
     grid-column: span 3;
   }
 
-  .aqua-filter-bar__fields > [data-aqua-span="4"] {
+  .aqua-filter-bar__fields > [data-aqua-span='4'] {
     grid-column: span 4;
   }
 
-  .aqua-filter-bar__fields > [data-aqua-span="2"] {
+  .aqua-filter-bar__fields > [data-aqua-span='2'] {
     grid-column: span 2;
   }
 
-  .aqua-detail-list[data-aqua-columns="3"] {
+  .aqua-detail-list[data-aqua-columns='3'] {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
@@ -850,16 +849,16 @@ html[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
     flex: 1 1 auto;
   }
 
-  .aqua-table-shell[data-aqua-mobile-strategy="stack"] {
+  .aqua-table-shell[data-aqua-mobile-strategy='stack'] {
     overflow: visible;
   }
 
-  .aqua-table-shell[data-aqua-mobile-strategy="stack"] .aqua-table {
+  .aqua-table-shell[data-aqua-mobile-strategy='stack'] .aqua-table {
     display: block;
     min-inline-size: 0;
   }
 
-  .aqua-table-shell[data-aqua-mobile-strategy="stack"] .aqua-table thead {
+  .aqua-table-shell[data-aqua-mobile-strategy='stack'] .aqua-table thead {
     position: absolute;
     inline-size: 1px;
     block-size: 1px;
@@ -868,26 +867,26 @@ html[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
     white-space: nowrap;
   }
 
-  .aqua-table-shell[data-aqua-mobile-strategy="stack"] .aqua-table tbody,
-  .aqua-table-shell[data-aqua-mobile-strategy="stack"] .aqua-table tr,
-  .aqua-table-shell[data-aqua-mobile-strategy="stack"] .aqua-table td {
+  .aqua-table-shell[data-aqua-mobile-strategy='stack'] .aqua-table tbody,
+  .aqua-table-shell[data-aqua-mobile-strategy='stack'] .aqua-table tr,
+  .aqua-table-shell[data-aqua-mobile-strategy='stack'] .aqua-table td {
     display: block;
     inline-size: 100%;
   }
 
-  .aqua-table-shell[data-aqua-mobile-strategy="stack"] .aqua-table tbody {
+  .aqua-table-shell[data-aqua-mobile-strategy='stack'] .aqua-table tbody {
     display: grid;
     gap: var(--at-space-3);
   }
 
-  .aqua-table-shell[data-aqua-mobile-strategy="stack"] .aqua-table tbody tr {
+  .aqua-table-shell[data-aqua-mobile-strategy='stack'] .aqua-table tbody tr {
     overflow: hidden;
     border: 1px solid var(--at-product-border);
     border-radius: var(--at-radius-lg);
     background: rgba(255, 255, 255, 0.02);
   }
 
-  .aqua-table-shell[data-aqua-mobile-strategy="stack"] .aqua-table tbody td {
+  .aqua-table-shell[data-aqua-mobile-strategy='stack'] .aqua-table tbody td {
     display: grid;
     grid-template-columns: minmax(7rem, 0.42fr) minmax(0, 1fr);
     align-items: start;
@@ -896,22 +895,22 @@ html[dir="rtl"] .aqua-table tbody tr:focus-within:not(.aqua-table__state-row),
     text-align: start;
   }
 
-  .aqua-table-shell[data-aqua-mobile-strategy="stack"] .aqua-table tbody td::before {
+  .aqua-table-shell[data-aqua-mobile-strategy='stack'] .aqua-table tbody td::before {
     content: attr(data-label);
     color: var(--at-product-soft-text);
     font-size: 0.7rem;
     font-weight: 800;
   }
 
-  .aqua-table-shell[data-aqua-mobile-strategy="stack"] .aqua-table tbody td[data-label=""]::before {
+  .aqua-table-shell[data-aqua-mobile-strategy='stack'] .aqua-table tbody td[data-label='']::before {
     display: none;
   }
 
-  .aqua-table-shell[data-aqua-mobile-strategy="stack"] .aqua-table tbody td[data-label=""] {
+  .aqua-table-shell[data-aqua-mobile-strategy='stack'] .aqua-table tbody td[data-label=''] {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .aqua-table-shell[data-aqua-mobile-strategy="stack"] .aqua-table__state-row td {
+  .aqua-table-shell[data-aqua-mobile-strategy='stack'] .aqua-table__state-row td {
     display: block;
     padding: 0 !important;
   }
