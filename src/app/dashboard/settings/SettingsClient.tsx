@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { AccessRole } from "@/generated/prisma/enums";
-import AquaPageHeader from "@/components/layout/AquaPageHeader";
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { AccessRole } from '@/generated/prisma/enums';
+import AquaPageHeader from '@/components/layout/AquaPageHeader';
 
 type CompanySettings = {
   id: string;
@@ -17,11 +17,13 @@ type CompanySettings = {
   currency: string;
   timezone: string;
   language: string;
+  taskStaleReminderDays: number;
+  taskStaleEscalationDays: number;
   updatedAt: Date;
 };
 
 function canManage(role: AccessRole) {
-  return role === "OWNER" || role === "ADMIN";
+  return role === 'OWNER' || role === 'ADMIN';
 }
 
 export default function SettingsClient({
@@ -37,30 +39,42 @@ export default function SettingsClient({
   const editable = canManage(currentUser.role);
 
   const [name, setName] = useState(company.name);
-  const [email, setEmail] = useState(company.email ?? "");
-  const [phone, setPhone] = useState(company.phone ?? "");
-  const [website, setWebsite] = useState(company.website ?? "");
-  const [address, setAddress] = useState(company.address ?? "");
+  const [email, setEmail] = useState(company.email ?? '');
+  const [phone, setPhone] = useState(company.phone ?? '');
+  const [website, setWebsite] = useState(company.website ?? '');
+  const [address, setAddress] = useState(company.address ?? '');
   const [country, setCountry] = useState(company.country);
   const [currency, setCurrency] = useState(company.currency);
   const [timezone, setTimezone] = useState(company.timezone);
   const [language, setLanguage] = useState(company.language);
+  const [taskStaleReminderDays, setTaskStaleReminderDays] = useState(
+    String(company.taskStaleReminderDays),
+  );
+  const [taskStaleEscalationDays, setTaskStaleEscalationDays] = useState(
+    String(company.taskStaleEscalationDays),
+  );
 
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError("");
-    setSuccess("");
+    setError('');
+    setSuccess('');
+
+    if (Number(taskStaleEscalationDays) <= Number(taskStaleReminderDays)) {
+      setError('مدة التصعيد للمدير يجب أن تكون أطول من مدة تذكير الموظف');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const response = await fetch("/api/company", {
-        method: "PATCH",
+      const response = await fetch('/api/company', {
+        method: 'PATCH',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           name,
@@ -72,20 +86,22 @@ export default function SettingsClient({
           currency,
           timezone,
           language,
+          taskStaleReminderDays: Number(taskStaleReminderDays),
+          taskStaleEscalationDays: Number(taskStaleEscalationDays),
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok || !data.ok) {
-        setError(data.message || "فشل حفظ إعدادات الشركة");
+        setError(data.message || 'فشل حفظ إعدادات الشركة');
         return;
       }
 
-      setSuccess("تم حفظ إعدادات الشركة بنجاح");
+      setSuccess('تم حفظ إعدادات الشركة بنجاح');
       router.refresh();
     } catch {
-      setError("حدث خطأ أثناء الاتصال بالخادم");
+      setError('حدث خطأ أثناء الاتصال بالخادم');
     } finally {
       setLoading(false);
     }
@@ -105,9 +121,7 @@ export default function SettingsClient({
             <div className="d-flex align-items-start justify-content-between gap-3 mb-4">
               <div>
                 <h3 className="h5 fw-black mb-1">بيانات الشركة</h3>
-                <p className="small aqua-muted mb-0">
-                  عدّل معلومات Aqua.Tech الأساسية.
-                </p>
+                <p className="small aqua-muted mb-0">عدّل معلومات Aqua.Tech الأساسية.</p>
               </div>
 
               <span className="aqua-badge">{company.slug}</span>
@@ -158,9 +172,7 @@ export default function SettingsClient({
                 </div>
 
                 <div className="col-12 col-md-6">
-                  <label className="form-label aqua-muted">
-                    الموقع الإلكتروني
-                  </label>
+                  <label className="form-label aqua-muted">الموقع الإلكتروني</label>
                   <input
                     dir="ltr"
                     value={website}
@@ -219,9 +231,7 @@ export default function SettingsClient({
                 </div>
 
                 <div className="col-12">
-                  <label className="form-label aqua-muted">
-                    المنطقة الزمنية
-                  </label>
+                  <label className="form-label aqua-muted">المنطقة الزمنية</label>
                   <select
                     value={timezone}
                     onChange={(event) => setTimezone(event.target.value)}
@@ -236,25 +246,57 @@ export default function SettingsClient({
                 </div>
               </div>
 
-              {error ? (
-                <div className="alert alert-danger rounded-4 border-0 mt-4">
-                  {error}
+              <hr className="my-4" />
+
+              <div>
+                <h3 className="h6 fw-black mb-1">تذكيرات المهام الراكدة</h3>
+                <p className="small aqua-muted mb-3">
+                  لو مهمة مفتوحة ما تغيّرت حالتها لهالمدة، بيوصل تذكير للموظف، وبعد فترة أطول
+                  بيتصعّد الموضوع لمديره.
+                </p>
+              </div>
+
+              <div className="row g-3">
+                <div className="col-12 col-md-6">
+                  <label className="form-label aqua-muted">تذكير الموظف بعد (أيام)</label>
+                  <input
+                    dir="ltr"
+                    type="number"
+                    min={1}
+                    max={90}
+                    value={taskStaleReminderDays}
+                    onChange={(event) => setTaskStaleReminderDays(event.target.value)}
+                    disabled={!editable}
+                    className="form-control aqua-control text-start"
+                  />
                 </div>
+
+                <div className="col-12 col-md-6">
+                  <label className="form-label aqua-muted">تصعيد للمدير بعد (أيام)</label>
+                  <input
+                    dir="ltr"
+                    type="number"
+                    min={1}
+                    max={90}
+                    value={taskStaleEscalationDays}
+                    onChange={(event) => setTaskStaleEscalationDays(event.target.value)}
+                    disabled={!editable}
+                    className="form-control aqua-control text-start"
+                  />
+                </div>
+              </div>
+
+              {error ? (
+                <div className="alert alert-danger rounded-4 border-0 mt-4">{error}</div>
               ) : null}
 
               {success ? (
-                <div className="alert alert-success rounded-4 border-0 mt-4">
-                  {success}
-                </div>
+                <div className="alert alert-success rounded-4 border-0 mt-4">{success}</div>
               ) : null}
 
               {editable ? (
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="btn aqua-btn-primary px-4 mt-4"
-                >
-                  {loading ? "جاري الحفظ..." : "حفظ الإعدادات"}
+                <button type="submit" disabled={loading} className="btn aqua-btn-primary px-4 mt-4">
+                  {loading ? 'جاري الحفظ...' : 'حفظ الإعدادات'}
                 </button>
               ) : null}
             </form>
@@ -280,14 +322,14 @@ export default function SettingsClient({
             <div className="aqua-card-soft p-3 mb-3">
               <div className="small aqua-muted">Email</div>
               <div className="fw-black text-truncate" dir="ltr">
-                {email || "غير محدد"}
+                {email || 'غير محدد'}
               </div>
             </div>
 
             <div className="aqua-card-soft p-3 mb-3">
               <div className="small aqua-muted">Website</div>
               <div className="fw-black text-truncate" dir="ltr">
-                {website || "غير محدد"}
+                {website || 'غير محدد'}
               </div>
             </div>
 
@@ -316,8 +358,7 @@ export default function SettingsClient({
                 ملاحظة النظام
               </div>
               <p className="small aqua-muted mb-0">
-                ستستخدم هذه البيانات لاحقًا في الفواتير، العروض، العقود،
-                والتقارير.
+                ستستخدم هذه البيانات لاحقًا في الفواتير، العروض، العقود، والتقارير.
               </p>
             </div>
           </div>

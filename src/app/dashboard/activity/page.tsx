@@ -185,6 +185,9 @@ function actionLabel(action: ActivityAction) {
     TASK_COMPLETED: 'إكمال مهمة',
     TASK_ARCHIVED: 'أرشفة مهمة',
     TASK_RESTORED: 'استرجاع مهمة',
+    TASK_STALE_REMINDER_SENT: 'تذكير مهمة متوقفة',
+    TASK_STALE_REMINDER_FAILED: 'فشل تذكير مهمة متوقفة',
+    TASK_STALE_ESCALATED: 'تصعيد مهام متوقفة للمدير',
 
     CLIENT_CREATED: 'إضافة عميل',
     CLIENT_UPDATED: 'تعديل عميل',

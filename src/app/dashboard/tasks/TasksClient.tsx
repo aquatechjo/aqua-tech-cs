@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import {
   AlertTriangle,
@@ -12,9 +12,9 @@ import {
   ListChecks,
   Plus,
   Search,
-} from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+} from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 import {
   AquaAlert,
@@ -33,198 +33,186 @@ import {
   AquaTableStateRow,
   AquaTextarea,
   aquaToast,
-} from "@/components/aqua"
-import type { AquaBadgeVariant } from "@/design-system"
-import {
-  TaskPriority,
-  TaskSource,
-  TaskStatus,
-} from "@/generated/prisma/enums"
-import styles from "./Tasks.module.css"
+} from '@/components/aqua';
+import type { AquaBadgeVariant } from '@/design-system';
+import { TaskPriority, TaskSource, TaskStatus } from '@/generated/prisma/enums';
+import styles from './Tasks.module.css';
 
 type ProjectOption = {
-  id: string
-  name: string
-  clientId: string | null
-}
+  id: string;
+  name: string;
+  clientId: string | null;
+};
 
 type ClientOption = {
-  id: string
-  name: string
-}
+  id: string;
+  name: string;
+};
 
 type UserOption = {
-  id: string
-  name: string
-}
+  id: string;
+  name: string;
+};
 
 type TaskItem = {
-  id: string
-  projectId: string | null
-  project: { id: string; name: string } | null
-  clientId: string | null
-  client: { id: string; name: string } | null
-  assignedToId: string | null
-  assignedTo: UserOption | null
-  title: string
-  description: string | null
-  status: TaskStatus
-  priority: TaskPriority
-  source: TaskSource
-  sourceRef: string | null
-  estimatedHours: string | null
-  progress: number
-  dueDate: string | null
-  dueLabel: string
-  dueDisplay: string
-  dueVariant: AquaBadgeVariant
-  openBlockerCount: number
-  completedAt: string | null
-  createdAt: string
-  updatedAt: string
-  canEdit: boolean
-}
+  id: string;
+  projectId: string | null;
+  project: { id: string; name: string } | null;
+  clientId: string | null;
+  client: { id: string; name: string } | null;
+  assignedToId: string | null;
+  assignedTo: UserOption | null;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  source: TaskSource;
+  sourceRef: string | null;
+  estimatedHours: string | null;
+  progress: number;
+  dueDate: string | null;
+  dueLabel: string;
+  dueDisplay: string;
+  dueVariant: AquaBadgeVariant;
+  openBlockerCount: number;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  isStale: boolean;
+  daysStale: number;
+  staleEscalated: boolean;
+  canEdit: boolean;
+};
 
 type Filters = {
-  q: string
-  status: string
-  priority: string
-  due: string
-  projectId: string
-  assignedToId: string
-}
+  q: string;
+  status: string;
+  priority: string;
+  due: string;
+  projectId: string;
+  assignedToId: string;
+  stale: string;
+};
 
 type Stats = {
-  totalTasks: number
-  overdueTasks: number
-  todayTasks: number
-  inProgressTasks: number
-  blockedTasks: number
-  from: number
-  to: number
-  currentPage: number
-  totalPages: number
-}
+  totalTasks: number;
+  overdueTasks: number;
+  todayTasks: number;
+  inProgressTasks: number;
+  blockedTasks: number;
+  from: number;
+  to: number;
+  currentPage: number;
+  totalPages: number;
+};
 
 type Scope = {
-  label: string
-  description: string
-  dataScope: "personal" | "team" | "company"
-  canAssignOthers: boolean
-  canManageSources: boolean
-  showAssignee: boolean
-}
+  label: string;
+  description: string;
+  dataScope: 'personal' | 'team' | 'company';
+  canAssignOthers: boolean;
+  canManageSources: boolean;
+  showAssignee: boolean;
+};
 
 const taskStatuses: TaskStatus[] = [
-  "TODO",
-  "IN_PROGRESS",
-  "BLOCKED",
-  "REVIEW",
-  "DONE",
-  "CANCELLED",
-  "ARCHIVED",
-]
+  'TODO',
+  'IN_PROGRESS',
+  'BLOCKED',
+  'REVIEW',
+  'DONE',
+  'CANCELLED',
+  'ARCHIVED',
+];
 
-const taskPriorities: TaskPriority[] = [
-  "LOW",
-  "MEDIUM",
-  "HIGH",
-  "URGENT",
-]
+const taskPriorities: TaskPriority[] = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
 
-const taskSources: TaskSource[] = [
-  "MANUAL",
-  "WEBSITE_REQUEST",
-  "WORKFLOW",
-  "AI_GENERATED",
-]
+const taskSources: TaskSource[] = ['MANUAL', 'WEBSITE_REQUEST', 'WORKFLOW', 'AI_GENERATED'];
 
 function taskStatusLabel(status: TaskStatus) {
   const labels: Record<TaskStatus, string> = {
-    TODO: "للعمل",
-    IN_PROGRESS: "قيد التنفيذ",
-    BLOCKED: "متعطلة",
-    REVIEW: "للمراجعة",
-    DONE: "منجزة",
-    CANCELLED: "ملغاة",
-    ARCHIVED: "مؤرشفة",
-  }
+    TODO: 'للعمل',
+    IN_PROGRESS: 'قيد التنفيذ',
+    BLOCKED: 'متعطلة',
+    REVIEW: 'للمراجعة',
+    DONE: 'منجزة',
+    CANCELLED: 'ملغاة',
+    ARCHIVED: 'مؤرشفة',
+  };
 
-  return labels[status]
+  return labels[status];
 }
 
 function taskPriorityLabel(priority: TaskPriority) {
   const labels: Record<TaskPriority, string> = {
-    LOW: "منخفضة",
-    MEDIUM: "متوسطة",
-    HIGH: "عالية",
-    URGENT: "عاجلة",
-  }
+    LOW: 'منخفضة',
+    MEDIUM: 'متوسطة',
+    HIGH: 'عالية',
+    URGENT: 'عاجلة',
+  };
 
-  return labels[priority]
+  return labels[priority];
 }
 
 function taskSourceLabel(source: TaskSource) {
   const labels: Record<TaskSource, string> = {
-    MANUAL: "يدوية",
-    WEBSITE_REQUEST: "طلب من الموقع",
-    WORKFLOW: "سير عمل",
-    AI_GENERATED: "مولدة بالذكاء الاصطناعي",
-    PROJECT_FEEDBACK: "متابعة تقييم العميل",
-  }
+    MANUAL: 'يدوية',
+    WEBSITE_REQUEST: 'طلب من الموقع',
+    WORKFLOW: 'سير عمل',
+    AI_GENERATED: 'مولدة بالذكاء الاصطناعي',
+    PROJECT_FEEDBACK: 'متابعة تقييم العميل',
+  };
 
-  return labels[source]
+  return labels[source];
 }
 
 function statusVariant(status: TaskStatus): AquaBadgeVariant {
-  if (status === "DONE") return "success"
-  if (status === "IN_PROGRESS") return "aqua"
-  if (status === "REVIEW") return "warning"
-  if (status === "BLOCKED") return "danger"
-  if (status === "TODO") return "blue"
-  return "muted"
+  if (status === 'DONE') return 'success';
+  if (status === 'IN_PROGRESS') return 'aqua';
+  if (status === 'REVIEW') return 'warning';
+  if (status === 'BLOCKED') return 'danger';
+  if (status === 'TODO') return 'blue';
+  return 'muted';
 }
 
-function priorityVariant(
-  priority: TaskPriority
-): AquaBadgeVariant {
-  if (priority === "URGENT") return "danger"
-  if (priority === "HIGH") return "warning"
-  if (priority === "MEDIUM") return "blue"
-  return "muted"
+function priorityVariant(priority: TaskPriority): AquaBadgeVariant {
+  if (priority === 'URGENT') return 'danger';
+  if (priority === 'HIGH') return 'warning';
+  if (priority === 'MEDIUM') return 'blue';
+  return 'muted';
 }
 
 function dateInputValue(value: string | null) {
-  if (!value) return ""
-  return value.slice(0, 10)
+  if (!value) return '';
+  return value.slice(0, 10);
 }
 
 function nextTaskAction(task: TaskItem) {
-  if (task.status === "TODO") {
+  if (task.status === 'TODO') {
     return {
-      label: "بدء",
-      status: "IN_PROGRESS" as TaskStatus,
+      label: 'بدء',
+      status: 'IN_PROGRESS' as TaskStatus,
       icon: <CirclePlay />,
-    }
+    };
   }
 
-  if (task.status === "IN_PROGRESS") {
+  if (task.status === 'IN_PROGRESS') {
     return {
-      label: "إرسال للمراجعة",
-      status: "REVIEW" as TaskStatus,
+      label: 'إرسال للمراجعة',
+      status: 'REVIEW' as TaskStatus,
       icon: <ListChecks />,
-    }
+    };
   }
 
-  if (task.status === "REVIEW") {
+  if (task.status === 'REVIEW') {
     return {
-      label: "إنجاز",
-      status: "DONE" as TaskStatus,
+      label: 'إنجاز',
+      status: 'DONE' as TaskStatus,
       icon: <CheckCircle2 />,
-    }
+    };
   }
 
-  return null
+  return null;
 }
 
 export default function TasksClient({
@@ -238,45 +226,40 @@ export default function TasksClient({
   stats,
   pagination,
 }: {
-  currentUserId: string
-  tasks: TaskItem[]
-  projects: ProjectOption[]
-  clients: ClientOption[]
-  users: UserOption[]
-  scope: Scope
-  filters: Filters
-  stats: Stats
-  pagination: React.ReactNode
+  currentUserId: string;
+  tasks: TaskItem[];
+  projects: ProjectOption[];
+  clients: ClientOption[];
+  users: UserOption[];
+  scope: Scope;
+  filters: Filters;
+  stats: Stats;
+  pagination: React.ReactNode;
 }) {
-  const router = useRouter()
-  const personalAssigneeId = scope.canAssignOthers
-    ? ""
-    : currentUserId
+  const router = useRouter();
+  const personalAssigneeId = scope.canAssignOthers ? '' : currentUserId;
 
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [pendingArchive, setPendingArchive] =
-    useState<TaskItem | null>(null)
-  const [archiveLoading, setArchiveLoading] = useState(false)
-  const [busyTaskId, setBusyTaskId] = useState<string | null>(null)
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [pendingArchive, setPendingArchive] = useState<TaskItem | null>(null);
+  const [archiveLoading, setArchiveLoading] = useState(false);
+  const [busyTaskId, setBusyTaskId] = useState<string | null>(null);
 
-  const [projectId, setProjectId] = useState("")
-  const [clientId, setClientId] = useState("")
-  const [assignedToId, setAssignedToId] =
-    useState(personalAssigneeId)
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [status, setStatus] = useState<TaskStatus>("TODO")
-  const [priority, setPriority] =
-    useState<TaskPriority>("MEDIUM")
-  const [source, setSource] = useState<TaskSource>("MANUAL")
-  const [sourceRef, setSourceRef] = useState("")
-  const [estimatedHours, setEstimatedHours] = useState("")
-  const [dueDate, setDueDate] = useState("")
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [projectId, setProjectId] = useState('');
+  const [clientId, setClientId] = useState('');
+  const [assignedToId, setAssignedToId] = useState(personalAssigneeId);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [status, setStatus] = useState<TaskStatus>('TODO');
+  const [priority, setPriority] = useState<TaskPriority>('MEDIUM');
+  const [source, setSource] = useState<TaskSource>('MANUAL');
+  const [sourceRef, setSourceRef] = useState('');
+  const [estimatedHours, setEstimatedHours] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const isEditing = Boolean(editingId)
+  const isEditing = Boolean(editingId);
   const activeFilterCount = [
     filters.q,
     filters.status,
@@ -284,87 +267,80 @@ export default function TasksClient({
     filters.due,
     filters.projectId,
     filters.assignedToId,
-  ].filter(Boolean).length
+    filters.stale,
+  ].filter(Boolean).length;
 
   function clearForm() {
-    setEditingId(null)
-    setProjectId("")
-    setClientId("")
-    setAssignedToId(personalAssigneeId)
-    setTitle("")
-    setDescription("")
-    setStatus("TODO")
-    setPriority("MEDIUM")
-    setSource("MANUAL")
-    setSourceRef("")
-    setEstimatedHours("")
-    setDueDate("")
-    setError("")
+    setEditingId(null);
+    setProjectId('');
+    setClientId('');
+    setAssignedToId(personalAssigneeId);
+    setTitle('');
+    setDescription('');
+    setStatus('TODO');
+    setPriority('MEDIUM');
+    setSource('MANUAL');
+    setSourceRef('');
+    setEstimatedHours('');
+    setDueDate('');
+    setError('');
   }
 
   function openCreate() {
-    clearForm()
-    setModalOpen(true)
+    clearForm();
+    setModalOpen(true);
   }
 
   function closeForm() {
-    if (loading) return
-    setModalOpen(false)
-    clearForm()
+    if (loading) return;
+    setModalOpen(false);
+    clearForm();
   }
 
   function changeProject(nextProjectId: string) {
-    setProjectId(nextProjectId)
+    setProjectId(nextProjectId);
 
-    const selectedProject = projects.find(
-      (project) => project.id === nextProjectId
-    )
+    const selectedProject = projects.find((project) => project.id === nextProjectId);
 
     if (selectedProject?.clientId) {
-      setClientId(selectedProject.clientId)
+      setClientId(selectedProject.clientId);
     }
   }
 
   function startEdit(task: TaskItem) {
-    setEditingId(task.id)
-    setProjectId(task.projectId ?? "")
-    setClientId(task.clientId ?? "")
-    setAssignedToId(task.assignedToId ?? "")
-    setTitle(task.title)
-    setDescription(task.description ?? "")
-    setStatus(task.status)
-    setPriority(task.priority)
-    setSource(task.source)
-    setSourceRef(task.sourceRef ?? "")
-    setEstimatedHours(task.estimatedHours ?? "")
-    setDueDate(dateInputValue(task.dueDate))
-    setError("")
-    setModalOpen(true)
+    setEditingId(task.id);
+    setProjectId(task.projectId ?? '');
+    setClientId(task.clientId ?? '');
+    setAssignedToId(task.assignedToId ?? '');
+    setTitle(task.title);
+    setDescription(task.description ?? '');
+    setStatus(task.status);
+    setPriority(task.priority);
+    setSource(task.source);
+    setSourceRef(task.sourceRef ?? '');
+    setEstimatedHours(task.estimatedHours ?? '');
+    setDueDate(dateInputValue(task.dueDate));
+    setError('');
+    setModalOpen(true);
   }
 
-  async function submitTask(
-    event: React.FormEvent<HTMLFormElement>
-  ) {
-    event.preventDefault()
-    setError("")
-    setLoading(true)
+  async function submitTask(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError('');
+    setLoading(true);
 
     try {
-      const endpoint = isEditing
-        ? `/api/tasks/${editingId}`
-        : "/api/tasks"
-      const method = isEditing ? "PATCH" : "POST"
+      const endpoint = isEditing ? `/api/tasks/${editingId}` : '/api/tasks';
+      const method = isEditing ? 'PATCH' : 'POST';
 
       const response = await fetch(endpoint, {
         method,
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           projectId: projectId || null,
-          clientId: scope.canManageSources
-            ? clientId || null
-            : undefined,
+          clientId: scope.canManageSources ? clientId || null : undefined,
           assignedToId: scope.canAssignOthers
             ? assignedToId || null
             : isEditing
@@ -372,142 +348,118 @@ export default function TasksClient({
               : currentUserId,
           title,
           description,
-          status: isEditing ? status : "TODO",
+          status: isEditing ? status : 'TODO',
           priority,
-          source: scope.canManageSources
-            ? source
-            : isEditing
-              ? undefined
-              : "MANUAL",
-          sourceRef: scope.canManageSources
-            ? sourceRef
-            : undefined,
+          source: scope.canManageSources ? source : isEditing ? undefined : 'MANUAL',
+          sourceRef: scope.canManageSources ? sourceRef : undefined,
           estimatedHours,
           dueDate: dueDate || null,
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok || !data.ok) {
-        setError(data.message || "فشل حفظ بيانات المهمة")
-        return
+        setError(data.message || 'فشل حفظ بيانات المهمة');
+        return;
       }
 
-      aquaToast.success(
-        isEditing ? "تم حفظ تعديلات المهمة" : "تمت إضافة المهمة"
-      )
-      setModalOpen(false)
-      clearForm()
-      router.refresh()
+      aquaToast.success(isEditing ? 'تم حفظ تعديلات المهمة' : 'تمت إضافة المهمة');
+      setModalOpen(false);
+      clearForm();
+      router.refresh();
     } catch {
-      setError("حدث خطأ أثناء الاتصال بالخادم")
+      setError('حدث خطأ أثناء الاتصال بالخادم');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
-  async function updateTaskStatus(
-    task: TaskItem,
-    nextStatus: TaskStatus
-  ) {
-    setError("")
-    setBusyTaskId(task.id)
+  async function updateTaskStatus(task: TaskItem, nextStatus: TaskStatus) {
+    setError('');
+    setBusyTaskId(task.id);
 
     try {
       const response = await fetch(`/api/tasks/${task.id}`, {
-        method: "PATCH",
+        method: 'PATCH',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           status: nextStatus,
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok || !data.ok) {
-        const message =
-          data.message || "فشل تعديل حالة المهمة"
-        setError(message)
-        aquaToast.error(message)
-        return false
+        const message = data.message || 'فشل تعديل حالة المهمة';
+        setError(message);
+        aquaToast.error(message);
+        return false;
       }
 
-      aquaToast.success("تم تحديث حالة المهمة")
-      router.refresh()
-      return true
+      aquaToast.success('تم تحديث حالة المهمة');
+      router.refresh();
+      return true;
     } catch {
-      const message = "حدث خطأ أثناء الاتصال بالخادم"
-      setError(message)
-      aquaToast.error(message)
-      return false
+      const message = 'حدث خطأ أثناء الاتصال بالخادم';
+      setError(message);
+      aquaToast.error(message);
+      return false;
     } finally {
-      setBusyTaskId(null)
+      setBusyTaskId(null);
     }
   }
 
   async function archiveTask(task: TaskItem) {
-    setArchiveLoading(true)
+    setArchiveLoading(true);
 
     const succeeded = await updateTaskStatus(
       task,
-      task.status === "ARCHIVED" ? "TODO" : "ARCHIVED"
-    )
+      task.status === 'ARCHIVED' ? 'TODO' : 'ARCHIVED',
+    );
 
-    if (succeeded) setPendingArchive(null)
-    setArchiveLoading(false)
+    if (succeeded) setPendingArchive(null);
+    setArchiveLoading(false);
   }
 
   const metricItems = [
     {
-      label: "متأخرة",
+      label: 'متأخرة',
       value: stats.overdueTasks,
-      hint:
-        stats.overdueTasks > 0
-          ? "ابدأ بها أولًا"
-          : "لا يوجد تأخير",
+      hint: stats.overdueTasks > 0 ? 'ابدأ بها أولًا' : 'لا يوجد تأخير',
       icon: AlertTriangle,
-      tone: "danger",
+      tone: 'danger',
     },
     {
-      label: "مستحقة اليوم",
+      label: 'مستحقة اليوم',
       value: stats.todayTasks,
-      hint:
-        stats.todayTasks > 0
-          ? "ضمن تركيز اليوم"
-          : "لا استحقاقات اليوم",
+      hint: stats.todayTasks > 0 ? 'ضمن تركيز اليوم' : 'لا استحقاقات اليوم',
       icon: CalendarClock,
-      tone: "warning",
+      tone: 'warning',
     },
     {
-      label: "قيد التنفيذ",
+      label: 'قيد التنفيذ',
       value: stats.inProgressTasks,
-      hint: "عمل جارٍ حاليًا",
+      hint: 'عمل جارٍ حاليًا',
       icon: Clock3,
-      tone: "aqua",
+      tone: 'aqua',
     },
     {
-      label: "متعطلة",
+      label: 'متعطلة',
       value: stats.blockedTasks,
-      hint:
-        stats.blockedTasks > 0
-          ? "تحتاج إزالة عائق"
-          : "لا عوائق مفتوحة",
+      hint: stats.blockedTasks > 0 ? 'تحتاج إزالة عائق' : 'لا عوائق مفتوحة',
       icon: Ban,
-      tone: "blue",
+      tone: 'blue',
     },
-  ] as const
+  ] as const;
 
-  const columnCount = scope.showAssignee ? 7 : 6
+  const columnCount = scope.showAssignee ? 7 : 6;
 
   return (
     <div className={`${styles.page} aqua-tasks-page`}>
-      <section
-        className={styles.intro}
-        aria-labelledby="tasks-scope-title"
-      >
+      <section className={styles.intro} aria-labelledby="tasks-scope-title">
         <div className={styles.introCopy}>
           <AquaBadge size="sm" dot>
             {scope.label}
@@ -516,9 +468,7 @@ export default function TasksClient({
             <h2 id="tasks-scope-title" className={styles.introTitle}>
               العمل المطلوب منك في مكان واحد
             </h2>
-            <p className={styles.introDescription}>
-              {scope.description}
-            </p>
+            <p className={styles.introDescription}>{scope.description}</p>
           </div>
         </div>
 
@@ -531,22 +481,15 @@ export default function TasksClient({
           >
             افتح يومي
           </AquaLinkButton>
-          <AquaButton
-            size="sm"
-            leadingIcon={<Plus />}
-            onClick={openCreate}
-          >
+          <AquaButton size="sm" leadingIcon={<Plus />} onClick={openCreate}>
             مهمة جديدة
           </AquaButton>
         </div>
       </section>
 
-      <section
-        className={styles.metrics}
-        aria-label="ملخص المهام"
-      >
+      <section className={styles.metrics} aria-label="ملخص المهام">
         {metricItems.map((metric) => {
-          const Icon = metric.icon
+          const Icon = metric.icon;
 
           return (
             <AquaCard
@@ -558,18 +501,14 @@ export default function TasksClient({
                 <Icon />
               </div>
               <div className={styles.metricCopy}>
-                <span className={styles.metricLabel}>
-                  {metric.label}
-                </span>
+                <span className={styles.metricLabel}>{metric.label}</span>
                 <strong className={styles.metricValue} dir="ltr">
                   {metric.value}
                 </strong>
-                <span className={styles.metricHint}>
-                  {metric.hint}
-                </span>
+                <span className={styles.metricHint}>{metric.hint}</span>
               </div>
             </AquaCard>
-          )
+          );
         })}
       </section>
 
@@ -606,12 +545,7 @@ export default function TasksClient({
             placeholder="عنوان المهمة أو المشروع..."
           />
 
-          <AquaSelect
-            span={2}
-            name="status"
-            defaultValue={filters.status}
-            label="الحالة"
-          >
+          <AquaSelect span={2} name="status" defaultValue={filters.status} label="الحالة">
             <option value="">الكل</option>
             {taskStatuses.map((item) => (
               <option key={item} value={item}>
@@ -620,12 +554,7 @@ export default function TasksClient({
             ))}
           </AquaSelect>
 
-          <AquaSelect
-            span={2}
-            name="priority"
-            defaultValue={filters.priority}
-            label="الأولوية"
-          >
+          <AquaSelect span={2} name="priority" defaultValue={filters.priority} label="الأولوية">
             <option value="">الكل</option>
             {taskPriorities.map((item) => (
               <option key={item} value={item}>
@@ -634,12 +563,7 @@ export default function TasksClient({
             ))}
           </AquaSelect>
 
-          <AquaSelect
-            span={2}
-            name="due"
-            defaultValue={filters.due}
-            label="الاستحقاق"
-          >
+          <AquaSelect span={2} name="due" defaultValue={filters.due} label="الاستحقاق">
             <option value="">كل المواعيد</option>
             <option value="OVERDUE">متأخرة</option>
             <option value="TODAY">اليوم</option>
@@ -647,12 +571,12 @@ export default function TasksClient({
             <option value="NO_DUE_DATE">دون موعد</option>
           </AquaSelect>
 
-          <AquaSelect
-            span={3}
-            name="projectId"
-            defaultValue={filters.projectId}
-            label="المشروع"
-          >
+          <AquaSelect span={2} name="stale" defaultValue={filters.stale} label="الركود">
+            <option value="">كل المهام</option>
+            <option value="true">متوقفة فقط</option>
+          </AquaSelect>
+
+          <AquaSelect span={3} name="projectId" defaultValue={filters.projectId} label="المشروع">
             <option value="">كل المشاريع</option>
             {projects.map((project) => (
               <option key={project.id} value={project.id}>
@@ -671,30 +595,17 @@ export default function TasksClient({
               <option value="">كل المسؤولين</option>
               {users.map((user) => (
                 <option key={user.id} value={user.id}>
-                  {user.id === currentUserId ? "أنا" : user.name}
+                  {user.id === currentUserId ? 'أنا' : user.name}
                 </option>
               ))}
             </AquaSelect>
           ) : null}
 
-          <div
-            className="aqua-filter-bar__actions"
-            data-aqua-span="3"
-          >
-            <AquaButton
-              type="submit"
-              size="sm"
-              fullWidth
-              leadingIcon={<Search />}
-            >
+          <div className="aqua-filter-bar__actions" data-aqua-span="3">
+            <AquaButton type="submit" size="sm" fullWidth leadingIcon={<Search />}>
               تطبيق
             </AquaButton>
-            <AquaLinkButton
-              href="/dashboard/tasks"
-              variant="ghost"
-              size="sm"
-              fullWidth
-            >
+            <AquaLinkButton href="/dashboard/tasks" variant="ghost" size="sm" fullWidth>
               مسح
             </AquaLinkButton>
           </div>
@@ -703,18 +614,17 @@ export default function TasksClient({
         <AquaTable
           mobileStrategy="stack"
           density="compact"
-          minWidth={scope.showAssignee ? "960px" : "840px"}
+          minWidth={scope.showAssignee ? '960px' : '840px'}
           caption={`قائمة ${scope.label}`}
         >
           <thead>
             <tr>
               <th scope="col">المهمة</th>
               <th scope="col">الحالة</th>
+              <th scope="col">الركود</th>
               <th scope="col">الاستحقاق</th>
               <th scope="col">المشروع</th>
-              {scope.showAssignee ? (
-                <th scope="col">المسؤول</th>
-              ) : null}
+              {scope.showAssignee ? <th scope="col">المسؤول</th> : null}
               <th scope="col">الأولوية</th>
               <th scope="col">الإجراء التالي</th>
             </tr>
@@ -729,37 +639,31 @@ export default function TasksClient({
                 title="لا توجد مهام ضمن هذا العرض"
                 description={
                   activeFilterCount > 0
-                    ? "امسح الفلاتر أو غيّر معايير البحث."
-                    : "أضف مهمة جديدة، وستظهر هنا عند إسنادها إلى نطاقك."
+                    ? 'امسح الفلاتر أو غيّر معايير البحث.'
+                    : 'أضف مهمة جديدة، وستظهر هنا عند إسنادها إلى نطاقك.'
                 }
               />
             ) : (
               tasks.map((task) => {
-                const nextAction = nextTaskAction(task)
+                const nextAction = nextTaskAction(task);
 
                 return (
                   <tr key={task.id}>
                     <td data-label="المهمة">
                       <div className={styles.taskHeading}>
                         <div>
-                          <div className="aqua-table__primary">
-                            {task.title}
-                          </div>
+                          <div className="aqua-table__primary">{task.title}</div>
                           <div className="aqua-table__secondary">
                             {task.estimatedHours
                               ? `${task.estimatedHours} ساعة متوقعة`
-                              : "دون تقدير زمني"}
+                              : 'دون تقدير زمني'}
                             {task.openBlockerCount > 0
                               ? ` • ${task.openBlockerCount} عائق مفتوح`
-                              : ""}
+                              : ''}
                           </div>
                         </div>
                         {task.openBlockerCount > 0 ? (
-                          <AquaBadge
-                            variant="danger"
-                            size="sm"
-                            dot
-                          >
+                          <AquaBadge variant="danger" size="sm" dot>
                             عائق
                           </AquaBadge>
                         ) : null}
@@ -782,30 +686,33 @@ export default function TasksClient({
                     </td>
 
                     <td data-label="الحالة">
-                      <AquaBadge
-                        variant={statusVariant(task.status)}
-                        size="sm"
-                        dot
-                      >
+                      <AquaBadge variant={statusVariant(task.status)} size="sm" dot>
                         {taskStatusLabel(task.status)}
                       </AquaBadge>
                     </td>
 
+                    <td data-label="الركود">
+                      {task.isStale ? (
+                        <AquaBadge variant={task.staleEscalated ? 'danger' : 'warning'} size="sm">
+                          {task.staleEscalated
+                            ? `مُصعّدة · ${task.daysStale} يوم`
+                            : `متوقفة · ${task.daysStale} يوم`}
+                        </AquaBadge>
+                      ) : (
+                        <span className="aqua-table__secondary">—</span>
+                      )}
+                    </td>
+
                     <td data-label="الاستحقاق">
-                      <AquaBadge
-                        variant={task.dueVariant}
-                        size="sm"
-                      >
+                      <AquaBadge variant={task.dueVariant} size="sm">
                         {task.dueLabel}
                       </AquaBadge>
-                      <div className="aqua-table__secondary">
-                        {task.dueDisplay}
-                      </div>
+                      <div className="aqua-table__secondary">{task.dueDisplay}</div>
                     </td>
 
                     <td data-label="المشروع">
                       <span className="aqua-table__primary">
-                        {task.project?.name ?? "مهمة مستقلة"}
+                        {task.project?.name ?? 'مهمة مستقلة'}
                       </span>
                     </td>
 
@@ -813,17 +720,14 @@ export default function TasksClient({
                       <td data-label="المسؤول">
                         <span className="aqua-table__secondary">
                           {task.assignedToId === currentUserId
-                            ? "أنا"
-                            : task.assignedTo?.name ?? "غير محدد"}
+                            ? 'أنا'
+                            : (task.assignedTo?.name ?? 'غير محدد')}
                         </span>
                       </td>
                     ) : null}
 
                     <td data-label="الأولوية">
-                      <AquaBadge
-                        variant={priorityVariant(task.priority)}
-                        size="sm"
-                      >
+                      <AquaBadge variant={priorityVariant(task.priority)} size="sm">
                         {taskPriorityLabel(task.priority)}
                       </AquaBadge>
                     </td>
@@ -838,12 +742,7 @@ export default function TasksClient({
                               leadingIcon={nextAction.icon}
                               loading={busyTaskId === task.id}
                               loadingLabel="جارٍ التحديث"
-                              onClick={() =>
-                                updateTaskStatus(
-                                  task,
-                                  nextAction.status
-                                )
-                              }
+                              onClick={() => updateTaskStatus(task, nextAction.status)}
                             >
                               {nextAction.label}
                             </AquaButton>
@@ -866,19 +765,15 @@ export default function TasksClient({
                             onClick={() => setPendingArchive(task)}
                             disabled={busyTaskId === task.id}
                           >
-                            {task.status === "ARCHIVED"
-                              ? "استرجاع"
-                              : "أرشفة"}
+                            {task.status === 'ARCHIVED' ? 'استرجاع' : 'أرشفة'}
                           </AquaButton>
                         </div>
                       ) : (
-                        <span className="aqua-table__secondary">
-                          عرض فقط
-                        </span>
+                        <span className="aqua-table__secondary">عرض فقط</span>
                       )}
                     </td>
                   </tr>
-                )
+                );
               })
             )}
           </tbody>
@@ -888,23 +783,19 @@ export default function TasksClient({
       <AquaModal
         open={modalOpen}
         onClose={closeForm}
-        title={isEditing ? "تعديل المهمة" : "مهمة جديدة"}
+        title={isEditing ? 'تعديل المهمة' : 'مهمة جديدة'}
         description={
           isEditing
-            ? "حدّث البيانات التشغيلية المسموح لك بتعديلها."
+            ? 'حدّث البيانات التشغيلية المسموح لك بتعديلها.'
             : scope.canAssignOthers
-              ? "أنشئ مهمة وحدد المسؤول من نطاق عملك."
-              : "أنشئ مهمة شخصية مرتبطة بعملك أو مشروعك."
+              ? 'أنشئ مهمة وحدد المسؤول من نطاق عملك.'
+              : 'أنشئ مهمة شخصية مرتبطة بعملك أو مشروعك.'
         }
         size="lg"
         closeOnBackdrop={!loading}
         footer={
           <div className="aqua-modal__action-row">
-            <AquaButton
-              variant="ghost"
-              onClick={closeForm}
-              disabled={loading}
-            >
+            <AquaButton variant="ghost" onClick={closeForm} disabled={loading}>
               إلغاء
             </AquaButton>
             <AquaButton
@@ -913,7 +804,7 @@ export default function TasksClient({
               loading={loading}
               loadingLabel="جارٍ الحفظ"
             >
-              {isEditing ? "حفظ التعديلات" : "إضافة المهمة"}
+              {isEditing ? 'حفظ التعديلات' : 'إضافة المهمة'}
             </AquaButton>
           </div>
         }
@@ -934,9 +825,7 @@ export default function TasksClient({
               span={6}
               label="المشروع"
               value={projectId}
-              onChange={(event) =>
-                changeProject(event.target.value)
-              }
+              onChange={(event) => changeProject(event.target.value)}
             >
               <option value="">مهمة مستقلة</option>
               {projects.map((project) => (
@@ -951,9 +840,7 @@ export default function TasksClient({
                 span={6}
                 label="العميل"
                 value={clientId}
-                onChange={(event) =>
-                  setClientId(event.target.value)
-                }
+                onChange={(event) => setClientId(event.target.value)}
               >
                 <option value="">دون عميل</option>
                 {clients.map((client) => (
@@ -969,28 +856,20 @@ export default function TasksClient({
                 span={6}
                 label="المسؤول"
                 value={assignedToId}
-                onChange={(event) =>
-                  setAssignedToId(event.target.value)
-                }
+                onChange={(event) => setAssignedToId(event.target.value)}
               >
                 <option value="">غير محدد</option>
                 {users.map((user) => (
                   <option key={user.id} value={user.id}>
-                    {user.id === currentUserId ? "أنا" : user.name}
+                    {user.id === currentUserId ? 'أنا' : user.name}
                   </option>
                 ))}
               </AquaSelect>
             ) : (
-              <div
-                className={styles.personalAssignment}
-                data-aqua-span="6"
-              >
+              <div className={styles.personalAssignment} data-aqua-span="6">
                 <span>المسؤول</span>
                 <strong>
-                  {assignedToId &&
-                  assignedToId !== currentUserId
-                    ? "المسؤول الحالي"
-                    : "أنت"}
+                  {assignedToId && assignedToId !== currentUserId ? 'المسؤول الحالي' : 'أنت'}
                 </strong>
               </div>
             )}
@@ -999,11 +878,7 @@ export default function TasksClient({
               span={6}
               label="الأولوية"
               value={priority}
-              onChange={(event) =>
-                setPriority(
-                  event.target.value as TaskPriority
-                )
-              }
+              onChange={(event) => setPriority(event.target.value as TaskPriority)}
             >
               {taskPriorities.map((item) => (
                 <option key={item} value={item}>
@@ -1017,9 +892,7 @@ export default function TasksClient({
                 span={6}
                 label="الحالة"
                 value={status}
-                onChange={(event) =>
-                  setStatus(event.target.value as TaskStatus)
-                }
+                onChange={(event) => setStatus(event.target.value as TaskStatus)}
               >
                 {taskStatuses.map((item) => (
                   <option key={item} value={item}>
@@ -1030,9 +903,7 @@ export default function TasksClient({
             ) : null}
 
             <div className="aqua-field" data-aqua-span="6">
-              <span className="aqua-field__label">
-                تاريخ التسليم
-              </span>
+              <span className="aqua-field__label">تاريخ التسليم</span>
               <AquaDatePicker
                 value={dueDate}
                 onChange={setDueDate}
@@ -1049,9 +920,7 @@ export default function TasksClient({
               inputMode="decimal"
               label="الساعات المتوقعة"
               value={estimatedHours}
-              onChange={(event) =>
-                setEstimatedHours(event.target.value)
-              }
+              onChange={(event) => setEstimatedHours(event.target.value)}
               className="text-start"
               placeholder="4"
             />
@@ -1062,11 +931,7 @@ export default function TasksClient({
                   span={6}
                   label="المصدر"
                   value={source}
-                  onChange={(event) =>
-                    setSource(
-                      event.target.value as TaskSource
-                    )
-                  }
+                  onChange={(event) => setSource(event.target.value as TaskSource)}
                 >
                   {taskSources.map((item) => (
                     <option key={item} value={item}>
@@ -1080,9 +945,7 @@ export default function TasksClient({
                   dir="ltr"
                   label="مرجع المصدر"
                   value={sourceRef}
-                  onChange={(event) =>
-                    setSourceRef(event.target.value)
-                  }
+                  onChange={(event) => setSourceRef(event.target.value)}
                   className="text-start"
                   placeholder="REQ-001"
                 />
@@ -1092,20 +955,14 @@ export default function TasksClient({
             <AquaTextarea
               label="وصف المهمة"
               value={description}
-              onChange={(event) =>
-                setDescription(event.target.value)
-              }
+              onChange={(event) => setDescription(event.target.value)}
               rows={4}
               placeholder="النتيجة المطلوبة وأي تفاصيل تساعد على التنفيذ."
             />
           </div>
 
           {error ? (
-            <AquaAlert
-              variant="danger"
-              title="تعذر حفظ المهمة"
-              className="mt-3 mb-0"
-            >
+            <AquaAlert variant="danger" title="تعذر حفظ المهمة" className="mt-3 mb-0">
               {error}
             </AquaAlert>
           ) : null}
@@ -1115,36 +972,24 @@ export default function TasksClient({
       <AquaConfirmDialog
         open={Boolean(pendingArchive)}
         onClose={() => {
-          if (!archiveLoading) setPendingArchive(null)
+          if (!archiveLoading) setPendingArchive(null);
         }}
         onConfirm={async () => {
           if (pendingArchive) {
-            await archiveTask(pendingArchive)
+            await archiveTask(pendingArchive);
           }
         }}
-        title={
-          pendingArchive?.status === "ARCHIVED"
-            ? "استرجاع المهمة"
-            : "أرشفة المهمة"
-        }
+        title={pendingArchive?.status === 'ARCHIVED' ? 'استرجاع المهمة' : 'أرشفة المهمة'}
         description={
-          pendingArchive?.status === "ARCHIVED"
-            ? `ستعود مهمة ${pendingArchive?.title ?? ""} إلى قائمة العمل.`
-            : `ستنتقل مهمة ${pendingArchive?.title ?? ""} إلى الأرشيف مع الاحتفاظ بسجلها.`
+          pendingArchive?.status === 'ARCHIVED'
+            ? `ستعود مهمة ${pendingArchive?.title ?? ''} إلى قائمة العمل.`
+            : `ستنتقل مهمة ${pendingArchive?.title ?? ''} إلى الأرشيف مع الاحتفاظ بسجلها.`
         }
-        confirmLabel={
-          pendingArchive?.status === "ARCHIVED"
-            ? "استرجاع"
-            : "أرشفة"
-        }
+        confirmLabel={pendingArchive?.status === 'ARCHIVED' ? 'استرجاع' : 'أرشفة'}
         confirmVariant="primary"
-        tone={
-          pendingArchive?.status === "ARCHIVED"
-            ? "neutral"
-            : "warning"
-        }
+        tone={pendingArchive?.status === 'ARCHIVED' ? 'neutral' : 'warning'}
         loading={archiveLoading}
       />
     </div>
-  )
+  );
 }
