@@ -1,4 +1,4 @@
-import "server-only"
+import 'server-only';
 
 import {
   buildPasswordResetEmail,
@@ -9,63 +9,93 @@ import {
   buildAmendmentInvoicePortalDeliveryEmail,
   buildAmendmentInvoicePaymentReminderEmail,
   buildPaymentReceiptEmail,
-} from "@/lib/email-templates"
+  buildTaskStaleReminderEmail,
+  buildTaskStaleEscalationEmail,
+} from '@/lib/email-templates';
 
 function requiredEmailEnv(
-  name: "RESEND_API_KEY" | "PASSWORD_RESET_FROM" | "PROPOSAL_FROM" | "FEEDBACK_FROM" | "INVOICE_FROM",
+  name:
+    | 'RESEND_API_KEY'
+    | 'PASSWORD_RESET_FROM'
+    | 'PROPOSAL_FROM'
+    | 'FEEDBACK_FROM'
+    | 'INVOICE_FROM'
+    | 'TASK_FROM',
 ) {
-  const value = process.env[name]?.trim()
+  const value = process.env[name]?.trim();
 
   if (!value) {
-    throw new Error(`${name} is required to send transactional emails`)
+    throw new Error(`${name} is required to send transactional emails`);
   }
 
-  return value
+  return value;
 }
 
 export async function sendAmendmentInvoiceDeliveryEmail(input: {
-  to: string
-  recipientName: string
-  invoiceNumber: string
-  amendmentNumber: string
-  projectName: string
-  totalAmount: string
-  currency: string
-  issueDate: string
-  dueDate: string
-  companyEmail: string
+  to: string;
+  recipientName: string;
+  invoiceNumber: string;
+  amendmentNumber: string;
+  projectName: string;
+  totalAmount: string;
+  currency: string;
+  issueDate: string;
+  dueDate: string;
+  companyEmail: string;
 }) {
-  const from = requiredEmailEnv("INVOICE_FROM")
-  const email = buildAmendmentInvoiceDeliveryEmail(input)
-  return sendTransactionalEmail({ from, to: input.to, ...email })
+  const from = requiredEmailEnv('INVOICE_FROM');
+  const email = buildAmendmentInvoiceDeliveryEmail(input);
+  return sendTransactionalEmail({ from, to: input.to, ...email });
 }
 
 export async function sendAmendmentInvoicePortalDeliveryEmail(input: {
-  to: string
-  recipientName: string
-  invoiceNumber: string
-  projectName: string
-  totalAmount: string
-  currency: string
-  dueDate: string
-  portalUrl: string
-  validUntilLabel: string
+  to: string;
+  recipientName: string;
+  invoiceNumber: string;
+  projectName: string;
+  totalAmount: string;
+  currency: string;
+  dueDate: string;
+  portalUrl: string;
+  validUntilLabel: string;
 }) {
-  const from = requiredEmailEnv("INVOICE_FROM")
-  const email = buildAmendmentInvoicePortalDeliveryEmail(input)
-  return sendTransactionalEmail({ from, to: input.to, ...email })
+  const from = requiredEmailEnv('INVOICE_FROM');
+  const email = buildAmendmentInvoicePortalDeliveryEmail(input);
+  return sendTransactionalEmail({ from, to: input.to, ...email });
 }
 
-export async function sendAmendmentInvoicePaymentReminderEmail(input: { to: string; recipientName: string; invoiceNumber: string; projectName: string; outstandingAmount: string; currency: string; dueDate: string; portalUrl: string; validUntilLabel: string }) {
-  const from = requiredEmailEnv("INVOICE_FROM")
-  const email = buildAmendmentInvoicePaymentReminderEmail(input)
-  return sendTransactionalEmail({ from, to: input.to, ...email })
+export async function sendAmendmentInvoicePaymentReminderEmail(input: {
+  to: string;
+  recipientName: string;
+  invoiceNumber: string;
+  projectName: string;
+  outstandingAmount: string;
+  currency: string;
+  dueDate: string;
+  portalUrl: string;
+  validUntilLabel: string;
+}) {
+  const from = requiredEmailEnv('INVOICE_FROM');
+  const email = buildAmendmentInvoicePaymentReminderEmail(input);
+  return sendTransactionalEmail({ from, to: input.to, ...email });
 }
 
-export async function sendPaymentReceiptEmail(input: { to: string; recipientName: string; receiptReference: string; invoiceNumber: string; projectName: string; amount: string; currency: string; paymentMethod: string; paidAt: string; paymentReference: string | null; companyEmail: string }) {
-  const from = requiredEmailEnv("INVOICE_FROM")
-  const email = buildPaymentReceiptEmail(input)
-  return sendTransactionalEmail({ from, to: input.to, ...email })
+export async function sendPaymentReceiptEmail(input: {
+  to: string;
+  recipientName: string;
+  receiptReference: string;
+  invoiceNumber: string;
+  projectName: string;
+  amount: string;
+  currency: string;
+  paymentMethod: string;
+  paidAt: string;
+  paymentReference: string | null;
+  companyEmail: string;
+}) {
+  const from = requiredEmailEnv('INVOICE_FROM');
+  const email = buildPaymentReceiptEmail(input);
+  return sendTransactionalEmail({ from, to: input.to, ...email });
 }
 
 async function sendTransactionalEmail({
@@ -75,18 +105,18 @@ async function sendTransactionalEmail({
   text,
   html,
 }: {
-  from: string
-  to: string
-  subject: string
-  text: string
-  html: string
+  from: string;
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
 }) {
-  const apiKey = requiredEmailEnv("RESEND_API_KEY")
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
+  const apiKey = requiredEmailEnv('RESEND_API_KEY');
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       from,
@@ -95,22 +125,20 @@ async function sendTransactionalEmail({
       text,
       html,
     }),
-    cache: "no-store",
-  })
+    cache: 'no-store',
+  });
 
-  const rawBody = await response.text()
+  const rawBody = await response.text();
 
   if (!response.ok) {
-    throw new Error(
-      `RESEND_EMAIL_FAILED:${response.status}:${rawBody.slice(0, 500)}`,
-    )
+    throw new Error(`RESEND_EMAIL_FAILED:${response.status}:${rawBody.slice(0, 500)}`);
   }
 
   try {
-    const body = JSON.parse(rawBody) as { id?: string }
-    return body.id ?? null
+    const body = JSON.parse(rawBody) as { id?: string };
+    return body.id ?? null;
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -119,18 +147,18 @@ export async function sendPasswordResetEmail({
   recipientName,
   resetUrl,
 }: {
-  to: string
-  recipientName: string
-  resetUrl: string
+  to: string;
+  recipientName: string;
+  resetUrl: string;
 }) {
-  const from = requiredEmailEnv("PASSWORD_RESET_FROM")
-  const email = buildPasswordResetEmail({ recipientName, resetUrl })
+  const from = requiredEmailEnv('PASSWORD_RESET_FROM');
+  const email = buildPasswordResetEmail({ recipientName, resetUrl });
 
   await sendTransactionalEmail({
     from,
     to,
     ...email,
-  })
+  });
 }
 
 export async function sendProposalDeliveryEmail({
@@ -141,27 +169,27 @@ export async function sendProposalDeliveryEmail({
   proposalUrl,
   validUntilLabel,
 }: {
-  to: string
-  recipientName: string
-  proposalNumber: string
-  proposalTitle: string
-  proposalUrl: string
-  validUntilLabel: string
+  to: string;
+  recipientName: string;
+  proposalNumber: string;
+  proposalTitle: string;
+  proposalUrl: string;
+  validUntilLabel: string;
 }) {
-  const from = requiredEmailEnv("PROPOSAL_FROM")
+  const from = requiredEmailEnv('PROPOSAL_FROM');
   const email = buildProposalDeliveryEmail({
     recipientName,
     proposalNumber,
     proposalTitle,
     proposalUrl,
     validUntilLabel,
-  })
+  });
 
   return sendTransactionalEmail({
     from,
     to,
     ...email,
-  })
+  });
 }
 
 export async function sendProjectFeedbackInvitationEmail({
@@ -171,19 +199,88 @@ export async function sendProjectFeedbackInvitationEmail({
   feedbackUrl,
   validUntilLabel,
 }: {
-  to: string
-  recipientName: string
-  projectName: string
-  feedbackUrl: string
-  validUntilLabel: string
+  to: string;
+  recipientName: string;
+  projectName: string;
+  feedbackUrl: string;
+  validUntilLabel: string;
 }) {
-  const from = requiredEmailEnv("FEEDBACK_FROM")
-  const email = buildProjectFeedbackInvitationEmail({ recipientName, projectName, feedbackUrl, validUntilLabel })
-  return sendTransactionalEmail({ from, to, ...email })
+  const from = requiredEmailEnv('FEEDBACK_FROM');
+  const email = buildProjectFeedbackInvitationEmail({
+    recipientName,
+    projectName,
+    feedbackUrl,
+    validUntilLabel,
+  });
+  return sendTransactionalEmail({ from, to, ...email });
 }
 
-export async function sendProjectFeedbackReminderEmail({ to, recipientName, projectName, feedbackUrl, validUntilLabel }: { to: string; recipientName: string; projectName: string; feedbackUrl: string; validUntilLabel: string }) {
-  const from = requiredEmailEnv("FEEDBACK_FROM")
-  const email = buildProjectFeedbackReminderEmail({ recipientName, projectName, feedbackUrl, validUntilLabel })
-  return sendTransactionalEmail({ from, to, ...email })
+export async function sendProjectFeedbackReminderEmail({
+  to,
+  recipientName,
+  projectName,
+  feedbackUrl,
+  validUntilLabel,
+}: {
+  to: string;
+  recipientName: string;
+  projectName: string;
+  feedbackUrl: string;
+  validUntilLabel: string;
+}) {
+  const from = requiredEmailEnv('FEEDBACK_FROM');
+  const email = buildProjectFeedbackReminderEmail({
+    recipientName,
+    projectName,
+    feedbackUrl,
+    validUntilLabel,
+  });
+  return sendTransactionalEmail({ from, to, ...email });
+}
+
+export async function sendTaskStaleReminderEmail({
+  to,
+  recipientName,
+  taskTitle,
+  projectName,
+  daysStale,
+  taskUrl,
+}: {
+  to: string;
+  recipientName: string;
+  taskTitle: string;
+  projectName: string | null;
+  daysStale: number;
+  taskUrl: string;
+}) {
+  const from = requiredEmailEnv('TASK_FROM');
+  const email = buildTaskStaleReminderEmail({
+    recipientName,
+    taskTitle,
+    projectName,
+    daysStale,
+    taskUrl,
+  });
+  return sendTransactionalEmail({ from, to, ...email });
+}
+
+export async function sendTaskStaleEscalationEmail({
+  to,
+  recipientName,
+  staleTasks,
+  taskListUrl,
+}: {
+  to: string;
+  recipientName: string;
+  staleTasks: Array<{
+    title: string;
+    assignedToName: string;
+    daysStale: number;
+    projectName: string | null;
+  }>;
+  taskListUrl: string;
+}) {
+  const from = requiredEmailEnv('TASK_FROM');
+  const email = buildTaskStaleEscalationEmail({ recipientName, staleTasks, taskListUrl });
+  return sendTransactionalEmail({ from, to, ...email });
 }

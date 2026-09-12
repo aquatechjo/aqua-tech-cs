@@ -1,9 +1,9 @@
-import { requireAuth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
-import SettingsClient from "./SettingsClient"
+import { requireAuth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import SettingsClient from './SettingsClient';
 
 export default async function SettingsPage() {
-  const user = await requireAuth()
+  const user = await requireAuth();
 
   const company = await prisma.company.findUnique({
     where: {
@@ -21,12 +21,14 @@ export default async function SettingsPage() {
       currency: true,
       timezone: true,
       language: true,
+      taskStaleReminderDays: true,
+      taskStaleEscalationDays: true,
       updatedAt: true,
     },
-  })
+  });
 
   if (!company) {
-    throw new Error("Company not found")
+    throw new Error('Company not found');
   }
 
   return (
@@ -36,5 +38,5 @@ export default async function SettingsPage() {
         role: user.role,
       }}
     />
-  )
+  );
 }

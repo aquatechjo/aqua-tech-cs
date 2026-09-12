@@ -1,6 +1,6 @@
-import assert from "node:assert/strict"
-import { readFileSync } from "node:fs"
-import test from "node:test"
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import test from 'node:test';
 
 import {
   aquaDataDensities,
@@ -9,184 +9,157 @@ import {
   aquaPageStateVariants,
   aquaTableMobileStrategies,
   aquaTabVariants,
-} from "../../src/design-system/pattern-contracts"
+} from '../../src/design-system/pattern-contracts';
 
-const patternsCss = readFileSync("src/styles/aqua-patterns.css", "utf8")
-const modal = readFileSync("src/components/aqua/AquaModal.tsx", "utf8")
-const table = readFileSync("src/components/aqua/AquaTable.tsx", "utf8")
-const clientsPage = readFileSync(
-  "src/app/dashboard/clients/ClientsClient.tsx",
-  "utf8"
-)
-const pageHeader = readFileSync(
-  "src/components/layout/AquaPageHeader.tsx",
-  "utf8"
-)
+const patternsCss = readFileSync('src/styles/aqua-patterns.css', 'utf8');
+const modal = readFileSync('src/components/aqua/AquaModal.tsx', 'utf8');
+const table = readFileSync('src/components/aqua/AquaTable.tsx', 'utf8');
+const clientsPage = readFileSync('src/app/dashboard/clients/ClientsClient.tsx', 'utf8');
+const pageHeader = readFileSync('src/components/layout/AquaPageHeader.tsx', 'utf8');
 
-test("DS-04 exposes constrained data and workflow contracts", () => {
-  assert.deepEqual(aquaDataDensities, ["comfortable", "compact"])
-  assert.deepEqual(aquaTableMobileStrategies, ["scroll", "stack"])
-  assert.deepEqual(aquaModalSizes, ["sm", "md", "lg", "xl"])
-  assert.deepEqual(aquaTabVariants, ["line", "pill"])
-  assert.deepEqual(aquaPageStateVariants, [
-    "loading",
-    "empty",
-    "error",
-    "success",
-    "permission",
-  ])
-  assert.deepEqual(aquaDetailColumns, [1, 2, 3])
-})
+test('DS-04 exposes constrained data and workflow contracts', () => {
+  assert.deepEqual(aquaDataDensities, ['comfortable', 'compact']);
+  assert.deepEqual(aquaTableMobileStrategies, ['scroll', 'stack']);
+  assert.deepEqual(aquaModalSizes, ['sm', 'md', 'lg', 'xl']);
+  assert.deepEqual(aquaTabVariants, ['line', 'pill']);
+  assert.deepEqual(aquaPageStateVariants, ['loading', 'empty', 'error', 'success', 'permission']);
+  assert.deepEqual(aquaDetailColumns, [1, 2, 3]);
+});
 
-test("workflow CSS covers responsive tables, modal states, RTL, and reduced motion", () => {
+test('workflow CSS covers responsive tables, modal states, RTL, and reduced motion', () => {
   for (const token of [
-    'data-aqua-mobile-strategy="stack"',
-    "content: attr(data-label)",
-    "padding-inline",
-    "inset-inline",
-    ":focus-visible",
-    "prefers-reduced-motion",
-    "aqua-modal-layer",
-    "aqua-page-state--permission",
-    "@media (max-width: 767.98px)",
+    "data-aqua-mobile-strategy='stack'",
+    'content: attr(data-label)',
+    'padding-inline',
+    'inset-inline',
+    ':focus-visible',
+    'prefers-reduced-motion',
+    'aqua-modal-layer',
+    'aqua-page-state--permission',
+    '@media (max-width: 767.98px)',
   ]) {
-    assert.match(
-      patternsCss,
-      new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-    )
+    assert.match(patternsCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
-})
+});
 
-test("UI-03 provides a compact operational page hierarchy", () => {
+test('UI-03 provides a compact operational page hierarchy', () => {
   for (const token of [
-    "aqua-page-header__context",
-    "aqua-page-header__actions",
-    "aqua-page-header__meta",
-    "<header",
+    'aqua-page-header__context',
+    'aqua-page-header__actions',
+    'aqua-page-header__meta',
+    '<header',
   ]) {
-    assert.match(pageHeader, new RegExp(token))
+    assert.match(pageHeader, new RegExp(token));
   }
 
-  assert.equal(pageHeader.includes("aqua-page-brand-box"), false)
+  assert.equal(pageHeader.includes('aqua-page-brand-box'), false);
+  assert.match(patternsCss, /\.aqua-data-panel[\s\S]*border-radius:\s*var\(--at-radius-lg\)/u);
   assert.match(
     patternsCss,
-    /\.aqua-data-panel[\s\S]*border-radius:\s*var\(--at-radius-lg\)/u
-  )
-  assert.match(
-    patternsCss,
-    /\.aqua-table >[\s\S]*padding:\s*var\(--at-space-3\) var\(--at-space-4\)/u
-  )
-})
+    /\.aqua-table >[\s\S]*padding:\s*var\(--at-space-3\) var\(--at-space-4\)/u,
+  );
+});
 
-test("UI-05 page states use compact semantic layout tokens", () => {
+test('UI-05 page states use compact semantic layout tokens', () => {
   for (const token of [
-    ".aqua-page-state",
-    "min-block-size: 160px",
-    ".aqua-page-state--compact",
-    "min-block-size: 112px",
-    "font-size: var(--at-text-sm)",
+    '.aqua-page-state',
+    'min-block-size: 160px',
+    '.aqua-page-state--compact',
+    'min-block-size: 112px',
+    'font-size: var(--at-text-sm)',
   ]) {
-    assert.match(patternsCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
+    assert.match(patternsCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
-})
+});
 
-test("canonical modal manages focus, Escape, scroll lock, and restoration", () => {
+test('canonical modal manages focus, Escape, scroll lock, and restoration', () => {
   for (const token of [
     'role="dialog"',
     'aria-modal="true"',
-    "focusableSelector",
+    'focusableSelector',
     'event.key === "Escape"',
     'event.key !== "Tab"',
     'document.body.style.overflow = "hidden"',
-    "previousActiveElement?.focus()",
-    "createPortal",
-    "dismissible",
-    "disabled={!dismissible}",
+    'previousActiveElement?.focus()',
+    'createPortal',
+    'dismissible',
+    'disabled={!dismissible}',
   ]) {
-    assert.match(
-      modal,
-      new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-    )
+    assert.match(modal, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 
   assert.match(
     patternsCss,
-    /\.aqua-modal\s*\{[\s\S]*grid-template-rows:\s*auto minmax\(0, 1fr\) auto;/u
-  )
+    /\.aqua-modal\s*\{[\s\S]*grid-template-rows:\s*auto minmax\(0, 1fr\) auto;/u,
+  );
+  assert.match(patternsCss, /\.aqua-modal__body\s*\{[\s\S]*overflow-y:\s*auto;/u);
+});
+
+test('UI-06 keeps modal hierarchy compact and confirmations non-dismissible while loading', () => {
+  const confirmDialog = readFileSync('src/components/aqua/AquaConfirmDialog.tsx', 'utf8');
+
+  for (const token of [
+    'inline-size: min(100%, 600px)',
+    'border-radius: var(--at-radius-lg)',
+    'padding: var(--at-space-4) var(--at-space-5)',
+    'inline-size: 36px',
+  ]) {
+    assert.match(patternsCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+
+  assert.match(confirmDialog, /dismissible=\{!loading\}/u);
+});
+
+test('UI-07 keeps tables, tabs, and pagination compact', () => {
+  const bootstrapCss = readFileSync('src/styles/aqua-bootstrap.css', 'utf8');
+
+  for (const token of [
+    '.aqua-tabs__item',
+    'min-block-size: 38px',
+    '.aqua-tabs__count',
+    'block-size: 1.25rem',
+    '.aqua-pagination .page-link',
+    'min-inline-size: 36px',
+    '.aqua-table__actions',
+    'white-space: nowrap',
+  ]) {
+    assert.match(patternsCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+
+  for (const token of [
+    'UI-07 operational compatibility',
+    '.table:not(.aqua-table)',
+    '.table-responsive',
+    'scrollbar-width: thin',
+  ]) {
+    assert.match(bootstrapCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+});
+
+test('canonical table requires an explicit mobile strategy contract', () => {
+  assert.match(table, /data-aqua-mobile-strategy/u);
+  assert.match(table, /data-aqua-density/u);
+  assert.match(table, /visually-hidden/u);
   assert.match(
     patternsCss,
-    /\.aqua-modal__body\s*\{[\s\S]*overflow-y:\s*auto;/u
-  )
-})
+    /\.aqua-table-shell\s*\{[\s\S]*overflow-x:\s*auto;[\s\S]*overflow-y:\s*hidden;/u,
+  );
+});
 
-test("UI-06 keeps modal hierarchy compact and confirmations non-dismissible while loading", () => {
-  const confirmDialog = readFileSync(
-    "src/components/aqua/AquaConfirmDialog.tsx",
-    "utf8"
-  )
-
-  for (const token of [
-    "inline-size: min(100%, 600px)",
-    "border-radius: var(--at-radius-lg)",
-    "padding: var(--at-space-4) var(--at-space-5)",
-    "inline-size: 36px",
-  ]) {
-    assert.match(patternsCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
-  }
-
-  assert.match(confirmDialog, /dismissible=\{!loading\}/u)
-})
-
-test("UI-07 keeps tables, tabs, and pagination compact", () => {
-  const bootstrapCss = readFileSync("src/styles/aqua-bootstrap.css", "utf8")
-
-  for (const token of [
-    ".aqua-tabs__item",
-    "min-block-size: 38px",
-    ".aqua-tabs__count",
-    "block-size: 1.25rem",
-    ".aqua-pagination .page-link",
-    "min-inline-size: 36px",
-    ".aqua-table__actions",
-    "white-space: nowrap",
-  ]) {
-    assert.match(patternsCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
-  }
-
-  for (const token of [
-    "UI-07 operational compatibility",
-    ".table:not(.aqua-table)",
-    ".table-responsive",
-    "scrollbar-width: thin",
-  ]) {
-    assert.match(bootstrapCss, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
-  }
-})
-
-test("canonical table requires an explicit mobile strategy contract", () => {
-  assert.match(table, /data-aqua-mobile-strategy/u)
-  assert.match(table, /data-aqua-density/u)
-  assert.match(table, /visually-hidden/u)
-  assert.match(
-    patternsCss,
-    /\.aqua-table-shell\s*\{[\s\S]*overflow-x:\s*auto;[\s\S]*overflow-y:\s*hidden;/u
-  )
-})
-
-test("Clients CRM is the first DS-04 reference implementation", () => {
+test('Clients CRM is the first DS-04 reference implementation', () => {
   for (const component of [
-    "AquaFormSection",
-    "AquaFilterBar",
-    "AquaDataPanel",
-    "AquaTable",
-    "AquaTableStateRow",
-    "AquaConfirmDialog",
+    'AquaFormSection',
+    'AquaFilterBar',
+    'AquaDataPanel',
+    'AquaTable',
+    'AquaTableStateRow',
+    'AquaConfirmDialog',
   ]) {
-    assert.match(clientsPage, new RegExp(component))
+    assert.match(clientsPage, new RegExp(component));
   }
 
-  assert.match(clientsPage, /mobileStrategy="stack"/u)
-  assert.match(clientsPage, /data-label="العميل"/u)
-  assert.equal(clientsPage.includes("window.confirm"), false)
-  assert.equal(clientsPage.includes("aqua-crm-table-scroll"), false)
-})
+  assert.match(clientsPage, /mobileStrategy="stack"/u);
+  assert.match(clientsPage, /data-label="العميل"/u);
+  assert.equal(clientsPage.includes('window.confirm'), false);
+  assert.equal(clientsPage.includes('aqua-crm-table-scroll'), false);
+});

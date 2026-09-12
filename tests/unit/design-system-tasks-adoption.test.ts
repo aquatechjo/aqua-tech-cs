@@ -41,7 +41,7 @@ test('AD-03 Tasks enforces personal team and company data scopes on the server',
   assert.match(page, /resolveTaskAccessScope\(user\)/u);
   assert.match(page, /buildTaskVisibilityWhere\(scope\)/u);
   assert.match(page, /canEditTask\(user/u);
-  assert.match(page, /scope\.dataScope !== "personal"/u);
+  assert.match(page, /scope\.dataScope !== 'personal'/u);
   assert.match(page, /ar-JO-u-nu-latn/u);
   assert.match(page, /businessDate\(now, timeZone\)/u);
   assert.match(scopeServer, /reports:/u);

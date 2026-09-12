@@ -1,32 +1,39 @@
-import { z } from "zod"
-import { ActivityAction } from "@/generated/prisma/enums"
-import { ACCESS_ROLES, assertRole } from "@/lib/access-control"
-import { err, handleApiError, ok } from "@/lib/api-response"
-import { getRequestMeta, requireAuth } from "@/lib/auth"
-import { logActivity } from "@/lib/activity"
-import { prisma } from "@/lib/prisma"
-import { assertSameOrigin, readJsonBody } from "@/lib/request-security"
+import { z } from 'zod';
+import { ActivityAction } from '@/generated/prisma/enums';
+import { ACCESS_ROLES, assertRole } from '@/lib/access-control';
+import { err, handleApiError, ok } from '@/lib/api-response';
+import { getRequestMeta, requireAuth } from '@/lib/auth';
+import { logActivity } from '@/lib/activity';
+import { prisma } from '@/lib/prisma';
+import { assertSameOrigin, readJsonBody } from '@/lib/request-security';
 
-const updateCompanySchema = z.object({
-  name: z.string().min(2, "اسم الشركة مطلوب"),
-  email: z.string().email("البريد الإلكتروني غير صحيح").optional().or(z.literal("")),
-  phone: z.string().optional().or(z.literal("")),
-  website: z.string().url("رابط الموقع غير صحيح").optional().or(z.literal("")),
-  address: z.string().optional().or(z.literal("")),
-  country: z.string().min(2, "الدولة مطلوبة"),
-  currency: z.string().min(2).max(5),
-  timezone: z.string().min(2),
-  language: z.string().min(2).max(5),
-})
+const updateCompanySchema = z
+  .object({
+    name: z.string().min(2, 'اسم الشركة مطلوب'),
+    email: z.string().email('البريد الإلكتروني غير صحيح').optional().or(z.literal('')),
+    phone: z.string().optional().or(z.literal('')),
+    website: z.string().url('رابط الموقع غير صحيح').optional().or(z.literal('')),
+    address: z.string().optional().or(z.literal('')),
+    country: z.string().min(2, 'الدولة مطلوبة'),
+    currency: z.string().min(2).max(5),
+    timezone: z.string().min(2),
+    language: z.string().min(2).max(5),
+    taskStaleReminderDays: z.coerce.number().int().min(1).max(90),
+    taskStaleEscalationDays: z.coerce.number().int().min(1).max(90),
+  })
+  .refine((data) => data.taskStaleEscalationDays > data.taskStaleReminderDays, {
+    message: 'مدة التصعيد للمدير يجب أن تكون أطول من مدة تذكير الموظف',
+    path: ['taskStaleEscalationDays'],
+  });
 
 function emptyToNull(value?: string) {
-  if (!value || value.trim() === "") return null
-  return value.trim()
+  if (!value || value.trim() === '') return null;
+  return value.trim();
 }
 
 export async function GET() {
   try {
-    const user = await requireAuth()
+    const user = await requireAuth();
 
     const company = await prisma.company.findUnique({
       where: {
@@ -45,42 +52,40 @@ export async function GET() {
         currency: true,
         timezone: true,
         language: true,
+        taskStaleReminderDays: true,
+        taskStaleEscalationDays: true,
         createdAt: true,
         updatedAt: true,
       },
-    })
+    });
 
     if (!company) {
-      return err("الشركة غير موجودة", 404)
+      return err('الشركة غير موجودة', 404);
     }
 
-    return ok({ company })
+    return ok({ company });
   } catch (error) {
-    return handleApiError(error, "COMPANY_GET_ERROR")
+    return handleApiError(error, 'COMPANY_GET_ERROR');
   }
 }
 
 export async function PATCH(request: Request) {
   try {
-    assertSameOrigin(request)
+    assertSameOrigin(request);
 
-    const user = await requireAuth()
+    const user = await requireAuth();
 
-    assertRole(
-      user.role,
-      ACCESS_ROLES.companySettings,
-      "لا تملك صلاحية تعديل إعدادات الشركة"
-    )
+    assertRole(user.role, ACCESS_ROLES.companySettings, 'لا تملك صلاحية تعديل إعدادات الشركة');
 
-    const body = await readJsonBody(request)
-    const parsed = updateCompanySchema.safeParse(body)
+    const body = await readJsonBody(request);
+    const parsed = updateCompanySchema.safeParse(body);
 
     if (!parsed.success) {
-      return err("البيانات المدخلة غير صحيحة", 400, parsed.error.flatten())
+      return err('البيانات المدخلة غير صحيحة', 400, parsed.error.flatten());
     }
 
-    const data = parsed.data
-    const meta = await getRequestMeta()
+    const data = parsed.data;
+    const meta = await getRequestMeta();
 
     const company = await prisma.$transaction(async (tx) => {
       const updatedCompany = await tx.company.update({
@@ -97,6 +102,8 @@ export async function PATCH(request: Request) {
           currency: data.currency.trim().toUpperCase(),
           timezone: data.timezone.trim(),
           language: data.language.trim(),
+          taskStaleReminderDays: data.taskStaleReminderDays,
+          taskStaleEscalationDays: data.taskStaleEscalationDays,
         },
         select: {
           id: true,
@@ -111,17 +118,19 @@ export async function PATCH(request: Request) {
           currency: true,
           timezone: true,
           language: true,
+          taskStaleReminderDays: true,
+          taskStaleEscalationDays: true,
           updatedAt: true,
         },
-      })
+      });
 
       await logActivity({
         companyId: user.companyId,
         userId: user.id,
         action: ActivityAction.COMPANY_UPDATED,
-        entityType: "Company",
+        entityType: 'Company',
         entityId: updatedCompany.id,
-        message: "تم تعديل إعدادات الشركة",
+        message: 'تم تعديل إعدادات الشركة',
         metadata: {
           name: updatedCompany.name,
           email: updatedCompany.email,
@@ -133,17 +142,13 @@ export async function PATCH(request: Request) {
         ipAddress: meta.ipAddress,
         userAgent: meta.userAgent,
         db: tx,
-      })
+      });
 
-      return updatedCompany
-    })
+      return updatedCompany;
+    });
 
-    return ok({ company })
+    return ok({ company });
   } catch (error) {
-    return handleApiError(
-      error,
-      "COMPANY_PATCH_ERROR",
-      "حدث خطأ أثناء تعديل إعدادات الشركة"
-    )
+    return handleApiError(error, 'COMPANY_PATCH_ERROR', 'حدث خطأ أثناء تعديل إعدادات الشركة');
   }
 }

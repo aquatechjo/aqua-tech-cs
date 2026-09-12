@@ -18,6 +18,7 @@
     "ds:check": "node scripts/sync-aqua-design-system.mjs --check",
     "ds:starter": "node scripts/create-aqua-product-starter.mjs",
     "ds:visual:update": "node scripts/update-aqua-visual-baseline.mjs",
+    "lint:test-quotes": "node scripts/find-quote-fragile-tests.mjs",
     "test:visual": "node --import tsx --test tests/unit/design-system-visual.test.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

@@ -559,6 +559,9 @@ enum ActivityAction {
   TASK_COMPLETED
   TASK_ARCHIVED
   TASK_RESTORED
+  TASK_STALE_REMINDER_SENT
+  TASK_STALE_REMINDER_FAILED
+  TASK_STALE_ESCALATED
   SERVICE_REQUEST_CREATED
   SERVICE_REQUEST_UPDATED
   SERVICE_REQUEST_CONTACTED
@@ -702,6 +705,10 @@ model Company {
   currency       String          @default("JOD")
   timezone       String          @default("Asia/Amman")
   language       String          @default("ar")
+
+  taskStaleReminderDays   Int @default(5)
+  taskStaleEscalationDays Int @default(10)
+
   clients        Client[]
   clientContacts ClientContact[]
   projects       Project[]
@@ -1834,6 +1841,11 @@ model Task {
   startedAt   DateTime?
   completedAt DateTime?
 
+  statusChangedAt     DateTime  @default(now())
+  staleReminderSentAt DateTime?
+  staleEscalatedAt    DateTime?
+  staleReminderCount  Int       @default(0)
+
   participants      TaskParticipant[]
   dependencies      TaskDependency[]          @relation("TaskDependencies")
   dependents        TaskDependency[]          @relation("TaskDependents")
@@ -1855,6 +1867,7 @@ model Task {
   @@index([priority])
   @@index([source])
   @@index([workflowTaskCode])
+  @@index([companyId, status, statusChangedAt])
   @@index([dueDate])
   @@index([createdAt])
 }
